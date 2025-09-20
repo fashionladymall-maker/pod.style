@@ -13,7 +13,8 @@ import MockupScreen from '@/components/screens/mockup-screen';
 import ShippingScreen from '@/components/screens/shipping-screen';
 import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
-import { Menu, ChevronDown } from 'lucide-react';
+import ProfileScreen from '@/components/screens/profile-screen';
+import { Menu, ChevronDown, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation';
+export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile';
 
 const podCategories = [
     { name: "T恤 (T-shirts)" },
@@ -195,9 +196,13 @@ const App = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
           </div>
-          <Avatar className="w-8 h-8">
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">F</AvatarFallback>
-          </Avatar>
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
+            <Avatar className="w-8 h-8">
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                <User size={20} />
+              </AvatarFallback>
+            </Avatar>
+          </Button>
       </header>
     );
 
@@ -242,6 +247,12 @@ const App = () => {
                 isLoading={isLoading} 
             />;
             case 'confirmation': return <ConfirmationScreen onReset={reset} />;
+            case 'profile': return <ProfileScreen
+                patternHistory={patternHistory}
+                modelHistory={modelHistory}
+                onBack={() => setStep('home')}
+                onGoToHistory={goToHistory}
+            />;
             case 'home':
             default:
                 return <HomeScreen
