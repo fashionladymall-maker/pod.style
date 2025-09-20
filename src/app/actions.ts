@@ -1,10 +1,6 @@
 
 "use server";
 
-import { config } from 'dotenv';
-config();
-
-import * as admin from 'firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
