@@ -86,9 +86,11 @@ const App = () => {
             });
 
             const newPattern = result.generatedImage;
-            const newHistoryIndex = patternHistory.length;
+            
+            // Add to history instead of overwriting
             const newPatternHistory = [...patternHistory, newPattern];
             const newModelHistory = [...modelHistory, null];
+            const newHistoryIndex = newPatternHistory.length - 1;
 
             setPatternHistory(newPatternHistory);
             setModelHistory(newModelHistory);
