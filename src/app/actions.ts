@@ -8,6 +8,7 @@ import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { Creation, CreationData } from '@/lib/types';
 import type { Timestamp } from 'firebase-admin/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
 
 // --- Firestore Helper Functions ---
@@ -53,7 +54,6 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
 const getCreations = async (userId: string): Promise<Creation[]> => {
   const querySnapshot = await getCreationsCollection()
     .where("userId", "==", userId)
-    // .orderBy("createdAt", "desc") // This requires a composite index in Firestore.
     .get();
   
   if (querySnapshot.empty) {
@@ -92,25 +92,21 @@ const deleteCreation = async (creationId: string): Promise<void> => {
 
 const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<string> => {
     const bucket = storage.bucket();
-    // e.g. "data:image/png;base64,iVBORw0KGgo..."
-    const match = dataUri.match(/^data:(image\/(\w+));base64,(.+)$/);
-    if (!match) {
-        throw new Error("Invalid Data URI format.");
+    const matches = dataUri.match(/^data:(.+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      throw new Error('Invalid Data URI format');
     }
-    
-    const [, mimeType, fileExtension, base64Data] = match;
+    const mimeType = matches[1];
+    const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');
-    const fileName = `creations/${userId}/${Date.now()}.${fileExtension}`;
+    
+    const fileName = `creations/${userId}/${uuidv4()}`; // 建議的路徑結構
     const file = bucket.file(fileName);
 
     await file.save(buffer, {
-        metadata: {
-            contentType: mimeType,
-        },
+        metadata: { contentType: mimeType },
     });
-
-    // Keeping the file private and returning a reference path is more secure.
-    // To make it accessible, you would typically generate a signed URL on-the-fly when a user needs to view it.
+    
     // For simplicity in this app, we will make it public.
     await file.makePublic();
     return file.publicUrl();
@@ -162,7 +158,7 @@ interface GenerateModelActionInput extends GenerateModelMockupInput {
 export async function generateModelAction(input: GenerateModelActionInput): Promise<Creation> {
   const { creationId, userId, patternDataUri, colorName, category } = input;
   try {
-    // Note: The `generateModelMockup` flow expects a Data URI, but `patternUri` is now a public URL.
+    // Note: The `generateModelMockup` flow expects a Data URI, but `patternDataUri` is now a public URL.
     // For this to work, we'd need to either:
     // 1. Fetch the image content from the public URL and convert it back to a Data URI before passing it to the flow.
     // 2. Modify the `generateModelMockup` flow to accept a public URL directly.

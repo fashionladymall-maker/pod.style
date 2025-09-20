@@ -1,68 +1,35 @@
+// src/lib/firebase-admin.ts
 
-import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app';
+import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
-function loadServiceAccount() {
-  const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (serviceAccountEnv) {
-    try {
-      const decodedServiceAccount =
-        /^[A-Za-z0-9+/=]+$/.test(serviceAccountEnv) && !serviceAccountEnv.trim().startsWith('{')
-          ? Buffer.from(serviceAccountEnv, 'base64').toString('utf8')
-          : serviceAccountEnv;
-      
-      const parsed = JSON.parse(decodedServiceAccount);
-      
-      if (parsed.private_key) {
-        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
-      }
+// 1. 讀取並解析 Service Account
+const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (!serviceAccountString) {
+  throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set or empty.');
+}
+const serviceAccount = JSON.parse(serviceAccountString);
 
-      return parsed;
-    } catch (e: any) {
-      console.error(
-        'Failed to parse FIREBASE_SERVICE_ACCOUNT. Please ensure it is a valid JSON string or a base64 encoded JSON.',
-        e.message
-      );
-      throw new Error('Failed to initialize Firebase Admin SDK: Malformed FIREBASE_SERVICE_ACCOUNT.');
-    }
-  }
-
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-
-  if (projectId && clientEmail && privateKey) {
-     if (privateKey) {
-        privateKey = privateKey.replace(/\\n/g, '\n');
-     }
-    return {
-      projectId,
-      clientEmail,
-      privateKey,
-    };
-  }
-
-  throw new Error(
-    'Firebase Admin credentials are not set. Please set FIREBASE_SERVICE_ACCOUNT or the individual FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY environment variables.'
-  );
+// 2. 讀取 Storage Bucket 名稱
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+if (!storageBucket) {
+  throw new Error('FIREBASE_STORAGE_BUCKET environment variable is not set or empty.');
 }
 
-if (!getApps().length) {
-  try {
-    const serviceAccount = loadServiceAccount();
-    const projectId = serviceAccount.project_id || process.env.FIREBASE_PROJECT_ID;
-    if (!projectId) {
-        throw new Error("Project ID not found in service account or environment variables.");
-    }
-    initializeApp({
-      credential: cert(serviceAccount),
-      storageBucket: `${projectId}.appspot.com`,
-    });
-  } catch (error: any) {
-     throw new Error(`Failed to initialize Firebase Admin SDK: ${error.message}`);
-  }
+// 3. 初始化 Firebase Admin SDK
+// 透過檢查 admin.apps.length 避免在開發環境中重複初始化
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: storageBucket,
+  });
+  console.log('Firebase Admin SDK initialized successfully.');
 }
 
+// 4. 匯出需要的服務，方便在其他地方使用
 export const db = getFirestore();
 export const storage = getStorage();
+
+// 匯出 admin 本身，以備不時之需
+export default admin;
