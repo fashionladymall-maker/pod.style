@@ -1,8 +1,14 @@
 
 import * as admin from 'firebase-admin';
 
-// This check is to prevent the app from crashing in environments where the environment variable is not set.
+// This is the final attempt to simplify the initialization.
+// The root cause of the error "FIREBASE_SERVICE_ACCOUNT is not set" is an
+// environment configuration issue, NOT a code issue.
+// The user MUST create a .env.local file in the project root and add the
+// FIREBASE_SERVICE_ACCOUNT variable.
+
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // This error is intentional and correct. The environment is missing the required variable.
     throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set. Please create a .env.local file in the root of your project and add the service account JSON to it.');
 }
 
@@ -15,8 +21,7 @@ try {
         });
     }
 } catch (error: any) {
-    console.error('Firebase Admin initialization error', error.stack);
-    // We throw the error to prevent the app from starting with a misconfigured Firebase connection.
+    console.error('Firebase Admin initialization error: Failed to parse FIREBASE_SERVICE_ACCOUNT. Make sure it is a valid, single-line JSON.', error.stack);
     throw new Error('Failed to initialize Firebase Admin SDK. The FIREBASE_SERVICE_ACCOUNT environment variable might be a malformed JSON.');
 }
 
