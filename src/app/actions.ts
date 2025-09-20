@@ -7,7 +7,7 @@ import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-patt
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
-import { Creation, CreationData } from '@/lib/types';
+import { Creation, CreationData, Model } from '@/lib/types';
 import type { Timestamp } from 'firebase-admin/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,10 +23,8 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     userId: data.userId,
     prompt: data.prompt,
     style: data.style,
-    category: data.category,
     patternUri: data.patternUri,
-    modelUri: data.modelUri || null,
-    // The toDate() method is available on the admin Timestamp object
+    models: data.models || [],
     createdAt: data.createdAt.toDate().toISOString(), 
   };
 };
@@ -35,14 +33,13 @@ interface AddCreationData {
     userId: string;
     prompt: string;
     style: string;
-    category: string;
     patternUri: string;
 }
 
 const addCreation = async (data: AddCreationData): Promise<Creation> => {
   const creationData: CreationData = {
     ...data,
-    modelUri: null,
+    models: [],
     createdAt: admin.firestore.Timestamp.now(),
   };
   const docRef = await db.collection("creations").add(creationData);
@@ -61,21 +58,22 @@ const getCreations = async (userId: string): Promise<Creation[]> => {
 
   const creations = querySnapshot.docs.map(docToCreation);
 
-  // Sort the creations in memory instead.
   creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return creations;
 };
 
-const updateCreationModel = async (creationId: string, modelUri: string, category: string): Promise<Creation> => {
+const addModelToCreation = async (creationId: string, newModel: Model): Promise<Creation> => {
   const creationRef = getCreationsCollection().doc(creationId);
   
   const docSnap = await creationRef.get();
   if (!docSnap.exists) {
-    throw new Error("Creation not found. Cannot update model.");
+    throw new Error("Creation not found. Cannot add model.");
   }
 
-  await creationRef.update({ modelUri, category });
+  await creationRef.update({
+    models: admin.firestore.FieldValue.arrayUnion(newModel)
+  });
   
   const updatedDoc = await creationRef.get();
   return docToCreation(updatedDoc);
@@ -83,6 +81,27 @@ const updateCreationModel = async (creationId: string, modelUri: string, categor
 
 const deleteCreation = async (creationId: string): Promise<void> => {
   const creationRef = getCreationsCollection().doc(creationId);
+  const doc = await creationRef.get();
+  if (!doc.exists) return;
+
+  const creation = docToCreation(doc);
+  const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
+  const bucket = storage.bucket();
+  
+  const deletePromises = fileUris.map(uri => {
+    try {
+      const url = new URL(uri);
+      const filePath = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
+      if (filePath) {
+        return bucket.file(filePath).delete().catch(err => console.warn(`Failed to delete ${filePath}:`, err.message));
+      }
+    } catch(e) {
+      console.warn(`Invalid URI for deletion: ${uri}`);
+    }
+    return Promise.resolve();
+  });
+  
+  await Promise.all(deletePromises);
   await creationRef.delete();
 };
 
@@ -106,17 +125,19 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
         metadata: { contentType: mimeType },
     });
     
+    // Return a public URL. Make sure bucket has correct permissions.
+    // e.g., make objects public by default or set up signed URLs.
+    // For simplicity, we'll use a public URL.
     return file.publicUrl();
 };
 
 
-interface GeneratePatternActionInput extends GenerateTShirtPatternWithStyleInput {
+interface GeneratePatternActionInput extends Omit<GenerateTShirtPatternWithStyleInput, 'category'> {
   userId: string;
-  category: string;
 }
 
 export async function generatePatternAction(input: GeneratePatternActionInput): Promise<Creation> {
-  const { userId, prompt, inspirationImage, style, category } = input;
+  const { userId, prompt, inspirationImage, style } = input;
   try {
     const result = await generateTShirtPatternWithStyle({
         prompt,
@@ -133,7 +154,6 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
         userId,
         prompt,
         style: style || 'None',
-        category,
         patternUri: publicUrl,
     });
 
@@ -172,7 +192,12 @@ export async function generateModelAction(input: GenerateModelActionInput): Prom
     
     const modelUrl = await uploadDataUriToStorage(result.modelImageUri, userId);
 
-    const updatedCreation = await updateCreationModel(creationId, modelUrl, category);
+    const newModel: Model = {
+        uri: modelUrl,
+        category: category,
+    };
+
+    const updatedCreation = await addModelToCreation(creationId, newModel);
     return updatedCreation;
 
   } catch (error) {

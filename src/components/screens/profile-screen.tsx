@@ -22,7 +22,7 @@ interface ProfileScreenProps {
   user: FirebaseUser | null;
   creations: Creation[];
   onBack: () => void;
-  onGoToHistory: (index: number) => void;
+  onGoToHistory: (creationIndex: number, modelIndex?: number) => void;
   onSignOut: () => void;
   onDeleteCreation: (creationId: string) => void;
 }
@@ -36,10 +36,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onDeleteCreation,
 }) => {
 
-  const allCreations = creations.flatMap((creation, index) => {
-    const items = [{ type: 'pattern' as const, url: creation.patternUri, index, creationId: creation.id }];
-    if (creation.modelUri) {
-      items.push({ type: 'model' as const, url: creation.modelUri, index, creationId: creation.id });
+  const allItems = creations.flatMap((creation, creationIndex) => {
+    const items = [{ 
+      type: 'pattern' as const, 
+      url: creation.patternUri, 
+      creationIndex, 
+      modelIndex: -1,
+      id: `${creation.id}-pattern`
+    }];
+    if (creation.models && creation.models.length > 0) {
+      creation.models.forEach((model, modelIndex) => {
+        items.push({ 
+          type: 'model' as const, 
+          url: model.uri, 
+          creationIndex,
+          modelIndex,
+          id: `${creation.id}-model-${modelIndex}`
+        });
+      });
     }
     return items;
   });
@@ -71,18 +85,40 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
 
         <div className="p-4">
-            <h3 className="text-lg font-semibold mb-4 px-2">我的创作</h3>
+            <div className="flex justify-between items-center mb-4 px-2">
+              <h3 className="text-lg font-semibold">我的创作</h3>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                   <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                      <Trash2 size={16} className="mr-2"/>
+                      全部删除
+                   </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>确定要删除全部创作吗?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      此操作无法撤销。这将从我们的服务器上永久删除您的所有作品。
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => creations.forEach(c => onDeleteCreation(c.id))}>全部删除</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
             {creations.length > 0 ? (
                 <div className="columns-2 gap-4 space-y-4">
                 {creations.map((creation, index) => (
-                    <div key={creation.id} className="relative group/creation">
+                    <div key={creation.id} className="relative group/creation break-inside-avoid">
                       <button
                           onClick={() => onGoToHistory(index)}
                           className="block w-full overflow-hidden rounded-lg transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
                       >
                       <Image
-                          src={creation.patternUri}
-                          alt={`创意图案 ${creation.id}`}
+                          src={creation.models[0]?.uri || creation.patternUri}
+                          alt={`创意 ${creation.id}`}
                           width={200}
                           height={200}
                           className="w-full h-auto object-cover"

@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Model } from '@/lib/types';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 
@@ -23,12 +24,6 @@ import { Menu, ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'categorySelection' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
@@ -113,6 +108,7 @@ const App = () => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [creations, setCreations]  = useState<Creation[]>([]);
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
+    const [activeModelIndex, setActiveModelIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [loadingText, setLoadingText] = useState('');
@@ -162,18 +158,17 @@ const App = () => {
 
         try {
             const styleValue = selectedStyle.split(' ')[0];
-            // Category is now selected AFTER pattern generation. Pass an empty string for now.
             const newCreation = await generatePatternAction({
                 userId: user.uid,
                 prompt,
                 inspirationImage: uploadedImage ?? undefined,
                 style: styleValue !== '无' ? styleValue : undefined,
-                category: '', 
             });
 
             const updatedCreations = [newCreation, ...creations];
             setCreations(updatedCreations);
             setActiveCreationIndex(0);
+            setActiveModelIndex(-1);
             setStep('patternPreview');
         } catch (err: any) {
             console.error(err);
@@ -208,6 +203,8 @@ const App = () => {
                 index === activeCreationIndex ? updatedCreation : c
             );
             setCreations(updatedCreations);
+            // Set the active model to the newly created one
+            setActiveModelIndex(updatedCreation.models.length - 1);
             setStep('mockup');
         } catch (err: any) {
             console.error(err);
@@ -238,24 +235,45 @@ const App = () => {
         }
     }, [creations, toast, step]);
 
-    const navigateHistory = (direction: number) => {
+    const navigateCreationHistory = (direction: number) => {
         const newIndex = activeCreationIndex + direction;
         if (newIndex >= 0 && newIndex < creations.length) {
             setActiveCreationIndex(newIndex);
+            setActiveModelIndex(-1); // Reset model index when changing creation
             const newCreation = creations[newIndex];
-            if (step === 'mockup' && !newCreation.modelUri) {
-                // If we are on the mockup screen but the new creation doesn't have a model, go to category selection first
+             if (step === 'mockup' && newCreation.models.length === 0) {
                 setStep('categorySelection');
+            } else if (newCreation.models.length > 0) {
+                 setActiveModelIndex(0);
+                 setStep('mockup');
+            } else {
+                setStep('patternPreview');
             }
         }
     };
+    
+    const navigateModelHistory = (direction: number) => {
+        const activeCreation = creations[activeCreationIndex];
+        if (!activeCreation) return;
+        
+        const newIndex = activeModelIndex + direction;
+         if (newIndex >= 0 && newIndex < activeCreation.models.length) {
+            setActiveModelIndex(newIndex);
+        }
+    }
 
-    const goToHistory = (index: number) => {
-        setActiveCreationIndex(index);
-        const creation = creations[index];
-        if (creation.modelUri) {
+
+    const goToHistory = (creationIndex: number, modelIndex: number = -1) => {
+        setActiveCreationIndex(creationIndex);
+        const creation = creations[creationIndex];
+        if (modelIndex !== -1 && creation.models[modelIndex]) {
+            setActiveModelIndex(modelIndex);
+            setStep('mockup');
+        } else if (creation.models.length > 0) {
+            setActiveModelIndex(0);
             setStep('mockup');
         } else {
+            setActiveModelIndex(-1);
             setStep('patternPreview');
         }
     };
@@ -287,6 +305,7 @@ const App = () => {
         setUploadedImage(null);
         setCreations([]);
         setActiveCreationIndex(-1);
+        setActiveModelIndex(-1);
         setOrderDetails({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
@@ -341,6 +360,7 @@ const App = () => {
         }
         
         const activeCreation = creations[activeCreationIndex];
+        const activeModel = activeCreation?.models[activeModelIndex];
 
         switch (step) {
             case 'login': return <LoginScreen />;
@@ -348,24 +368,27 @@ const App = () => {
             case 'patternPreview': return <PatternPreviewScreen 
                 generatedPattern={activeCreation?.patternUri}
                 onBack={() => setStep('home')} 
-                historyIndex={activeCreationIndex} 
-                totalHistory={creations.length} 
-                onNavigate={navigateHistory} 
+                creationHistoryIndex={activeCreationIndex} 
+                totalCreations={creations.length} 
+                onNavigateCreations={navigateCreationHistory} 
                 isModelGenerating={isLoading}
                 onGoToModel={() => setStep('categorySelection')} 
             />;
             case 'categorySelection': return <CategorySelectionScreen />;
             case 'mockup': return <MockupScreen 
-                modelImage={activeCreation?.modelUri}
+                modelImage={activeModel?.uri}
                 orderDetails={orderDetails} 
                 setOrderDetails={setOrderDetails} 
                 handleQuantityChange={handleQuantityChange} 
                 onNext={() => setStep('shipping')} 
                 onBack={() => setStep('categorySelection')} 
-                historyIndex={activeCreationIndex} 
-                totalHistory={creations.length} 
-                onNavigate={navigateHistory}
-                category={activeCreation?.category || ''}
+                creationHistoryIndex={activeCreationIndex} 
+                totalCreations={creations.length} 
+                onNavigateCreations={navigateCreationHistory}
+                modelHistoryIndex={activeModelIndex}
+                totalModels={activeCreation?.models.length || 0}
+                onNavigateModels={navigateModelHistory}
+                category={activeModel?.category || ''}
             />;
             case 'shipping': return <ShippingScreen 
                 shippingInfo={shippingInfo} 
@@ -410,7 +433,7 @@ const App = () => {
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
-                <div key={`${step}-${activeCreationIndex}`} className="h-full flex flex-col">
+                <div key={`${step}-${activeCreationIndex}-${activeModelIndex}`} className="h-full flex flex-col">
                     {step !== 'login' && step !== 'categorySelection' && <AppHeader/>}
                     <div className="flex-grow overflow-y-auto">
                         {renderStep()}
@@ -422,5 +445,3 @@ const App = () => {
 };
 
 export default App;
-
-    

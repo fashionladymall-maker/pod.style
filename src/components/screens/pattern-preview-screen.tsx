@@ -10,9 +10,9 @@ import { useSwipe } from '@/hooks/use-swipe';
 interface PatternPreviewScreenProps {
   generatedPattern: string | undefined;
   onBack: () => void;
-  historyIndex: number;
-  totalHistory: number;
-  onNavigate: (direction: number) => void;
+  creationHistoryIndex: number;
+  totalCreations: number;
+  onNavigateCreations: (direction: number) => void;
   isModelGenerating: boolean;
   onGoToModel: () => void;
 }
@@ -20,13 +20,13 @@ interface PatternPreviewScreenProps {
 const PatternPreviewScreen = ({
   generatedPattern,
   onBack,
-  historyIndex,
-  totalHistory,
-  onNavigate,
+  creationHistoryIndex,
+  totalCreations,
+  onNavigateCreations,
   isModelGenerating,
   onGoToModel,
 }: PatternPreviewScreenProps) => {
-  const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigate(1), onSwipeRight: () => onNavigate(-1) });
+  const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigateCreations(1), onSwipeRight: () => onNavigateCreations(-1) });
 
   return (
     <div className="relative h-full w-full bg-secondary flex flex-col animate-fade-in" {...swipeHandlers}>
@@ -46,7 +46,12 @@ const PatternPreviewScreen = ({
         <div className="w-10 h-10"></div>
       </div>
       
-      <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
+      <HistoryNavigator 
+        currentIndex={creationHistoryIndex} 
+        total={totalCreations} 
+        onNavigate={onNavigateCreations} 
+        variant="creation"
+      />
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/50 to-transparent text-center">
         <Button onClick={onGoToModel} disabled={isModelGenerating || !generatedPattern} className="w-full rounded-full h-12">
@@ -59,5 +64,3 @@ const PatternPreviewScreen = ({
 };
 
 export default PatternPreviewScreen;
-
-    

@@ -17,20 +17,28 @@ interface MockupScreenProps {
   handleQuantityChange: (amount: number) => void;
   onNext: () => void;
   onBack: () => void;
-  historyIndex: number;
-  totalHistory: number;
-  onNavigate: (direction: number) => void;
+  creationHistoryIndex: number;
+  totalCreations: number;
+  onNavigateCreations: (direction: number) => void;
+  modelHistoryIndex: number;
+  totalModels: number;
+  onNavigateModels: (direction: number) => void;
   category: string;
 }
 
 const MockupScreen = ({
   modelImage, orderDetails, setOrderDetails, handleQuantityChange,
-  onNext, onBack, historyIndex, totalHistory, onNavigate, category
+  onNext, onBack, creationHistoryIndex, totalCreations, onNavigateCreations,
+  modelHistoryIndex, totalModels, onNavigateModels, category
 }: MockupScreenProps) => {
-  const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigate(1), onSwipeRight: () => onNavigate(-1) });
+  const swipeHandlers = useSwipe({ 
+      onSwipeLeft: () => totalModels > 1 ? onNavigateModels(1) : onNavigateCreations(1), 
+      onSwipeRight: () => totalModels > 1 ? onNavigateModels(-1) : onNavigateCreations(-1) 
+  });
+  
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
   const isApparel = category.includes("T-shirts") || category.includes("Hoodies") || category.includes("Sweatshirts");
-  const price = 129; // Assuming a fixed price for now
+  const price = 129; 
 
   return (
     <div className="relative flex flex-col h-full bg-muted" {...swipeHandlers}>
@@ -43,7 +51,21 @@ const MockupScreen = ({
          <Button onClick={onBack} variant="ghost" size="icon" className="absolute top-4 left-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
       </div>
       
-      <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
+      {totalModels > 1 && (
+        <HistoryNavigator 
+          currentIndex={modelHistoryIndex} 
+          total={totalModels} 
+          onNavigate={onNavigateModels} 
+          variant="model"
+        />
+      )}
+      
+      <HistoryNavigator 
+        currentIndex={creationHistoryIndex} 
+        total={totalCreations} 
+        onNavigate={onNavigateCreations} 
+        variant="creation"
+      />
 
       <div className="bg-background rounded-t-2xl shadow-lg p-6 pt-5 flex-shrink-0">
           <div className="text-2xl font-bold mb-4">¥ {price}</div>
@@ -86,5 +108,3 @@ const MockupScreen = ({
 };
 
 export default MockupScreen;
-
-    

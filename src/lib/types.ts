@@ -22,6 +22,12 @@ export interface PaymentInfo {
 
 export type FirebaseUser = FirebaseUserType;
 
+export interface Model {
+    uri: string;
+    category: string;
+}
+
+
 // This is the object shape that the client-side components will receive.
 // Note that 'createdAt' is a string because Timestamp objects are not serializable.
 export interface Creation {
@@ -29,9 +35,8 @@ export interface Creation {
     userId: string;
     prompt: string;
     style: string;
-    category: string;
     patternUri: string;
-    modelUri: string | null;
+    models: Model[];
     createdAt: string; 
 }
 
@@ -41,8 +46,7 @@ export interface CreationData {
     userId: string;
     prompt: string;
     style: string;
-    category: string;
     patternUri: string;
-    modelUri: string | null;
+    models: Model[];
     createdAt: AdminTimestamp;
 }
