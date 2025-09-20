@@ -1,13 +1,14 @@
 
 "use server";
 
+import { getDb } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { Creation, CreationData } from '@/lib/types';
-import { Timestamp } from 'firebase-admin/firestore';
-import { getDb } from '@/lib/firebase-admin';
+import type { Timestamp } from 'firebase-admin/firestore';
+
 
 // --- Firestore Helper Functions ---
 
@@ -23,7 +24,8 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     category: data.category,
     patternUri: data.patternUri,
     modelUri: data.modelUri || null,
-    createdAt: data.createdAt.toDate().toISOString(),
+    // The toDate() method is available on the admin Timestamp object
+    createdAt: data.createdAt.toDate().toISOString(), 
   };
 };
 
@@ -36,21 +38,31 @@ interface AddCreationData {
 }
 
 const addCreation = async (data: AddCreationData): Promise<Creation> => {
+  const db = getDb();
+  // We need to import the Timestamp from firebase-admin/firestore
+  const { Timestamp } = await import('firebase-admin/firestore');
   const creationData: CreationData = {
     ...data,
     modelUri: null,
     createdAt: Timestamp.now(),
   };
-  const docRef = await getCreationsCollection().add(creationData);
+  const docRef = await db.collection("creations").add(creationData);
   const newDoc = await docRef.get();
   return docToCreation(newDoc);
 };
 
 const getCreations = async (userId: string): Promise<Creation[]> => {
-  const querySnapshot = await getCreationsCollection().where("userId", "==", userId).get();
-  const creations = querySnapshot.docs.map(docToCreation);
+  const querySnapshot = await getCreationsCollection()
+    .where("userId", "==", userId)
+    .orderBy("createdAt", "desc")
+    .get();
   
-  return creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  if (querySnapshot.empty) {
+    return [];
+  }
+
+  const creations = querySnapshot.docs.map(docToCreation);
+  return creations;
 };
 
 const updateCreationModel = async (creationId: string, modelUri: string): Promise<Creation> => {
