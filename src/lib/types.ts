@@ -35,6 +35,7 @@ export interface Creation {
     userId: string;
     prompt: string;
     style: string;
+    summary?: string;
     patternUri: string;
     models: Model[];
     createdAt: string; 
@@ -46,6 +47,7 @@ export interface CreationData {
     userId: string;
     prompt: string;
     style: string;
+    summary?: string;
     patternUri: string;
     models: Model[];
     createdAt: Timestamp | { _seconds: number; _nanoseconds: number }; // Allow for raw object from client

@@ -7,6 +7,7 @@ import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-patt
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
+import { summarizePrompt } from '@/ai/flows/summarize-prompt';
 import { Creation, CreationData, Model } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,6 +28,7 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     userId: data.userId,
     prompt: data.prompt,
     style: data.style,
+    summary: data.summary,
     patternUri: data.patternUri,
     models: data.models || [],
     createdAt: createdAt,
@@ -37,6 +39,7 @@ interface AddCreationData {
     userId: string;
     prompt: string;
     style: string;
+    summary?: string;
     patternUri: string;
 }
 
@@ -137,22 +140,27 @@ interface GeneratePatternActionInput extends Omit<GenerateTShirtPatternWithStyle
 export async function generatePatternAction(input: GeneratePatternActionInput): Promise<Creation> {
   const { userId, prompt, inspirationImage, style } = input;
   try {
-    const result = await generateTShirtPatternWithStyle({
-        prompt,
-        inspirationImage,
-        style,
-    });
-    if (!result.generatedImage) {
+    const [patternResult, summaryResult] = await Promise.all([
+        generateTShirtPatternWithStyle({
+            prompt,
+            inspirationImage,
+            style,
+        }),
+        summarizePrompt({ prompt })
+    ]);
+
+    if (!patternResult.generatedImage) {
         throw new Error('The AI failed to return an image. This might be due to a safety policy violation.');
     }
     
-    const publicUrl = await uploadDataUriToStorage(result.generatedImage, userId);
+    const publicUrl = await uploadDataUriToStorage(patternResult.generatedImage, userId);
 
     const newCreation = await addCreation({
         userId,
         prompt,
         style: style || 'None',
         patternUri: publicUrl,
+        summary: summaryResult.summary,
     });
 
     return newCreation;
@@ -230,7 +238,7 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
         console.error('Error in getCreationsAction:', error);
         if (error instanceof Error) throw error;
         throw new Error(String(error));
-    }
+  }
 }
 
 export async function deleteCreationAction(creationId: string): Promise<{ success: boolean }> {

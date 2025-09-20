@@ -420,7 +420,7 @@ const App = () => {
             case 'login': return <LoginScreen />;
             case 'generating': return <LoadingScreen text={loadingText} />;
             case 'patternPreview': return <PatternPreviewScreen 
-                generatedPattern={activeCreation?.patternUri}
+                creation={activeCreation}
                 onBack={() => setStep('home')} 
                 creationHistoryIndex={activeCreationIndex} 
                 totalCreations={creations.length} 
@@ -432,6 +432,7 @@ const App = () => {
             case 'mockup': return <MockupScreen 
                 modelImage={activeModel?.uri}
                 models={activeCreation?.models || []}
+                creation={activeCreation}
                 orderDetails={orderDetails} 
                 setOrderDetails={setOrderDetails} 
                 handleQuantityChange={handleQuantityChange} 

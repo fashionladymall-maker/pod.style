@@ -6,9 +6,10 @@ import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HistoryNavigator from '@/components/ui/history-navigator';
 import { useSwipe } from '@/hooks/use-swipe';
+import type { Creation } from '@/lib/types';
 
 interface PatternPreviewScreenProps {
-  generatedPattern: string | undefined;
+  creation: Creation | undefined;
   onBack: () => void;
   creationHistoryIndex: number;
   totalCreations: number;
@@ -18,7 +19,7 @@ interface PatternPreviewScreenProps {
 }
 
 const PatternPreviewScreen = ({
-  generatedPattern,
+  creation,
   onBack,
   creationHistoryIndex,
   totalCreations,
@@ -27,7 +28,8 @@ const PatternPreviewScreen = ({
   onGoToModel,
 }: PatternPreviewScreenProps) => {
   const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigateCreations(1), onSwipeRight: () => onNavigateCreations(-1) });
-
+  const generatedPattern = creation?.patternUri;
+  
   return (
     <div className="relative h-full w-full bg-secondary flex flex-col animate-fade-in" {...swipeHandlers}>
       {generatedPattern ? (
@@ -46,14 +48,17 @@ const PatternPreviewScreen = ({
         <div className="w-10 h-10"></div>
       </div>
       
-      <HistoryNavigator 
-        currentIndex={creationHistoryIndex} 
-        total={totalCreations} 
-        onNavigate={onNavigateCreations} 
-        variant="creation"
-      />
+      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full px-4">
+        <HistoryNavigator 
+          currentIndex={creationHistoryIndex} 
+          total={totalCreations} 
+          onNavigate={onNavigateCreations} 
+          variant="creation"
+          summary={creation?.summary}
+        />
+      </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/50 to-transparent text-center">
+      <div className="absolute bottom-6 left-0 right-0 z-10 px-6 text-center">
         <Button onClick={onGoToModel} disabled={isModelGenerating || !generatedPattern} className="w-full rounded-full h-12">
             {isModelGenerating ? <Loader2 className="animate-spin mr-2" size={20} /> : <Sparkles className="mr-2" size={20} />}
             <span>{isModelGenerating ? '正在生成效果图...' : '查看POD商品效果图'}</span>

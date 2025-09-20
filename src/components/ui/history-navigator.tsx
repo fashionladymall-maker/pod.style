@@ -7,10 +7,13 @@ interface HistoryNavigatorProps {
   total: number;
   onNavigate: (direction: number) => void;
   variant?: 'creation' | 'model';
+  summary?: string;
 }
 
-const HistoryNavigator = ({ currentIndex, total, onNavigate, variant = 'creation' }: HistoryNavigatorProps) => {
+const HistoryNavigator = ({ currentIndex, total, onNavigate, variant = 'creation', summary }: HistoryNavigatorProps) => {
   if (total <= 1) return null;
+  
+  const label = summary ? summary : `${variant === 'creation' ? '创意' : '商品'} ${currentIndex + 1} / ${total}`;
 
   return (
     <div className={cn("flex justify-center items-center space-x-2 animate-fade-in-up", variant === 'model' && 'z-20')}>
@@ -25,7 +28,7 @@ const HistoryNavigator = ({ currentIndex, total, onNavigate, variant = 'creation
         <ArrowLeft size={20} />
       </Button>
       <span className="text-sm font-medium text-foreground bg-background/70 px-4 py-2 rounded-full border shadow-sm">
-        {variant === 'creation' ? '创意' : '商品'} {currentIndex + 1} / {total}
+        {label}
       </span>
       <Button
         onClick={() => onNavigate(1)}

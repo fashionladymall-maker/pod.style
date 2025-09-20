@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ArrowLeft, ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HistoryNavigator from '@/components/ui/history-navigator';
-import type { Model, OrderDetails } from '@/lib/types';
+import type { Model, OrderDetails, Creation } from '@/lib/types';
 import { useSwipe } from '@/hooks/use-swipe';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -14,6 +14,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 interface MockupScreenProps {
   modelImage: string | null | undefined;
   models: Model[];
+  creation: Creation | undefined;
   orderDetails: OrderDetails;
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;
@@ -29,7 +30,7 @@ interface MockupScreenProps {
 }
 
 const MockupScreen = ({
-  modelImage, models, orderDetails, setOrderDetails, handleQuantityChange,
+  modelImage, models, creation, orderDetails, setOrderDetails, handleQuantityChange,
   onNext, onBack, creationHistoryIndex, totalCreations, onNavigateCreations,
   modelHistoryIndex, onSelectModel, category, onRegenerate
 }: MockupScreenProps) => {
@@ -67,6 +68,7 @@ const MockupScreen = ({
           total={totalCreations} 
           onNavigate={onNavigateCreations} 
           variant="creation"
+          summary={creation?.summary}
         />
       </div>
 
