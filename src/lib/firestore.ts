@@ -52,13 +52,17 @@ export const addCreation = async (data: AddCreationData): Promise<Creation> => {
 
 // Get all creations for a user
 export const getCreations = async (userId: string): Promise<Creation[]> => {
-  // The where clause was removed to avoid needing a composite index in Firestore.
-  // Filtering is now done in the code. This is less efficient at very large scale
-  // but avoids a manual configuration step for the user.
-  const q = query(creationsCollection, orderBy("createdAt", "desc"));
+  // We fetch all creations and then filter and sort in code.
+  // This is less efficient at scale but avoids needing a composite index in Firestore,
+  // which is a common setup issue for new users.
+  const q = query(creationsCollection);
   const querySnapshot = await getDocs(q);
   const allCreations = querySnapshot.docs.map(doc => docToCreation(doc));
-  return allCreations.filter(creation => creation.userId === userId);
+  
+  // Filter by user and then sort by date
+  return allCreations
+    .filter(creation => creation.userId === userId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 // Update a creation with a model URI
