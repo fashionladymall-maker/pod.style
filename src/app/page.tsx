@@ -257,14 +257,10 @@ const App = () => {
         }
     };
     
-    const navigateModelHistory = (direction: number) => {
-        const activeCreation = creations[activeCreationIndex];
-        if (!activeCreation) return;
-        
-        const newIndex = activeModelIndex + direction;
-         if (newIndex >= 0 && newIndex < activeCreation.models.length) {
-            setActiveModelIndex(newIndex);
-        }
+    const selectModel = (index: number) => {
+      if (index >=0 && creations[activeCreationIndex]?.models[index]) {
+        setActiveModelIndex(index);
+      }
     }
 
 
@@ -382,6 +378,7 @@ const App = () => {
             case 'categorySelection': return <CategorySelectionScreen />;
             case 'mockup': return <MockupScreen 
                 modelImage={activeModel?.uri}
+                models={activeCreation?.models || []}
                 orderDetails={orderDetails} 
                 setOrderDetails={setOrderDetails} 
                 handleQuantityChange={handleQuantityChange} 
@@ -394,8 +391,7 @@ const App = () => {
                 totalCreations={creations.length} 
                 onNavigateCreations={navigateCreationHistory}
                 modelHistoryIndex={activeModelIndex}
-                totalModels={activeCreation?.models.length || 0}
-                onNavigateModels={navigateModelHistory}
+                onSelectModel={selectModel}
                 category={activeModel?.category || ''}
                 onRegenerate={() => setStep('categorySelection')}
             />;
