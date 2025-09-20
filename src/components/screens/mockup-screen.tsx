@@ -77,7 +77,7 @@ const MockupScreen = ({
           <div className="flex justify-between items-center mb-4">
             <div className="text-2xl font-bold">¥ {price}</div>
             
-            {models && models.length > 1 && (
+            {models && models.length > 0 && (
               <ScrollArea className="max-w-[70%] whitespace-nowrap rounded-md">
                 <div className="flex w-max space-x-2">
                   {models.map((model, index) => (
