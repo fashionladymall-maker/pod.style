@@ -20,7 +20,7 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   // Firestore Timestamps need to be converted to a serializable format (ISO string)
   const createdAt = data.createdAt instanceof admin.firestore.Timestamp 
     ? data.createdAt.toDate().toISOString() 
-    : new Date(data.createdAt._seconds * 1000).toISOString();
+    : new Date((data.createdAt as any)._seconds * 1000).toISOString();
 
   return {
     id: doc.id,
@@ -213,7 +213,6 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("userId", "==", userId)
-            .orderBy("createdAt", "desc")
             .get();
         
         if (querySnapshot.empty) {
@@ -221,6 +220,10 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
         }
 
         const creations = querySnapshot.docs.map(docToCreation);
+        
+        // Sort in-memory after fetching
+        creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
         return creations;
 
     } catch (error) {
