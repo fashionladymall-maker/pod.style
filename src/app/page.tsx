@@ -13,6 +13,8 @@ import MockupScreen from '@/components/screens/mockup-screen';
 import ShippingScreen from '@/components/screens/shipping-screen';
 import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
+import { Menu, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation';
 
@@ -85,7 +87,7 @@ const App = () => {
 
             const updatedModelHistory = [...modelHistory];
             updatedModelHistory[historyIndex] = result.modelImageUri;
-            setModelHistory(updatedModelHistory);
+setModelHistory(updatedModelHistory);
             setStep('mockup');
         } catch (err: any) {
             console.error(err);
@@ -98,8 +100,9 @@ const App = () => {
 
     useEffect(() => {
         if (step === 'patternPreview' && patternHistory[historyIndex] && !modelHistory[historyIndex]) {
-            const timer = setTimeout(() => { handleGenerateModel(); }, 3500);
-            return () => clearTimeout(timer);
+            // No automatic model generation for now
+            // const timer = setTimeout(() => { handleGenerateModel(); }, 3500);
+            // return () => clearTimeout(timer);
         }
     }, [step, historyIndex, patternHistory, modelHistory, handleGenerateModel]);
 
@@ -140,6 +143,16 @@ const App = () => {
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
     };
+    
+    const AppHeader = () => (
+      <header className="flex items-center justify-between p-4 bg-background">
+          <Button variant="ghost" size="icon"><Menu /></Button>
+          <h1 className="text-xl font-medium">AI T恤</h1>
+          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+            F
+          </div>
+      </header>
+    );
 
     const renderStep = () => {
         const generatedPattern = patternHistory[historyIndex];
@@ -154,8 +167,8 @@ const App = () => {
                 historyIndex={historyIndex} 
                 totalHistory={patternHistory.length} 
                 onNavigate={navigateHistory} 
-                isModelGenerating={isModelGenerating}
-                onGoToModel={() => setStep('mockup')} 
+                isModelGenerating={isLoading}
+                onGoToModel={handleGenerateModel} 
             />;
             case 'mockup': return <MockupScreen 
                 modelImage={modelImage} 
@@ -198,10 +211,13 @@ const App = () => {
     };
 
     return (
-        <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-card rounded-lg shadow-2xl shadow-primary/20 overflow-hidden relative border-2 border-primary/50" style={{ height: '85vh', minHeight: '650px' }}>
+        <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
+            <div className="w-full max-w-md bg-card overflow-hidden" style={{ height: '100dvh' }}>
                 <div key={`${step}-${historyIndex}`} className="h-full flex flex-col">
-                    {renderStep()}
+                    <AppHeader/>
+                    <div className="flex-grow overflow-y-auto">
+                        {renderStep()}
+                    </div>
                 </div>
             </div>
         </main>

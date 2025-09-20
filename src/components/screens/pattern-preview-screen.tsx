@@ -28,29 +28,30 @@ const PatternPreviewScreen = ({
   const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigate(1), onSwipeRight: () => onNavigate(-1) });
 
   return (
-    <div className="relative h-full w-full bg-background animate-fade-in" {...swipeHandlers}>
-      {generatedPattern && (
-          <div className="w-full h-full flex items-center justify-center p-8 animate-scale-in">
-            <Image src={generatedPattern} alt="生成的创意图案" width={500} height={500} className="max-w-full max-h-full object-contain rounded-md shadow-2xl shadow-accent/20" />
-          </div>
-      )}
-      <div className="absolute top-0 left-0 right-0 p-4 flex items-center bg-gradient-to-b from-black/80 to-transparent animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-        <Button onClick={onBack} variant="ghost" size="icon" className="rounded-sm bg-black/30 hover:bg-black/60 text-primary transition-colors transform hover:scale-110"><ArrowLeft size={20} /></Button>
-        <h2 className="text-xl font-bold mx-auto text-white tracking-widest" style={{ textShadow: '0 0 5px rgba(0,0,0,0.7)' }}>第一步：创意图案</h2>
-        <div className="w-9 h-9"></div>
+    <div className="relative h-full w-full bg-secondary flex flex-col animate-fade-in" {...swipeHandlers}>
+       <div className="flex items-center p-4 border-b bg-background">
+        <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full"><ArrowLeft size={20} /></Button>
+        <h2 className="text-xl font-medium mx-auto">创意图案</h2>
+        <div className="w-10 h-10"></div>
       </div>
-      <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
-      <div className="absolute bottom-0 left-0 right-0 p-6 pt-12 bg-gradient-to-t from-black/90 to-transparent text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-        {isModelGenerating ? (
-          <div className="flex items-center justify-center mt-2 text-gray-300 h-11">
-            <Loader2 className="animate-spin mr-2 text-primary" size={16} /> <span>正在为您生成模特试穿图...</span>
+      
+      {generatedPattern ? (
+          <div className="flex-grow w-full flex items-center justify-center p-8 animate-scale-in">
+            <Image src={generatedPattern} alt="生成的创意图案" width={500} height={500} className="max-w-full max-h-full object-contain rounded-lg shadow-lg" />
           </div>
-        ) : (
-          <Button onClick={onGoToModel} className="cyber-button w-full h-11">
-            <Sparkles className="mr-2" size={20} />
-            <span>查看模特效果</span>
-          </Button>
-        )}
+      ): (
+        <div className="flex-grow flex items-center justify-center">
+            <Loader2 className="animate-spin text-blue-500" size={48} />
+        </div>
+      )}
+
+      <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
+
+      <div className="p-6 bg-background border-t text-center">
+        <Button onClick={onGoToModel} disabled={isModelGenerating} className="w-full rounded-full h-12">
+            {isModelGenerating ? <Loader2 className="animate-spin mr-2" size={20} /> : <Sparkles className="mr-2" size={20} />}
+            <span>{isModelGenerating ? '正在生成模特图...' : '查看模特效果'}</span>
+        </Button>
       </div>
     </div>
   );

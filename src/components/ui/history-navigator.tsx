@@ -11,29 +11,29 @@ const HistoryNavigator = ({ currentIndex, total, onNavigate }: HistoryNavigatorP
   if (total <= 1) return null;
 
   return (
-    <div className="absolute bottom-24 left-0 right-0 flex justify-center items-center space-x-4 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex justify-center items-center space-x-2 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
       <Button
         onClick={() => onNavigate(-1)}
         disabled={currentIndex === 0}
-        variant="ghost"
+        variant="secondary"
         size="icon"
-        className="rounded-sm bg-black/50 hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110 text-primary"
+        className="rounded-full bg-background/70 hover:bg-background disabled:opacity-30 disabled:cursor-not-allowed"
         aria-label="Previous Design"
       >
-        <ArrowLeft size={24} />
+        <ArrowLeft size={20} />
       </Button>
-      <span className="text-lg font-bold text-white bg-black/50 px-4 py-1 rounded-sm border border-primary/50" style={{ textShadow: '1px 1px 2px black' }}>
+      <span className="text-sm font-medium text-foreground bg-background/70 px-4 py-2 rounded-full border">
         {currentIndex + 1} / {total}
       </span>
       <Button
         onClick={() => onNavigate(1)}
         disabled={currentIndex >= total - 1}
-        variant="ghost"
+        variant="secondary"
         size="icon"
-        className="rounded-sm bg-black/50 hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110 text-primary"
+        className="rounded-full bg-background/70 hover:bg-background disabled:opacity-30 disabled:cursor-not-allowed"
         aria-label="Next Design"
       >
-        <ArrowRight size={24} />
+        <ArrowRight size={20} />
       </Button>
     </div>
   );
