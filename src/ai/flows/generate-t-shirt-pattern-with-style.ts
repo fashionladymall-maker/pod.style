@@ -51,7 +51,7 @@ const generateTShirtPatternWithStyleFlow = ai.defineFlow(
     outputSchema: GenerateTShirtPatternWithStyleOutputSchema,
   },
   async input => {
-    let textPrompt = `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '${input.prompt}'`;
+    let textPrompt = `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for printing on a variety of products. The concept is: '${input.prompt}'`;
     if (input.style && input.style !== 'none') {
         textPrompt += `, in the style of ${input.style}`;
     }
