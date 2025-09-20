@@ -312,32 +312,62 @@ const App = () => {
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
     };
     
-    const AppHeader = () => (
-      <header className="flex items-center justify-between p-4 bg-background border-b">
-          <Button variant="ghost" size="icon" onClick={() => (step === 'profile' || step === 'home') ? setStep('home') : window.history.back()}><Menu /></Button>
-          <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
-              <h1 className="text-lg font-medium">AIPOD</h1>
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {user?.isAnonymous ? <User size={20}/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase() || <User size={20} />}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-      </header>
-    );
+    const AppHeader = () => {
+        let title = 'AIPOD';
+        let showBack = false;
+
+        switch(step) {
+            case 'profile':
+                title = '个人中心';
+                showBack = true;
+                break;
+            case 'categorySelection':
+                title = '选择商品类型';
+                showBack = true;
+                break;
+            // Add other cases if needed
+        }
+
+        const handleBack = () => {
+            if (step === 'categorySelection') {
+                setStep('patternPreview');
+            } else if (step === 'profile') {
+                setStep('home');
+            } else {
+                setStep('home');
+            }
+        }
+
+        return (
+          <header className="flex items-center justify-between p-4 bg-background border-b">
+              {showBack ? (
+                  <Button variant="ghost" size="icon" onClick={handleBack}><ArrowLeft /></Button>
+              ) : (
+                  <Button variant="ghost" size="icon" onClick={() => (step === 'profile' || step === 'home') ? setStep('home') : window.history.back()}><Menu /></Button>
+              )}
+              
+              <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
+                  <h1 className="text-lg font-medium">{title}</h1>
+              </Button>
+
+              {step !== 'profile' ? (
+                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {user?.isAnonymous ? <User size={20}/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase() || <User size={20} />}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              ) : (
+                 <div className="w-10"></div> // Placeholder for spacing
+              )}
+          </header>
+        );
+    };
 
     const CategorySelectionScreen = () => (
         <div className="flex flex-col h-full animate-fade-in">
-            <div className="flex items-center p-4 border-b">
-                <Button onClick={() => setStep('patternPreview')} variant="ghost" size="icon" className="rounded-full">
-                    <ArrowLeft size={20} />
-                </Button>
-                <h2 className="text-lg font-medium text-center flex-grow">选择商品类型</h2>
-                <div className="w-10"></div>
-            </div>
             <ScrollArea className="flex-grow">
                 <div className="grid grid-cols-2 gap-4 p-4">
                     {podCategories.map((category) => (
