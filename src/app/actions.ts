@@ -6,7 +6,6 @@ import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { addCreation, getCreations, deleteCreation, updateCreationModel } from '@/lib/firestore';
-import { auth } from '@/lib/firebase-admin';
 import { Creation } from '@/lib/types';
 
 interface GeneratePatternActionInput extends GenerateTShirtPatternWithStyleInput {

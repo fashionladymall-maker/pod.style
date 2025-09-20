@@ -1,33 +1,18 @@
 
+import { db } from './firebase-admin';
+import type { Creation, CreationData } from "./types";
+import { Timestamp } from 'firebase-admin/firestore';
 
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  Timestamp,
-  orderBy,
-  doc,
-  deleteDoc,
-  updateDoc,
-  getDoc
-} from "firebase/firestore";
-import { app } from "./firebase";
-import { Creation, CreationData } from "./types";
+const creationsCollection = db.collection("creations");
 
-const db = getFirestore(app);
-const creationsCollection = collection(db, "creations");
-
-// Helper to convert Firestore doc to Creation object
-const docToCreation = (doc: any): Creation => {
-  const data = doc.data();
+// Helper to convert Firestore doc from firebase-admin to Creation object
+const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
+  const data = doc.data() as CreationData;
   return {
     id: doc.id,
     ...data,
     createdAt: data.createdAt.toDate().toISOString(),
-  } as Creation;
+  };
 };
 
 interface AddCreationData {
@@ -45,18 +30,15 @@ export const addCreation = async (data: AddCreationData): Promise<Creation> => {
     modelUri: null,
     createdAt: Timestamp.now(),
   };
-  const docRef = await addDoc(creationsCollection, creationData);
-  const newDoc = await getDoc(docRef);
+  const docRef = await creationsCollection.add(creationData);
+  const newDoc = await docRef.get();
   return docToCreation(newDoc);
 };
 
 // Get all creations for a user
 export const getCreations = async (userId: string): Promise<Creation[]> => {
-  // To avoid complex indexing issues for users, we query by user,
-  // then sort the results in the code. This is efficient for a moderate
-  // number of creations and avoids configuration hurdles.
-  const q = query(creationsCollection, where("userId", "==", userId));
-  const querySnapshot = await getDocs(q);
+  const q = creationsCollection.where("userId", "==", userId);
+  const querySnapshot = await q.get();
   const creations = querySnapshot.docs.map(doc => docToCreation(doc));
   
   // Sort by date descending in code
@@ -65,28 +47,23 @@ export const getCreations = async (userId: string): Promise<Creation[]> => {
 
 // Update a creation with a model URI
 export const updateCreationModel = async (creationId: string, modelUri: string): Promise<Creation> => {
-  const creationRef = doc(db, "creations", creationId);
+  const creationRef = creationsCollection.doc(creationId);
   
-  // First, check if the document exists
-  const docSnap = await getDoc(creationRef);
-  if (!docSnap.exists()) {
+  const docSnap = await creationRef.get();
+  if (!docSnap.exists) {
     throw new Error("Creation not found. Cannot update model.");
   }
 
-  await updateDoc(creationRef, {
+  await creationRef.update({
     modelUri: modelUri,
   });
-  const updatedDoc = await getDoc(creationRef);
-  // This check is now slightly redundant due to the one above, but it's good for safety.
-  if (!updatedDoc.exists()) {
-    throw new Error("Creation not found after update.");
-  }
+  
+  const updatedDoc = await creationRef.get();
   return docToCreation(updatedDoc);
 };
 
 // Delete a creation
 export const deleteCreation = async (creationId: string): Promise<void> => {
-  const creationRef = doc(db, "creations", creationId);
-  await deleteDoc(creationRef);
+  const creationRef = creationsCollection.doc(creationId);
+  await creationRef.delete();
 };
-
