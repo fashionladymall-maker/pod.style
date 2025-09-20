@@ -53,7 +53,7 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
 const getCreations = async (userId: string): Promise<Creation[]> => {
   const querySnapshot = await getCreationsCollection()
     .where("userId", "==", userId)
-    .orderBy("createdAt", "desc")
+    // .orderBy("createdAt", "desc") // This requires a composite index in Firestore.
     .get();
   
   if (querySnapshot.empty) {
@@ -61,6 +61,10 @@ const getCreations = async (userId: string): Promise<Creation[]> => {
   }
 
   const creations = querySnapshot.docs.map(docToCreation);
+
+  // Sort the creations in memory instead.
+  creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   return creations;
 };
 
