@@ -50,8 +50,8 @@ const MockupScreen = ({
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 flex justify-between items-end">
         <div className="flex flex-col gap-4">
           {isApparel && (
-            <div>
-              <p className="text-sm font-bold mb-2 text-white/90" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>尺码</p>
+            <div className="flex items-center gap-4">
+              <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>尺码</p>
               <div className="flex gap-2">
                 {sizes.map(size => (
                   <Button 
