@@ -32,23 +32,24 @@ const MockupScreen = ({
 
 
   return (
-    <div className="flex flex-col h-full bg-background" {...swipeHandlers}>
-      <div className="flex items-center p-4 border-b">
-        <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full"><ArrowLeft size={20} /></Button>
-        <h2 className="text-xl font-medium mx-auto">预览与定制</h2>
-        <div className="w-10 h-10"></div>
-      </div>
-      
+    <div className="relative flex flex-col h-full bg-background" {...swipeHandlers}>
       <div className="flex-grow relative bg-muted/30">
         {modelImage ? (
-            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-contain animate-fade-in" />
+            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-cover animate-fade-in" />
         ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">正在生成模特图...</div>
         )}
-        <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
       </div>
 
-      <div className="p-6 border-t bg-background">
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center p-4 bg-gradient-to-b from-black/50 to-transparent">
+        <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
+        <h2 className="text-xl font-medium mx-auto text-white" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>预览与定制</h2>
+        <div className="w-10 h-10"></div>
+      </div>
+      
+      <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
+
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 border-t bg-background/80 backdrop-blur-sm rounded-t-2xl">
         <div className="space-y-4">
           {isApparel && (
             <div>
