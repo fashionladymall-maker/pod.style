@@ -1,7 +1,10 @@
 
 "use server";
 
-import { db } from '@/lib/firebase-admin';
+import { config } from 'dotenv';
+config();
+
+import * as admin from 'firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
@@ -9,8 +12,25 @@ import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup'
 import { Creation, CreationData } from '@/lib/types';
 import { Timestamp } from 'firebase-admin/firestore';
 
+// --- Firebase Admin SDK Initialization ---
+if (!admin.apps.length) {
+    try {
+        if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+            throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
+        }
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+    } catch (error: any) {
+        console.error('Firebase Admin initialization error', error.stack);
+        throw new Error('Failed to initialize Firebase Admin SDK. Please check your FIREBASE_SERVICE_ACCOUNT environment variable.');
+    }
+}
+const db = admin.firestore();
 
-// --- Firestore Helper Functions (moved from firestore.ts) ---
+
+// --- Firestore Helper Functions ---
 
 const creationsCollection = db.collection("creations");
 
@@ -37,7 +57,7 @@ interface AddCreationData {
 }
 
 const addCreation = async (data: AddCreationData): Promise<Creation> => {
-  const creationData = {
+  const creationData: CreationData = {
     ...data,
     modelUri: null,
     createdAt: Timestamp.now(),
