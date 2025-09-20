@@ -74,7 +74,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl font-semibold">{user?.isAnonymous ? "匿名用户" : user?.displayName}</h3>
+                <h3 className="text-xl font-semibold">{user?.isAnonymous ? "匿名用户" : user?.displayName || user?.email}</h3>
                 <p className="text-sm text-muted-foreground">{user?.isAnonymous ? '您当前为匿名访问状态' : user?.email}</p>
               </div>
             </div>
@@ -115,26 +115,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     <div key={creation.id} className="relative group/creation break-inside-avoid border-b pb-6">
                       <div className="flex justify-between items-start mb-2">
                         <p className="text-sm text-muted-foreground line-clamp-2 pr-10">"{creation.prompt || '无标题'}"</p>
-                         <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-8 w-8 rounded-full">
-                                <Trash2 size={16} className="text-muted-foreground hover:text-destructive" />
-                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>确定要删除吗?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                此操作无法撤销。这将从我们的服务器上永久删除您的作品。
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>取消</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => onDeleteCreation(creation.id)}>删除</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                       </div>
+
+                       <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-8 w-8 rounded-full opacity-0 group-hover/creation:opacity-100 transition-opacity z-10 bg-black/20 hover:bg-black/40 text-white">
+                              <Trash2 size={16} />
+                           </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>确定要删除吗?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              此操作无法撤销。这将从我们的服务器上永久删除您的作品。
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>取消</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDeleteCreation(creation.id)}>删除</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
 
                       <div className="grid grid-cols-3 gap-2">
                          <button
