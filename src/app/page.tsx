@@ -16,9 +16,38 @@ import ConfirmationScreen from '@/components/screens/confirmation-screen';
 import { Menu, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation';
+
+const podCategories = [
+    { name: "T恤 (T-shirts)" },
+    { name: "连帽衫 (Hoodies)" },
+    { name: "运动卫衣 (Sweatshirts)" },
+    { name: "帽子 (Hats)" },
+    { name: "袜子 (Socks)" },
+    { name: "帆布包 (Tote Bags)" },
+    { name: "背包 (Backpacks)" },
+    { name: "马克杯 (Mugs)" },
+    { name: "水壶/保温杯 (Water Bottles/Tumblers)" },
+    { name: "抱枕 (Pillows/Cushions)" },
+    { name: "毯子 (Blankets)" },
+    { name: "墙面艺术 (Wall Art)" },
+    { name: "毛巾 (Towels)" },
+    { name: "花园旗 (Garden Flags)" },
+    { name: "手机壳 (Phone Cases)" },
+    { name: "笔记本电脑保护套 (Laptop Sleeves)" },
+    { name: "贴纸 (Stickers)" },
+    { name: "笔记本和日志本 (Notebooks & Journals)" },
+    { name: "珠宝 (Jewelry)" },
+    { name: "拼图 (Puzzles)" },
+];
 
 const App = () => {
     const [step, setStep] = useState<AppStep>('home');
@@ -33,6 +62,7 @@ const App = () => {
     const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({ name: '', address: '', phone: '' });
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ cardNumber: '', expiry: '', cvv: '' });
     const [selectedStyle, setSelectedStyle] = useState('none');
+    const [selectedCategory, setSelectedCategory] = useState(podCategories[0].name);
     const { toast } = useToast();
 
     const handleGeneratePattern = useCallback(async () => {
@@ -149,9 +179,20 @@ const App = () => {
           <Button variant="ghost" size="icon"><Menu /></Button>
           <div className="flex flex-col items-center">
             <h1 className="text-lg font-medium">AIPOD</h1>
-            <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs text-muted-foreground">
-                T Shir't <ChevronDown className="w-3 h-3 ml-1" />
-            </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs text-muted-foreground">
+                            {selectedCategory.split(' ')[0]} <ChevronDown className="w-3 h-3 ml-1" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                        {podCategories.map((category) => (
+                            <DropdownMenuItem key={category.name} onSelect={() => setSelectedCategory(category.name)}>
+                                {category.name}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
           </div>
           <Avatar className="w-8 h-8">
             <AvatarFallback className="bg-blue-500 text-white font-bold text-sm">F</AvatarFallback>
