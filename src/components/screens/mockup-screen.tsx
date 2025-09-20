@@ -47,6 +47,33 @@ const MockupScreen = ({
       
       <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
 
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 border-t bg-background/5 backdrop-blur-sm rounded-t-2xl">
+        {isApparel && (
+          <div className="mb-4">
+            <p className="text-sm font-medium mb-2 text-foreground/80">尺码</p>
+            <div className="flex justify-center gap-2">
+              {sizes.map(size => (
+                <Button key={size} variant={orderDetails.size === size ? 'default' : 'outline'} onClick={() => setOrderDetails(prev => ({ ...prev, size }))} className="rounded-full w-12 h-12">
+                  {size}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-medium text-foreground/80">数量</p>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" className="rounded-full" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
+            <span className="font-medium text-lg w-8 text-center">{orderDetails.quantity}</span>
+            <Button variant="outline" size="icon" className="rounded-full" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+          </div>
+        </div>
+
+        <Button onClick={onNext} className="w-full h-12 rounded-full">
+            下一步：填写地址 <ShoppingCart className="ml-2" />
+        </Button>
+      </div>
     </div>
   );
 };
