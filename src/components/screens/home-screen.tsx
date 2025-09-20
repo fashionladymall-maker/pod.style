@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -119,7 +120,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         {patternHistory.length === 0 ? (
           <div className="flex-grow flex justify-center items-center p-6">
               <div className="text-center">
-                <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
+                <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
                 <p className="mt-4 text-muted-foreground">
                   放飞思想，随心定制
                   <br />
