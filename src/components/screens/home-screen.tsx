@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Mic, Palette, Sparkles } from 'lucide-react';
+import { Plus, Mic, Palette, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -152,9 +152,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               }}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-              <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
-                <Mic size={20} />
-              </Button>
+                {prompt ? (
+                    <Button onClick={onGenerate} variant="ghost" size="icon" className="rounded-full bg-blue-500 text-white hover:bg-blue-600">
+                        <ArrowUp size={20} />
+                    </Button>
+                ) : (
+                    <div className="w-10 h-10" /> 
+                )}
             </div>
         </div>
 
@@ -197,6 +201,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </PopoverContent>
           </Popover>
 
+          <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full bg-secondary ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
+            <Mic size={20} />
+          </Button>
 
           {uploadedImage && (
             <div className="relative w-10 h-10 border rounded-md ml-auto">
@@ -205,16 +212,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           )}
         </div>
-
-        <Button onClick={onGenerate} className="w-full h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white">
-            <Sparkles className="mr-2" size={20}/>
-            生成创意
-        </Button>
       </div>
     </div>
   );
 };
 
 export default HomeScreen;
-
-    
