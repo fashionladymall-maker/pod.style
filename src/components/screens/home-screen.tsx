@@ -100,26 +100,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 </div>
               </div>
             </div>
-
-            {patternHistory.length > 0 && (
-              <div className="animate-fade-in-up mt-8 mb-4" style={{ animationDelay: '400ms' }}>
-                <h3 className="font-semibold mb-3 flex items-center justify-center text-foreground"><History size={18} className="mr-2 text-primary" />创作历史</h3>
-                <div className="flex space-x-3 overflow-x-auto p-2 -mx-2">
-                  {[...patternHistory].reverse().map((_, revIndex) => {
-                      const index = patternHistory.length - 1 - revIndex;
-                      return (
-                          <button key={index} onClick={() => onGoToHistory(index)} className="flex-shrink-0 w-20 h-20 bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background focus:ring-primary relative">
-                              <Image src={modelHistory[index] || patternHistory[index]} alt={`历史记录 ${index + 1}`} layout="fill" className="object-cover" />
-                          </button>
-                      )
-                  })}
-                </div>
-              </div>
-            )}
         </div>
       </ScrollArea>
       
       <div className="mt-auto pt-6 space-y-4">
+        {patternHistory.length > 0 && (
+          <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <h3 className="font-semibold mb-3 flex items-center justify-center text-foreground"><History size={18} className="mr-2 text-primary" />创作历史</h3>
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+                <div className="flex space-x-3 p-2">
+                {[...patternHistory].reverse().map((_, revIndex) => {
+                    const index = patternHistory.length - 1 - revIndex;
+                    return (
+                        <button key={index} onClick={() => onGoToHistory(index)} className="flex-shrink-0 w-20 h-20 bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background focus:ring-primary relative">
+                            <Image src={modelHistory[index] || patternHistory[index]} alt={`历史记录 ${index + 1}`} layout="fill" className="object-cover" />
+                        </button>
+                    )
+                })}
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+        )}
+
         <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
         <Label htmlFor="imageUpload" className="w-full bg-secondary hover:bg-muted text-primary font-bold py-3 px-4 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-100 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <Upload className="mr-2" size={20} />
