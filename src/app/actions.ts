@@ -1,7 +1,7 @@
 
 "use server";
 
-import { getDb } from '@/lib/firebase-admin';
+import { db } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
@@ -12,7 +12,7 @@ import type { Timestamp } from 'firebase-admin/firestore';
 
 // --- Firestore Helper Functions ---
 
-const getCreationsCollection = () => getDb().collection("creations");
+const getCreationsCollection = () => db.collection("creations");
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
@@ -38,7 +38,6 @@ interface AddCreationData {
 }
 
 const addCreation = async (data: AddCreationData): Promise<Creation> => {
-  const db = getDb();
   // We need to import the Timestamp from firebase-admin/firestore
   const { Timestamp } = await import('firebase-admin/firestore');
   const creationData: CreationData = {
