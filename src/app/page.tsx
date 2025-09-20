@@ -115,6 +115,7 @@ const App = () => {
             const result = await generateModelAction({
                 patternDataUri: patternData,
                 colorName: orderDetails.colorName,
+                category: selectedCategory,
             });
 
             const updatedModelHistory = [...modelHistory];
@@ -128,7 +129,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [historyIndex, patternHistory, modelHistory, orderDetails.colorName, toast]);
+    }, [historyIndex, patternHistory, modelHistory, orderDetails.colorName, selectedCategory, toast]);
 
     useEffect(() => {
         if (step === 'patternPreview' && patternHistory[historyIndex] && !modelHistory[historyIndex]) {
@@ -175,7 +176,7 @@ const App = () => {
     };
     
     const AppHeader = () => (
-      <header className="flex items-center justify-between p-4 bg-background">
+      <header className="flex items-center justify-between p-4 bg-background border-b">
           <Button variant="ghost" size="icon"><Menu /></Button>
           <div className="flex flex-col items-center">
             <h1 className="text-lg font-medium">AIPOD</h1>
@@ -185,7 +186,7 @@ const App = () => {
                             {selectedCategory.split(' ')[0]} <ChevronDown className="w-3 h-3 ml-1" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center">
+                    <DropdownMenuContent align="center" className="max-h-80 overflow-y-auto">
                         {podCategories.map((category) => (
                             <DropdownMenuItem key={category.name} onSelect={() => setSelectedCategory(category.name)}>
                                 {category.name}
@@ -195,7 +196,7 @@ const App = () => {
                 </DropdownMenu>
           </div>
           <Avatar className="w-8 h-8">
-            <AvatarFallback className="bg-blue-500 text-white font-bold text-sm">F</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">F</AvatarFallback>
           </Avatar>
       </header>
     );
@@ -224,7 +225,8 @@ const App = () => {
                 onBack={() => setStep('patternPreview')} 
                 historyIndex={historyIndex} 
                 totalHistory={patternHistory.length} 
-                onNavigate={navigateHistory} 
+                onNavigate={navigateHistory}
+                category={selectedCategory}
             />;
             case 'shipping': return <ShippingScreen 
                 shippingInfo={shippingInfo} 
@@ -254,7 +256,7 @@ const App = () => {
 
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
-            <div className="w-full max-w-md bg-card overflow-hidden" style={{ height: '100dvh' }}>
+            <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
                 <div key={`${step}-${historyIndex}`} className="h-full flex flex-col">
                     <AppHeader/>
                     <div className="flex-grow overflow-y-auto">

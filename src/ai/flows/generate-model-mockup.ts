@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Generates a realistic mockup of a t-shirt pattern on a model.
+ * @fileOverview Generates a realistic mockup of a product pattern on a model.
  *
  * - generateModelMockup - A function that generates the model mockup.
  * - GenerateModelMockupInput - The input type for the generateModelMockup function.
@@ -14,9 +14,10 @@ const GenerateModelMockupInputSchema = z.object({
   patternDataUri: z
     .string()
     .describe(
-      "A photo of a t-shirt pattern, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A photo of a pattern, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  colorName: z.string().describe('The color of the t-shirt.'),
+  colorName: z.string().describe('The color of the product.'),
+  category: z.string().describe('The product category, e.g., "T-shirt" or "Hat".'),
 });
 export type GenerateModelMockupInput = z.infer<typeof GenerateModelMockupInputSchema>;
 
@@ -37,9 +38,13 @@ const generateModelMockupFlow = ai.defineFlow(
     outputSchema: GenerateModelMockupOutputSchema,
   },
   async (input) => {
-    const prompt = `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model wearing a ${input.colorName} t-shirt. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details. The t-shirt must feature this exact design printed prominently on the chest.
+    // Extract the english part of the category name for the prompt.
+    const categoryMatch = input.category.match(/\(([^)]+)\)/);
+    const categoryName = categoryMatch ? categoryMatch[1] : input.category;
 
-CRITICAL INSTRUCTION: If the provided design features a person or character, the model in this photograph MUST look as similar as possible to that character. Match the face, hair, and overall appearance.
+    const prompt = `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model using a ${input.colorName} ${categoryName}. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details. The ${categoryName} must feature this exact design printed prominently on it.
+
+CRITICAL INSTRUCTION: If the provided design features a person or character, the model in this photograph MUST look as similar as possible to that character. Match the face, hair, and overall appearance. If the product is not a wearable item (e.g. a mug or a pillow), this instruction can be ignored.
 
 The overall image should be a professional product shot, filling the entire vertical phone screen frame. No text or logos on the image. Maintain artistic consistency with the provided design image.`;
 

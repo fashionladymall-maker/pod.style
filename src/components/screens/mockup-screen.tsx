@@ -19,14 +19,17 @@ interface MockupScreenProps {
   historyIndex: number;
   totalHistory: number;
   onNavigate: (direction: number) => void;
+  category: string;
 }
 
 const MockupScreen = ({
   modelImage, orderDetails, setOrderDetails, handleQuantityChange,
-  onNext, onBack, historyIndex, totalHistory, onNavigate
+  onNext, onBack, historyIndex, totalHistory, onNavigate, category
 }: MockupScreenProps) => {
   const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigate(1), onSwipeRight: () => onNavigate(-1) });
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  const isApparel = category.includes("T-shirts") || category.includes("Hoodies") || category.includes("Sweatshirts");
+
 
   return (
     <div className="flex flex-col h-full bg-background" {...swipeHandlers}>
@@ -36,9 +39,9 @@ const MockupScreen = ({
         <div className="w-10 h-10"></div>
       </div>
       
-      <div className="flex-grow relative">
+      <div className="flex-grow relative bg-muted/30">
         {modelImage ? (
-            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-cover animate-fade-in" />
+            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-contain p-4 animate-fade-in" />
         ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">正在生成模特图...</div>
         )}
@@ -47,18 +50,20 @@ const MockupScreen = ({
 
       <div className="p-6 border-t bg-background">
         <div className="space-y-4">
-          <div>
-            <h3 className="font-medium mb-2 text-muted-foreground">尺码</h3>
-            <div className="flex space-x-2">
-              {sizes.map(s => (
-                <Button key={s} onClick={() => setOrderDetails(prev => ({ ...prev, size: s }))}
-                  variant={orderDetails.size === s ? 'default' : 'outline'}
-                  className="rounded-full">
-                  {s}
-                </Button>
-              ))}
+          {isApparel && (
+            <div>
+              <h3 className="font-medium mb-2 text-muted-foreground">尺码</h3>
+              <div className="flex space-x-2">
+                {sizes.map(s => (
+                  <Button key={s} onClick={() => setOrderDetails(prev => ({ ...prev, size: s }))}
+                    variant={orderDetails.size === s ? 'default' : 'outline'}
+                    className="rounded-full">
+                    {s}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <div>
             <h3 className="font-medium mb-2 text-muted-foreground">数量</h3>
             <div className="flex items-center bg-secondary rounded-full w-fit">
