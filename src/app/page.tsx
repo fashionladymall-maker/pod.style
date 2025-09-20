@@ -122,6 +122,8 @@ const App = () => {
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
+        // Only fetch if creations are not already loaded
+        if (creations.length > 0) return;
         setIsLoading(true);
         try {
             const userCreations = await getCreationsAction(userId);
@@ -132,16 +134,18 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast]);
+    }, [toast, creations]);
     
     const fetchOrders = useCallback(async (userId: string) => {
+      // Only fetch if orders are not already loaded
+      if (orders.length > 0) return;
       try {
         const userOrders = await getOrdersAction(userId);
         setOrders(userOrders);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
-    }, []);
+    }, [orders]);
 
 
     useEffect(() => {
@@ -196,8 +200,7 @@ const App = () => {
                 style: styleValue !== '无' ? styleValue : undefined,
             });
 
-            const updatedCreations = [newCreation, ...creations];
-            setCreations(updatedCreations);
+            setCreations(prev => [newCreation, ...prev]);
             setActiveCreationIndex(0);
             setActiveModelIndex(-1);
             setStep('patternPreview');
@@ -208,7 +211,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, uploadedImage, selectedStyle, user, creations, toast]);
+    }, [prompt, uploadedImage, selectedStyle, user, toast]);
 
     const handleGenerateModel = useCallback(async (category: string) => {
         const activeCreation = creations[activeCreationIndex];
@@ -230,10 +233,9 @@ const App = () => {
                 category: category,
             });
 
-            const updatedCreations = creations.map((c, index) => 
+            setCreations(prev => prev.map((c, index) => 
                 index === activeCreationIndex ? updatedCreation : c
-            );
-            setCreations(updatedCreations);
+            ));
             // Set the active model to the newly created one
             setActiveModelIndex(updatedCreation.models.length - 1);
             setStep('mockup');
@@ -567,3 +569,5 @@ const App = () => {
 };
 
 export default App;
+
+    
