@@ -1,4 +1,8 @@
 import * as admin from 'firebase-admin';
+import { config } from 'dotenv';
+
+// Explicitly load environment variables from .env file
+config();
 
 // This is the recommended way to initialize firebase-admin in a serverless environment
 // as of Next.js 15 / App Router. We check if the app is already initialized to
@@ -6,6 +10,9 @@ import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
     try {
+        if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+            throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
+        }
         const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
