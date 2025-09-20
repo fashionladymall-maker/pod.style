@@ -260,7 +260,7 @@ const App = () => {
     
     const AppHeader = () => (
       <header className="flex items-center justify-between p-4 bg-background border-b">
-          <Button variant="ghost" size="icon"><Menu /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setStep('home')}><Menu /></Button>
           <div className="flex flex-col items-center">
             <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
                 <h1 className="text-lg font-medium">AIPOD</h1>
@@ -378,3 +378,5 @@ const App = () => {
 };
 
 export default App;
+
+    
