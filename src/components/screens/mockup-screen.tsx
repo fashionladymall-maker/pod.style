@@ -9,6 +9,7 @@ import type { Model, OrderDetails } from '@/lib/types';
 import { useSwipe } from '@/hooks/use-swipe';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface MockupScreenProps {
   modelImage: string | null | undefined;
@@ -71,27 +72,29 @@ const MockupScreen = ({
 
 
       <div className="bg-background rounded-t-2xl shadow-lg p-6 pt-5 flex-shrink-0">
-          <div className="text-2xl font-bold mb-4">¥ {price}</div>
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-2xl font-bold">¥ {price}</div>
+            
+            {models && models.length > 1 && (
+              <ScrollArea className="max-w-[70%] whitespace-nowrap rounded-md">
+                <div className="flex w-max space-x-2">
+                  {models.map((model, index) => (
+                    <Button
+                      key={index}
+                      variant={index === modelHistoryIndex ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => onSelectModel(index)}
+                      className="rounded-full shrink-0"
+                    >
+                      {model.category.split(' ')[0]}
+                    </Button>
+                  ))}
+                </div>
+                 <ScrollBar orientation="horizontal" className="h-0" />
+              </ScrollArea>
+            )}
+          </div>
           
-          {models && models.length > 1 && (
-            <div className="mb-4">
-              <p className="text-sm font-medium mb-2 text-muted-foreground">已生成的效果图</p>
-              <div className="flex flex-wrap gap-2">
-                {models.map((model, index) => (
-                  <Button
-                    key={index}
-                    variant={index === modelHistoryIndex ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => onSelectModel(index)}
-                    className="rounded-full"
-                  >
-                    {model.category.split(' ')[0]}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
 
           {isApparel && (
               <div className="my-4">
