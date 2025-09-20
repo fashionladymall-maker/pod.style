@@ -109,7 +109,9 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
         },
     });
 
-    // Make the file public and get the URL
+    // Keeping the file private and returning a reference path is more secure.
+    // To make it accessible, you would typically generate a signed URL on-the-fly when a user needs to view it.
+    // For simplicity in this app, we will make it public.
     await file.makePublic();
     return file.publicUrl();
 };
@@ -160,8 +162,23 @@ interface GenerateModelActionInput extends GenerateModelMockupInput {
 export async function generateModelAction(input: GenerateModelActionInput): Promise<Creation> {
   const { creationId, userId, patternDataUri, colorName, category } = input;
   try {
+    // Note: The `generateModelMockup` flow expects a Data URI, but `patternUri` is now a public URL.
+    // For this to work, we'd need to either:
+    // 1. Fetch the image content from the public URL and convert it back to a Data URI before passing it to the flow.
+    // 2. Modify the `generateModelMockup` flow to accept a public URL directly.
+    // For now, we will assume `patternDataUri` is still a Data URI for this flow, which means the client
+    // might need to send the original data URI or we fetch it here.
+    // Let's fetch it to keep the client simple.
+
+    const response = await fetch(patternDataUri);
+    if (!response.ok) throw new Error('Failed to fetch pattern image from storage.');
+    const imageBuffer = await response.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
+    const imageMimeType = response.headers.get('content-type') || 'image/png';
+    const fetchedDataUri = `data:${imageMimeType};base64,${imageBase64}`;
+    
     const result = await generateModelMockup({
-        patternDataUri,
+        patternDataUri: fetchedDataUri,
         colorName,
         category
     });
