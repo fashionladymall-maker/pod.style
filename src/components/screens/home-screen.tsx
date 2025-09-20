@@ -46,15 +46,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
       recognition.onresult = (event: any) => {
         let interimTranscript = '';
-        let finalTranscript = '';
-        for (let i = 0; i < event.results.length; ++i) {
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            finalTranscriptRef.current += event.results[i][0].transcript;
           } else {
             interimTranscript += event.results[i][0].transcript;
           }
         }
-        setPrompt(finalTranscriptRef.current + finalTranscript + interimTranscript);
+        setPrompt(finalTranscriptRef.current + interimTranscript);
       };
 
       recognition.onerror = (event: any) => {
@@ -116,7 +115,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex-grow flex flex-col">
         {patternHistory.length === 0 ? (
-          <div className="flex-grow flex justify-center items-center p-6">
+          <div className="flex-grow flex justify-center items-center">
               <div className="text-center">
                 <h1 className="text-4xl font-medium text-blue-600">FLORENCIO, <span className="text-muted-foreground">你好</span></h1>
               </div>
