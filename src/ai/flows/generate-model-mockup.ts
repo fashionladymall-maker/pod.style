@@ -14,7 +14,7 @@ const GenerateModelMockupInputSchema = z.object({
   patternDataUri: z
     .string()
     .describe(
-      "A photo of a plant, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A photo of a t-shirt pattern, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   colorName: z.string().describe('The color of the t-shirt.'),
 });
@@ -29,18 +29,6 @@ export async function generateModelMockup(input: GenerateModelMockupInput): Prom
   return generateModelMockupFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateModelMockupPrompt',
-  input: {schema: GenerateModelMockupInputSchema},
-  output: {schema: GenerateModelMockupOutputSchema},
-  prompt: `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model wearing a {{{colorName}}} t-shirt. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details. The t-shirt must feature this exact design printed prominently on the chest.
-
-CRITICAL INSTRUCTION: If the provided design features a person or character, the model in this photograph MUST look as similar as possible to that character. Match the face, hair, and overall appearance.
-
-The overall image should be a professional product shot, filling the entire vertical phone screen frame. No text or logos on the image. Maintain artistic consistency with the provided design image.
-
-Design: {{media url=patternDataUri}}`,
-});
 
 const generateModelMockupFlow = ai.defineFlow(
   {
@@ -48,10 +36,30 @@ const generateModelMockupFlow = ai.defineFlow(
     inputSchema: GenerateModelMockupInputSchema,
     outputSchema: GenerateModelMockupOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const prompt = `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model wearing a ${input.colorName} t-shirt. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details. The t-shirt must feature this exact design printed prominently on the chest.
+
+CRITICAL INSTRUCTION: If the provided design features a person or character, the model in this photograph MUST look as similar as possible to that character. Match the face, hair, and overall appearance.
+
+The overall image should be a professional product shot, filling the entire vertical phone screen frame. No text or logos on the image. Maintain artistic consistency with the provided design image.`;
+
+    const { media } = await ai.generate({
+      model: 'googleai/gemini-2.5-flash-image-preview',
+      prompt: [
+        { text: prompt },
+        { media: { url: input.patternDataUri } }
+      ],
+      config: {
+        responseModalities: ['IMAGE'],
+      },
+    });
+
+    if (!media || !media.url) {
+      throw new Error('No image was generated for the model mockup.');
+    }
+    
     return {
-      modelImageUri: output!.modelImageUri,
+      modelImageUri: media.url,
     };
   }
 );

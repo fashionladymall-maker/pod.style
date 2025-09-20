@@ -44,18 +44,15 @@ export async function generateTShirtPatternWithStyle(
   return generateTShirtPatternWithStyleFlow(input);
 }
 
-const generateTShirtPatternWithStylePrompt = ai.definePrompt({
-  name: 'generateTShirtPatternWithStylePrompt',
-  input: {schema: GenerateTShirtPatternWithStyleInputSchema},
-  prompt: `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '{{prompt}}'{{#if style}}, in the style of {{style}}{{/if}}. It should be incredibly detailed with sharp focus.
+const generateTShirtPatternWithStylePromptTemplate = `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '{{prompt}}'{{#if style}}, in the style of {{style}}{{/if}}. It should be incredibly detailed with sharp focus.
 
 IMPORTANT RULES:
 1. STRICTLY do NOT add any text, letters, or words to the image unless the user explicitly included text in quotation marks in their prompt.
 2. If the user asks for text, the text MUST be in English.
 3. The final image should only contain the artwork, with no background unless it's part of the scene.
 
-{{#if inspirationImage}}Incorporate the style and elements of the following inspiration image: {{media url=inspirationImage}}{{/if}}`,
-});
+{{#if inspirationImage}}Incorporate the style and elements of the following inspiration image:{{/if}}`;
+
 
 const generateTShirtPatternWithStyleFlow = ai.defineFlow(
   {
@@ -64,12 +61,15 @@ const generateTShirtPatternWithStyleFlow = ai.defineFlow(
     outputSchema: GenerateTShirtPatternWithStyleOutputSchema,
   },
   async input => {
-    const prompt = generateTShirtPatternWithStylePrompt(input).prompt;
-    const promptParts = [{ text: prompt }];
+    // Dynamically build the prompt parts based on input
+    const promptParts: ({text: string} | {media: {url: string}})[] = [
+      { text: generateTShirtPatternWithStylePromptTemplate }
+    ];
+
     if (input.inspirationImage) {
       promptParts.push({ media: { url: input.inspirationImage } });
     }
-
+    
     const {media} = await ai.generate({
       prompt: promptParts,
       model: 'googleai/gemini-2.5-flash-image-preview',

@@ -2,8 +2,8 @@
 
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
-import { modifyModelAppearance } from '@/ai/flows/modify-model-appearance';
-import type { ModifyModelAppearanceInput } from '@/ai/flows/modify-model-appearance';
+import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
+import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 
 export async function generatePatternAction(input: GenerateTShirtPatternWithStyleInput) {
   try {
@@ -18,13 +18,13 @@ export async function generatePatternAction(input: GenerateTShirtPatternWithStyl
   }
 }
 
-export async function generateModelAction(input: ModifyModelAppearanceInput) {
+export async function generateModelAction(input: GenerateModelMockupInput) {
   try {
-    const result = await modifyModelAppearance(input);
-    if (!result) {
+    const result = await generateModelMockup(input);
+    if (!result.modelImageUri) {
         throw new Error('The AI failed to return a model image.');
     }
-    return result;
+    return { modelImageUri: result.modelImageUri };
   } catch (error) {
     console.error('Error in generateModelAction:', error);
     throw new Error(error instanceof Error ? error.message : 'An unknown error occurred during model generation.');

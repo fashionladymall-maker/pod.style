@@ -78,13 +78,13 @@ const App = () => {
 
         try {
             const patternData = patternHistory[historyIndex];
-            const newModel = await generateModelAction({
+            const result = await generateModelAction({
                 patternDataUri: patternData,
                 colorName: orderDetails.colorName,
             });
 
             const updatedModelHistory = [...modelHistory];
-            updatedModelHistory[historyIndex] = newModel;
+            updatedModelHistory[historyIndex] = result.modelImageUri;
             setModelHistory(updatedModelHistory);
             setStep('mockup');
         } catch (err: any) {
