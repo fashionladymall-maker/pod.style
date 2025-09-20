@@ -58,9 +58,10 @@ const generateTShirtPatternWithStyleFlow = ai.defineFlow(
     textPrompt += `. It should be incredibly detailed with sharp focus.
 
 IMPORTANT RULES:
-1. STRICTLY do NOT add any text, letters, or words to the image unless the user explicitly included text in quotation marks in their prompt.
-2. If the user asks for text, the text MUST be in English.
-3. The final image should only contain the artwork, with no background unless it's part of the scene.`;
+1. The final image should be a PNG file, optimized for web and mobile use to ensure a smaller file size without sacrificing quality.
+2. STRICTLY do NOT add any text, letters, or words to the image unless the user explicitly included text in quotation marks in their prompt.
+3. If the user asks for text, the text MUST be in English.
+4. The final image should only contain the artwork, with no background unless it's part of the scene.`;
 
     if (input.inspirationImage) {
         textPrompt += `\n\nIncorporate the style and elements of the following inspiration image:`;
@@ -79,24 +80,6 @@ IMPORTANT RULES:
       model: 'googleai/gemini-2.5-flash-image-preview',
       config: {
         responseModalities: ['IMAGE'],
-        safetySettings: [
-          {
-            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_NONE',
-          },
-          {
-            category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_NONE',
-          },
-          {
-            category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_NONE',
-          },
-          {
-            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_NONE',
-          },
-        ]
       },
     });
 
