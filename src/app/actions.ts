@@ -7,11 +7,11 @@ import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { Creation, CreationData } from '@/lib/types';
 import { Timestamp } from 'firebase-admin/firestore';
-import { db } from '@/lib/firebase-admin';
+import { getDb } from '@/lib/firebase-admin';
 
 // --- Firestore Helper Functions ---
 
-const creationsCollection = db.collection("creations");
+const getCreationsCollection = () => getDb().collection("creations");
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
@@ -41,20 +41,20 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
     modelUri: null,
     createdAt: Timestamp.now(),
   };
-  const docRef = await creationsCollection.add(creationData);
+  const docRef = await getCreationsCollection().add(creationData);
   const newDoc = await docRef.get();
   return docToCreation(newDoc);
 };
 
 const getCreations = async (userId: string): Promise<Creation[]> => {
-  const querySnapshot = await creationsCollection.where("userId", "==", userId).get();
+  const querySnapshot = await getCreationsCollection().where("userId", "==", userId).get();
   const creations = querySnapshot.docs.map(docToCreation);
   
   return creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 const updateCreationModel = async (creationId: string, modelUri: string): Promise<Creation> => {
-  const creationRef = creationsCollection.doc(creationId);
+  const creationRef = getCreationsCollection().doc(creationId);
   
   const docSnap = await creationRef.get();
   if (!docSnap.exists) {
@@ -68,7 +68,7 @@ const updateCreationModel = async (creationId: string, modelUri: string): Promis
 };
 
 const deleteCreation = async (creationId: string): Promise<void> => {
-  const creationRef = creationsCollection.doc(creationId);
+  const creationRef = getCreationsCollection().doc(creationId);
   await creationRef.delete();
 };
 
