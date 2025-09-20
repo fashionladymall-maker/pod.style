@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Plus, Mic, Sparkles } from 'lucide-react';
+import { Plus, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,7 +62,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       <div className="mt-auto p-4 bg-background">
         <div className="relative mb-3">
             <Input
-              className="w-full bg-secondary text-foreground p-3 pr-20 rounded-full h-12 border-none focus-visible:ring-1"
+              className="w-full bg-secondary text-foreground p-3 pr-12 rounded-full h-12 border-none focus-visible:ring-1"
               placeholder="问问 Gemini"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -73,12 +73,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 }
               }}
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Mic size={20} />
-              </Button>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
               <Button onClick={onGenerate} size="icon" className="rounded-full bg-blue-500 hover:bg-blue-600 text-white">
-                <Sparkles size={20} />
+                <Mic size={20} />
               </Button>
             </div>
         </div>

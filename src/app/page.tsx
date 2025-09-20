@@ -37,7 +37,7 @@ const App = () => {
 
     const handleGeneratePattern = useCallback(async () => {
         if (!prompt && !uploadedImage) {
-            toast({ variant: 'destructive', title: '创意不能为空', description: '请输入您的创意想法或上传一张图片！' });
+            toast({ variant: 'destructive', title: 'Prompt is empty', description: 'Please enter your creative ideas or upload an image!' });
             return;
         }
         setIsLoading(true);
