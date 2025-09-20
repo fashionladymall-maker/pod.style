@@ -1,3 +1,5 @@
+import type { User as FirebaseUserType } from "firebase/auth";
+
 export interface OrderDetails {
     color: string;
     colorName: string;
@@ -16,3 +18,5 @@ export interface PaymentInfo {
     expiry: string;
     cvv: string;
 }
+
+export type FirebaseUser = FirebaseUserType;

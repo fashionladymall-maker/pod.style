@@ -9,10 +9,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { FirebaseUser } from '@/lib/types';
 
 interface HomeScreenProps {
   prompt: string;
   setPrompt: (value: string) => void;
+  user: FirebaseUser | null;
   uploadedImage: string | null;
   setUploadedImage: (value: string | null) => void;
   onGenerate: () => void;
@@ -26,7 +28,7 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
-  prompt, setPrompt, uploadedImage, setUploadedImage, onGenerate,
+  prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
   patternHistory, onGoToHistory, isRecording, setIsRecording,
   artStyles, selectedStyle, setSelectedStyle
 }) => {
@@ -115,9 +117,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex-grow flex flex-col">
         {patternHistory.length === 0 ? (
-          <div className="flex-grow flex justify-center items-center">
+          <div className="flex-grow flex justify-center items-center p-6">
               <div className="text-center">
-                <h1 className="text-4xl font-medium text-blue-600">FLORENCIO, <span className="text-muted-foreground">你好</span></h1>
+                <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
               </div>
           </div>
         ) : (

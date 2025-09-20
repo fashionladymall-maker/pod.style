@@ -4,7 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { generatePatternAction, generateModelAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser } from '@/lib/types';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+
 
 import HomeScreen from '@/components/screens/home-screen';
 import LoadingScreen from '@/components/screens/loading-screen';
@@ -14,9 +17,10 @@ import ShippingScreen from '@/components/screens/shipping-screen';
 import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
 import ProfileScreen from '@/components/screens/profile-screen';
+import LoginScreen from '@/components/screens/login-screen';
 import { Menu, ChevronDown, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile';
+export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
 
 const podCategories = [
     { name: "T恤 (T-shirts)" },
@@ -102,7 +106,8 @@ const artStyles = [
 const App = () => {
     const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
-    const [user, setUser] = useState({ name: 'Florencio' });
+    const [user, setUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [patternHistory, setPatternHistory] = useState<string[]>([]);
     const [modelHistory, setModelHistory] = useState<(string | null)[]>([]);
@@ -116,6 +121,19 @@ const App = () => {
     const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
     const [selectedCategory, setSelectedCategory] = useState(podCategories[0].name);
     const { toast } = useToast();
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            setUser(firebaseUser);
+            setAuthLoading(false);
+            if (!firebaseUser) {
+                setStep('login');
+            } else {
+                setStep('home');
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     const handleGeneratePattern = useCallback(async () => {
         if (!prompt && !uploadedImage) {
@@ -209,6 +227,17 @@ const App = () => {
         }
     };
 
+    const handleSignOut = async () => {
+        try {
+            await firebaseSignOut(auth);
+            setStep('login');
+            reset();
+        } catch (error) {
+            console.error("Error signing out:", error);
+            toast({ variant: "destructive", title: "退出登录失败", description: "退出时发生错误，请稍后重试。" });
+        }
+    };
+
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -250,8 +279,9 @@ const App = () => {
           </div>
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
             <Avatar className="w-8 h-8">
+              <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {user.name?.[0].toUpperCase() || <User size={20} />}
+                {user?.displayName?.[0].toUpperCase() || <User size={20} />}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -259,10 +289,15 @@ const App = () => {
     );
 
     const renderStep = () => {
+        if (authLoading) {
+            return <LoadingScreen text="正在验证您的身份..." />;
+        }
+        
         const generatedPattern = patternHistory[historyIndex];
         const modelImage = modelHistory[historyIndex];
 
         switch (step) {
+            case 'login': return <LoginScreen />;
             case 'generating': return <LoadingScreen text={loadingText} />;
             case 'patternPreview': return <PatternPreviewScreen 
                 generatedPattern={generatedPattern} 
@@ -300,15 +335,18 @@ const App = () => {
             />;
             case 'confirmation': return <ConfirmationScreen onReset={reset} />;
             case 'profile': return <ProfileScreen
+                user={user}
                 patternHistory={patternHistory}
                 modelHistory={modelHistory}
                 onBack={() => setStep('home')}
                 onGoToHistory={goToHistory}
+                onSignOut={handleSignOut}
             />;
             case 'home':
             default:
                 return <HomeScreen
                     prompt={prompt} setPrompt={setPrompt}
+                    user={user}
                     uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
                     onGenerate={handleGeneratePattern}
                     patternHistory={patternHistory}
@@ -326,7 +364,7 @@ const App = () => {
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
                 <div key={`${step}-${historyIndex}`} className="h-full flex flex-col">
-                    <AppHeader/>
+                    {step !== 'login' && <AppHeader/>}
                     <div className="flex-grow overflow-y-auto">
                         {renderStep()}
                     </div>
@@ -337,5 +375,3 @@ const App = () => {
 };
 
 export default App;
-
-    
