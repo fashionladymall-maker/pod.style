@@ -47,7 +47,7 @@ const MockupScreen = ({
       
       <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 border-t bg-background/80 backdrop-blur-sm rounded-t-2xl">
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 border-t bg-background/5 backdrop-blur-sm rounded-t-2xl">
         <div className="space-y-4">
           {isApparel && (
             <div>
