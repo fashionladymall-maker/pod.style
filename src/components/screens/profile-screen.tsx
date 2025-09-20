@@ -1,6 +1,7 @@
+
 import React from 'react';
 import Image from 'next/image';
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { ArrowLeft, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser } from '@/lib/types';
@@ -50,12 +51,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <Avatar className="w-12 h-12">
                 <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
                 <AvatarFallback className="text-xl bg-primary text-primary-foreground">
-                  {user?.displayName?.[0].toUpperCase()}
+                  {user?.isAnonymous ? <User/> : user?.displayName?.[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-lg font-semibold">{user?.displayName}</h3>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <h3 className="text-lg font-semibold">{user?.isAnonymous ? "匿名用户" : user?.displayName}</h3>
+                <p className="text-sm text-muted-foreground">{user?.isAnonymous ? '您当前为匿名访问状态' : user?.email}</p>
               </div>
             </div>
             <Button onClick={onSignOut} variant="ghost" size="icon" className="rounded-full">
