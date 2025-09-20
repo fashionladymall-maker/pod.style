@@ -3,10 +3,10 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction } from '@/app/actions';
+import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order } from '@/lib/types';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 
@@ -109,6 +109,7 @@ const App = () => {
     const [authLoading, setAuthLoading] = useState(true);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [creations, setCreations]  = useState<Creation[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [activeModelIndex, setActiveModelIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
@@ -132,6 +133,15 @@ const App = () => {
             setIsLoading(false);
         }
     }, [toast]);
+    
+    const fetchOrders = useCallback(async (userId: string) => {
+      try {
+        const userOrders = await getOrdersAction(userId);
+        setOrders(userOrders);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      }
+    }, []);
 
 
     useEffect(() => {
@@ -141,13 +151,28 @@ const App = () => {
             if (!firebaseUser) {
                 setStep('login');
                 setCreations([]);
+                setOrders([]);
             } else {
                 setStep('home');
                 fetchCreations(firebaseUser.uid);
+                fetchOrders(firebaseUser.uid);
             }
         });
         return () => unsubscribe();
-    }, [fetchCreations]);
+    }, [fetchCreations, fetchOrders]);
+
+    useEffect(() => {
+        if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
+            const lastOrder = orders[0];
+            if (lastOrder.shippingInfo) {
+                setShippingInfo(lastOrder.shippingInfo);
+            }
+            if (lastOrder.paymentInfo) {
+                setPaymentInfo(lastOrder.paymentInfo);
+            }
+        }
+    }, [step, orders]);
+
 
     const handleGeneratePattern = useCallback(async () => {
         if (!user) {
@@ -311,14 +336,17 @@ const App = () => {
             // Simulate payment processing
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            await createOrderAction({
+            const newOrder = await createOrderAction({
                 userId: user.uid,
                 creationId: activeCreation.id,
                 model: activeModel,
                 orderDetails,
                 shippingInfo,
+                paymentInfo,
                 price: MOCK_PRICE,
             });
+
+            setOrders(prev => [newOrder, ...prev]);
             
             setStep('confirmation');
 
@@ -342,6 +370,7 @@ const App = () => {
         setOrderDetails({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
+        setOrders([]);
     };
     
     const AppHeader = () => {
@@ -488,7 +517,8 @@ const App = () => {
             />;
             case 'payment': return <PaymentScreen 
                 orderDetails={orderDetails} 
-                paymentInfo={paymentInfo}                 setPaymentInfo={setPaymentInfo} 
+                paymentInfo={paymentInfo}
+                setPaymentInfo={setPaymentInfo} 
                 onPay={handlePayment} 
                 onBack={() => setStep('shipping')} 
                 isLoading={isLoading} 
@@ -498,6 +528,7 @@ const App = () => {
             case 'profile': return <ProfileScreen
                 user={user}
                 creations={creations}
+                orders={orders}
                 onBack={() => setStep('home')}
                 onGoToHistory={goToHistory}
                 onSignOut={handleSignOut}

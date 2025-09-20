@@ -68,6 +68,7 @@ export interface Order {
     quantity: number;
     price: number;
     shippingInfo: ShippingInfo;
+    paymentInfo: PaymentInfo;
     createdAt: string; // ISO string
     status: OrderStatus;
 }
@@ -83,6 +84,7 @@ export interface OrderData {
     quantity: number;
     price: number;
     shippingInfo: ShippingInfo;
+    paymentInfo: PaymentInfo;
     createdAt: Timestamp;
     status: OrderStatus;
 }

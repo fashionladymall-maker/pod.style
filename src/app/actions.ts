@@ -8,7 +8,7 @@ import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
-import { Creation, CreationData, Model, Order, OrderData, OrderDetails, ShippingInfo } from '@/lib/types';
+import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentInfo, ShippingInfo } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -51,6 +51,7 @@ const docToOrder = (doc: FirebaseFirestore.DocumentSnapshot): Order => {
       quantity: data.quantity,
       price: data.price,
       shippingInfo: data.shippingInfo,
+      paymentInfo: data.paymentInfo,
       createdAt: createdAt,
       status: data.status,
   };
@@ -283,11 +284,12 @@ interface CreateOrderActionInput {
     model: Model;
     orderDetails: OrderDetails;
     shippingInfo: ShippingInfo;
+    paymentInfo: PaymentInfo;
     price: number;
 }
 
 export async function createOrderAction(input: CreateOrderActionInput): Promise<Order> {
-    const { userId, creationId, model, orderDetails, shippingInfo, price } = input;
+    const { userId, creationId, model, orderDetails, shippingInfo, paymentInfo, price } = input;
     try {
         const orderData: OrderData = {
             userId,
@@ -299,6 +301,7 @@ export async function createOrderAction(input: CreateOrderActionInput): Promise<
             quantity: orderDetails.quantity,
             price: price * orderDetails.quantity,
             shippingInfo,
+            paymentInfo,
             status: 'Processing',
             createdAt: admin.firestore.Timestamp.now(),
         };

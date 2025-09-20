@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation, Order } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCreationsAction, getOrdersAction } from '@/app/actions'; 
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 interface ProfileScreenProps {
   user: FirebaseUser | null;
   creations: Creation[];
+  orders: Order[];
   onBack: () => void;
   onGoToHistory: (creationIndex: number, modelIndex?: number) => void;
   onSignOut: () => void;
@@ -35,51 +35,22 @@ interface ProfileScreenProps {
 const ProfileScreen: React.FC<ProfileScreenProps> = ({
   user,
   creations: initialCreations,
+  orders: initialOrders,
   onBack,
   onGoToHistory,
   onSignOut,
   onDeleteCreation,
 }) => {
   const [creations, setCreations] = useState(initialCreations);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoadingCreations, setIsLoadingCreations] = useState(false);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-
+  const [orders, setOrders] = useState(initialOrders);
+  
   useEffect(() => {
-    const fetchCreations = async () => {
-      if (user) {
-        setIsLoadingCreations(true);
-        try {
-          const userCreations = await getCreationsAction(user.uid);
-          setCreations(userCreations);
-        } catch (error) {
-          console.error("Failed to fetch creations:", error);
-        } finally {
-          setIsLoadingCreations(false);
-        }
-      }
-    };
-    const fetchOrders = async () => {
-        if(user) {
-            setIsLoadingOrders(true);
-            try {
-                const userOrders = await getOrdersAction(user.uid);
-                setOrders(userOrders);
-            } catch (error) {
-                console.error("Failed to fetch orders:", error);
-            } finally {
-                setIsLoadingOrders(false);
-            }
-        }
-    }
-
-    if (!initialCreations.length && user) {
-      fetchCreations();
-    }
-    if (user) {
-        fetchOrders();
-    }
-  }, [user, initialCreations.length]);
+    setCreations(initialCreations);
+  }, [initialCreations]);
+  
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
 
 
   const handleDeleteAllCreations = () => {
@@ -142,9 +113,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         </AlertDialogContent>
                     </AlertDialog>
                     </div>
-                    {isLoadingCreations ? (
-                        <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>
-                    ) : creations.length > 0 ? (
+                    {initialCreations.length === 0 && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
+                    {creations.length > 0 ? (
                         <div className="space-y-6">
                         {creations.map((creation, index) => (
                             <div key={creation.id} className="relative group/creation break-inside-avoid border-b pb-6">
@@ -205,7 +175,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground pt-12">
+                        initialCreations.length > 0 && <div className="flex flex-col items-center justify-center text-center text-muted-foreground pt-12">
                             <p className="text-lg">暂无创作历史</p>
                             <p className="text-sm mt-2">快去创作你的第一个设计吧！</p>
                         </div>
@@ -216,9 +186,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <TabsContent value="orders" className="flex-grow mt-4">
             <ScrollArea className="h-full">
                 <div className="px-1 pb-4">
-                    {isLoadingOrders ? (
-                        <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>
-                    ) : orders.length > 0 ? (
+                    {initialOrders.length === 0 && <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>}
+                    {orders.length > 0 ? (
                         <div className="space-y-4">
                             {orders.map(order => (
                                 <div key={order.id} className="border rounded-lg p-3 flex gap-4 text-sm">
@@ -236,7 +205,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
+                        initialOrders.length > 0 && <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
                     )}
                 </div>
             </ScrollArea>
