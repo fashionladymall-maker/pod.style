@@ -51,7 +51,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <Avatar className="w-12 h-12">
                 <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
                 <AvatarFallback className="text-xl bg-primary text-primary-foreground">
-                  {user?.isAnonymous ? <User/> : user?.displayName?.[0].toUpperCase()}
+                  {user?.isAnonymous ? <User/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>

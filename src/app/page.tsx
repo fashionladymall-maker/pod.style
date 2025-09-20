@@ -284,7 +284,7 @@ const App = () => {
             <Avatar className="w-8 h-8">
               <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {user?.isAnonymous ? <User size={20}/> : user?.displayName?.[0].toUpperCase() || <User size={20} />}
+                {user?.isAnonymous ? <User size={20}/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase() || <User size={20} />}
               </AvatarFallback>
             </Avatar>
           </Button>
