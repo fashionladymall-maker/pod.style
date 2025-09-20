@@ -1,9 +1,6 @@
 
 import * as admin from 'firebase-admin';
 
-// ❗️ 加入这行来侦错 ❗️
-console.log("Reading FIREBASE_SERVICE_ACCOUNT:", process.env.FIREBASE_SERVICE_ACCOUNT);
-
 // This check is to prevent the app from crashing in environments where the environment variable is not set.
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
