@@ -11,24 +11,7 @@ import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { Creation, CreationData } from '@/lib/types';
 import { Timestamp } from 'firebase-admin/firestore';
-
-// --- Firebase Admin SDK Initialization ---
-if (!admin.apps.length) {
-    try {
-        if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-            throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
-        }
-        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-        });
-    } catch (error: any) {
-        console.error('Firebase Admin initialization error', error.stack);
-        throw new Error('Failed to initialize Firebase Admin SDK. Please check your FIREBASE_SERVICE_ACCOUNT environment variable.');
-    }
-}
-const db = admin.firestore();
-
+import { db } from '@/lib/firebase-admin';
 
 // --- Firestore Helper Functions ---
 
