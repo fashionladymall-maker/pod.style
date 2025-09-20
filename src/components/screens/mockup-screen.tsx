@@ -41,7 +41,7 @@ const MockupScreen = ({
       
       <div className="flex-grow relative bg-muted/30">
         {modelImage ? (
-            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-contain p-4 animate-fade-in" />
+            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-contain animate-fade-in" />
         ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">正在生成模特图...</div>
         )}
