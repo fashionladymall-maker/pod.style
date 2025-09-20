@@ -8,7 +8,6 @@ import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { Creation, CreationData, Model } from '@/lib/types';
-import type { Timestamp } from 'firebase-admin/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -18,6 +17,11 @@ const getCreationsCollection = () => db.collection("creations");
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
+  // Firestore Timestamps need to be converted to a serializable format (ISO string)
+  const createdAt = data.createdAt instanceof admin.firestore.Timestamp 
+    ? data.createdAt.toDate().toISOString() 
+    : new Date(data.createdAt._seconds * 1000).toISOString();
+
   return {
     id: doc.id,
     userId: data.userId,
@@ -25,7 +29,7 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     style: data.style,
     patternUri: data.patternUri,
     models: data.models || [],
-    createdAt: data.createdAt.toDate().toISOString(), 
+    createdAt: createdAt,
   };
 };
 
@@ -47,22 +51,6 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
   return docToCreation(newDoc);
 };
 
-const getCreations = async (userId: string): Promise<Creation[]> => {
-  const querySnapshot = await getCreationsCollection()
-    .where("userId", "==", userId)
-    .get();
-  
-  if (querySnapshot.empty) {
-    return [];
-  }
-
-  const creations = querySnapshot.docs.map(docToCreation);
-
-  creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  return creations;
-};
-
 const addModelToCreation = async (creationId: string, newModel: Model): Promise<Creation> => {
   const creationRef = getCreationsCollection().doc(creationId);
   
@@ -78,37 +66,43 @@ const addModelToCreation = async (creationId: string, newModel: Model): Promise<
 };
 
 const deleteCreation = async (creationId: string): Promise<void> => {
-  const creationRef = getCreationsCollection().doc(creationId);
-  const doc = await creationRef.get();
-  if (!doc.exists) return;
+    const creationRef = getCreationsCollection().doc(creationId);
+    const doc = await creationRef.get();
+    if (!doc.exists) return;
 
-  const creation = docToCreation(doc);
-  const bucket = storage.bucket();
+    const creation = docToCreation(doc);
+    const bucket = storage.bucket();
 
-  // Collect all file URIs to be deleted
-  const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
+    // Collect all file URIs to be deleted from both patternUri and models array
+    const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
 
-  const deletePromises = fileUris.map(uri => {
-    if (!uri) return Promise.resolve();
-    try {
-      // Extract file path from the public URL
-      // e.g., https://storage.googleapis.com/your-bucket-name/creations/user-id/uuid
-      const url = new URL(uri);
-      const filePath = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
-      if (filePath) {
-        console.log(`Attempting to delete: ${filePath}`);
-        return bucket.file(filePath).delete().catch(err => console.warn(`Failed to delete ${filePath}:`, err.message));
-      }
-    } catch(e) {
-      console.warn(`Invalid URI for deletion: ${uri}`, e);
-    }
-    return Promise.resolve();
-  });
-  
-  await Promise.all(deletePromises);
-  await creationRef.delete();
-  console.log(`Creation ${creationId} and associated files deleted.`);
+    const deletePromises = fileUris.map(uri => {
+        if (!uri) return Promise.resolve();
+        try {
+            // Extract file path from the public URL
+            // e.g., https://storage.googleapis.com/your-bucket-name/creations/user-id/uuid
+            const url = new URL(uri);
+            // Pathname is /bucket-name/file/path, so we split and slice
+            const filePath = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
+            if (filePath) {
+                console.log(`Attempting to delete: ${filePath}`);
+                return bucket.file(filePath).delete().catch(err => {
+                    // It's possible the file doesn't exist or permissions are wrong
+                    // We'll log a warning but not fail the whole operation
+                    console.warn(`Failed to delete ${filePath}:`, err.message);
+                });
+            }
+        } catch (e) {
+            console.warn(`Invalid URI for deletion, skipping: ${uri}`, e);
+        }
+        return Promise.resolve();
+    });
+
+    await Promise.all(deletePromises);
+    await creationRef.delete();
+    console.log(`Creation ${creationId} and associated files deleted.`);
 };
+
 
 
 // --- Server Actions ---
@@ -213,9 +207,22 @@ export async function generateModelAction(input: GenerateModelActionInput): Prom
 
 
 export async function getCreationsAction(userId: string): Promise<Creation[]> {
+    if (!userId) {
+        return []; 
+    }
     try {
-        const creations = await getCreations(userId);
+        const querySnapshot = await getCreationsCollection()
+            .where("userId", "==", userId)
+            .orderBy("createdAt", "desc")
+            .get();
+        
+        if (querySnapshot.empty) {
+            return [];
+        }
+
+        const creations = querySnapshot.docs.map(docToCreation);
         return creations;
+
     } catch (error) {
         console.error('Error in getCreationsAction:', error);
         if (error instanceof Error) throw error;

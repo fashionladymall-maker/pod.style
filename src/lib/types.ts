@@ -1,5 +1,5 @@
 import type { User as FirebaseUserType } from "firebase/auth";
-import type { Timestamp as AdminTimestamp } from "firebase-admin/firestore";
+import type { Timestamp } from "firebase-admin/firestore";
 
 export interface OrderDetails {
     color: string;
@@ -29,7 +29,7 @@ export interface Model {
 
 
 // This is the object shape that the client-side components will receive.
-// Note that 'createdAt' is a string because Timestamp objects are not serializable.
+// Note that 'createdAt' is a string because Timestamp objects are not serializable across server/client boundaries.
 export interface Creation {
     id: string;
     userId: string;
@@ -48,5 +48,5 @@ export interface CreationData {
     style: string;
     patternUri: string;
     models: Model[];
-    createdAt: AdminTimestamp;
+    createdAt: Timestamp | { _seconds: number; _nanoseconds: number }; // Allow for raw object from client
 }

@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ArrowLeft, LogOut, User, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getCreationsAction } from '@/app/actions'; // Assuming this action exists
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,12 +30,37 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({
   user,
-  creations,
+  creations: initialCreations,
   onBack,
   onGoToHistory,
   onSignOut,
   onDeleteCreation,
 }) => {
+  const [creations, setCreations] = useState(initialCreations);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // This allows the profile screen to fetch its own data if it's navigated to directly
+    // or if the initialCreations prop is stale.
+    const fetchCreations = async () => {
+      if (user) {
+        setIsLoading(true);
+        const userCreations = await getCreationsAction(user.uid);
+        setCreations(userCreations);
+        setIsLoading(false);
+      }
+    };
+    if (!initialCreations.length && user) {
+      fetchCreations();
+    }
+  }, [user, initialCreations.length]);
+
+
+  const handleDeleteAll = () => {
+    creations.forEach(c => onDeleteCreation(c.id));
+    setCreations([]);
+  }
+
   return (
     <div className="flex flex-col h-full bg-background animate-fade-in">
       <div className="flex items-center p-4 border-b sticky top-0 bg-background z-10">
@@ -80,12 +106,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>取消</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => creations.forEach(c => onDeleteCreation(c.id))}>全部删除</AlertDialogAction>
+                    <AlertDialogAction onClick={handleDeleteAll}>全部删除</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-            {creations.length > 0 ? (
+            {isLoading ? (
+                <div className="text-center p-12 text-muted-foreground">正在加载作品...</div>
+            ) : creations.length > 0 ? (
                 <div className="space-y-6">
                 {creations.map((creation, index) => (
                     <div key={creation.id} className="relative group/creation break-inside-avoid border-b pb-6">

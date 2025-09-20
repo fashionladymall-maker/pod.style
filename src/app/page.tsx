@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Model } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation } from '@/lib/types';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 
@@ -119,14 +119,18 @@ const App = () => {
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
+        setIsLoading(true);
         try {
             const userCreations = await getCreationsAction(userId);
             setCreations(userCreations);
         } catch (error) {
             console.error("Failed to fetch creations:", error);
             toast({ variant: "destructive", title: "获取作品失败", description: "加载您的作品时发生错误。" });
+        } finally {
+            setIsLoading(false);
         }
     }, [toast]);
+
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
