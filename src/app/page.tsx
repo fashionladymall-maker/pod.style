@@ -150,7 +150,7 @@ const App = () => {
           <div className="flex flex-col items-center">
             <h1 className="text-lg font-medium">AIPOD</h1>
             <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs text-muted-foreground">
-                2.5 Pro <ChevronDown className="w-3 h-3 ml-1" />
+                T Shir't <ChevronDown className="w-3 h-3 ml-1" />
             </Button>
           </div>
           <Avatar className="w-8 h-8">
