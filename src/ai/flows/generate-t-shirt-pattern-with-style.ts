@@ -83,7 +83,7 @@ IMPORTANT RULES:
     });
 
     if (!media?.url) {
-      throw new Error('Failed to generate image.');
+      throw new Error('The AI failed to return an image. This might be due to a safety policy violation.');
     }
 
     return {generatedImage: media.url};
