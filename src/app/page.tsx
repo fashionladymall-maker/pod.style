@@ -19,9 +19,10 @@ import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
 import ProfileScreen from '@/components/screens/profile-screen';
 import LoginScreen from '@/components/screens/login-screen';
-import { Menu, ChevronDown, User } from 'lucide-react';
+import { Menu, ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
+export type AppStep = 'home' | 'generating' | 'patternPreview' | 'categorySelection' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
 
 const podCategories = [
     { name: "T恤 (T-shirts)" },
@@ -110,7 +111,7 @@ const App = () => {
     const [user, setUser] = useState<FirebaseUser | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const [creations, setCreations] = useState<Creation[]>([]);
+    const [creations, setCreations]  = useState<Creation[]>([]);
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
@@ -119,7 +120,6 @@ const App = () => {
     const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({ name: '', address: '', phone: '' });
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ cardNumber: '', expiry: '', cvv: '' });
     const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
-    const [selectedCategory, setSelectedCategory] = useState(podCategories[0].name);
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
@@ -162,12 +162,13 @@ const App = () => {
 
         try {
             const styleValue = selectedStyle.split(' ')[0];
+            // Category is now selected AFTER pattern generation. Pass an empty string for now.
             const newCreation = await generatePatternAction({
                 userId: user.uid,
                 prompt,
                 inspirationImage: uploadedImage ?? undefined,
                 style: styleValue !== '无' ? styleValue : undefined,
-                category: selectedCategory,
+                category: '', 
             });
 
             const updatedCreations = [newCreation, ...creations];
@@ -181,9 +182,9 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, uploadedImage, selectedStyle, selectedCategory, user, creations, toast]);
+    }, [prompt, uploadedImage, selectedStyle, user, creations, toast]);
 
-    const handleGenerateModel = useCallback(async () => {
+    const handleGenerateModel = useCallback(async (category: string) => {
         const activeCreation = creations[activeCreationIndex];
         if (!user || !activeCreation) {
             toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
@@ -191,7 +192,7 @@ const App = () => {
             return;
         }
         setIsLoading(true);
-        setLoadingText('正在为您生成模特试穿图...');
+        setLoadingText('正在为您生成商品效果图...');
         setStep('generating');
 
         try {
@@ -200,7 +201,7 @@ const App = () => {
                 userId: user.uid,
                 patternDataUri: activeCreation.patternUri,
                 colorName: orderDetails.colorName,
-                category: activeCreation.category,
+                category: category,
             });
 
             const updatedCreations = creations.map((c, index) => 
@@ -210,8 +211,8 @@ const App = () => {
             setStep('mockup');
         } catch (err: any) {
             console.error(err);
-            toast({ variant: 'destructive', title: '模特图生成失败', description: err.message || '模特图生成过程中发生网络错误。' });
-            setStep('patternPreview');
+            toast({ variant: 'destructive', title: '效果图生成失败', description: err.message || '效果图生成过程中发生网络错误。' });
+            setStep('categorySelection');
         } finally {
             setIsLoading(false);
         }
@@ -243,7 +244,8 @@ const App = () => {
             setActiveCreationIndex(newIndex);
             const newCreation = creations[newIndex];
             if (step === 'mockup' && !newCreation.modelUri) {
-                setStep('patternPreview');
+                // If we are on the mockup screen but the new creation doesn't have a model, go to category selection first
+                setStep('categorySelection');
             }
         }
     };
@@ -293,25 +295,9 @@ const App = () => {
     const AppHeader = () => (
       <header className="flex items-center justify-between p-4 bg-background border-b">
           <Button variant="ghost" size="icon" onClick={() => setStep('home')}><Menu /></Button>
-          <div className="flex flex-col items-center">
-            <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
-                <h1 className="text-lg font-medium">AIPOD</h1>
-            </Button>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs font-semibold">
-                        {selectedCategory.split(' ')[0]} <ChevronDown className="w-3 h-3 ml-1" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="max-h-80 overflow-y-auto">
-                    {podCategories.map((category) => (
-                        <DropdownMenuItem key={category.name} onSelect={() => setSelectedCategory(category.name)}>
-                            {category.name}
-                        </DropdownMenuItem>
-                    ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
+              <h1 className="text-lg font-medium">AIPOD</h1>
+          </Button>
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
             <Avatar className="w-8 h-8">
               <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
@@ -321,6 +307,32 @@ const App = () => {
             </Avatar>
           </Button>
       </header>
+    );
+
+    const CategorySelectionScreen = () => (
+        <div className="flex flex-col h-full animate-fade-in">
+            <div className="flex items-center p-4 border-b">
+                <Button onClick={() => setStep('patternPreview')} variant="ghost" size="icon" className="rounded-full">
+                    <ArrowLeft size={20} />
+                </Button>
+                <h2 className="text-lg font-medium text-center flex-grow">选择商品类型</h2>
+                <div className="w-10"></div>
+            </div>
+            <ScrollArea className="flex-grow">
+                <div className="grid grid-cols-2 gap-4 p-4">
+                    {podCategories.map((category) => (
+                        <Button
+                            key={category.name}
+                            variant="outline"
+                            className="h-20 text-base font-semibold"
+                            onClick={() => handleGenerateModel(category.name)}
+                        >
+                            {category.name}
+                        </Button>
+                    ))}
+                </div>
+            </ScrollArea>
+        </div>
     );
 
     const renderStep = () => {
@@ -340,19 +352,20 @@ const App = () => {
                 totalHistory={creations.length} 
                 onNavigate={navigateHistory} 
                 isModelGenerating={isLoading}
-                onGoToModel={handleGenerateModel} 
+                onGoToModel={() => setStep('categorySelection')} 
             />;
+            case 'categorySelection': return <CategorySelectionScreen />;
             case 'mockup': return <MockupScreen 
                 modelImage={activeCreation?.modelUri}
                 orderDetails={orderDetails} 
                 setOrderDetails={setOrderDetails} 
                 handleQuantityChange={handleQuantityChange} 
                 onNext={() => setStep('shipping')} 
-                onBack={() => setStep('patternPreview')} 
+                onBack={() => setStep('categorySelection')} 
                 historyIndex={activeCreationIndex} 
                 totalHistory={creations.length} 
                 onNavigate={navigateHistory}
-                category={activeCreation?.category || selectedCategory}
+                category={activeCreation?.category || ''}
             />;
             case 'shipping': return <ShippingScreen 
                 shippingInfo={shippingInfo} 
@@ -398,7 +411,7 @@ const App = () => {
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
                 <div key={`${step}-${activeCreationIndex}`} className="h-full flex flex-col">
-                    {step !== 'login' && <AppHeader/>}
+                    {step !== 'login' && step !== 'categorySelection' && <AppHeader/>}
                     <div className="flex-grow overflow-y-auto">
                         {renderStep()}
                     </div>
@@ -409,3 +422,5 @@ const App = () => {
 };
 
 export default App;
+
+    

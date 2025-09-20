@@ -36,9 +36,9 @@ const MockupScreen = ({
     <div className="relative flex flex-col h-full bg-muted" {...swipeHandlers}>
       <div className="flex-grow relative">
         {modelImage ? (
-            <Image src={modelImage} alt="模特效果图" layout="fill" className="object-cover animate-fade-in" />
+            <Image src={modelImage} alt="商品效果图" layout="fill" className="object-cover animate-fade-in" />
         ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">正在生成模特图...</div>
+            <div className="flex items-center justify-center h-full text-muted-foreground">正在生成商品效果图...</div>
         )}
          <Button onClick={onBack} variant="ghost" size="icon" className="absolute top-4 left-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
       </div>
@@ -86,3 +86,5 @@ const MockupScreen = ({
 };
 
 export default MockupScreen;
+
+    

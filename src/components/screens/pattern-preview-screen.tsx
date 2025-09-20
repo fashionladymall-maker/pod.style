@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -58,3 +59,5 @@ const PatternPreviewScreen = ({
 };
 
 export default PatternPreviewScreen;
+
+    
