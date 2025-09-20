@@ -2,14 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Upload, Sparkles, Wand2, Palette, History, Plus, Image as ImageIcon, Mic } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import { Plus, Mic, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import type { OrderDetails } from '@/lib/types';
 
 interface HomeScreenProps {
   prompt: string;
@@ -17,31 +13,13 @@ interface HomeScreenProps {
   uploadedImage: string | null;
   setUploadedImage: (value: string | null) => void;
   onGenerate: () => void;
-  orderDetails: OrderDetails;
-  setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   patternHistory: string[];
-  modelHistory: (string | null)[];
   onGoToHistory: (index: number) => void;
-  selectedStyle: string;
-  setSelectedStyle: (style: string) => void;
 }
-
-const colors = [
-    { name: '白色', value: 'bg-white', colorName: 'white' }, 
-    { name: '黑色', value: 'bg-gray-800', colorName: 'black' }, 
-    { name: '灰色', value: 'bg-gray-400', colorName: 'gray' },
-    { name: '海军蓝', value: 'bg-blue-900', colorName: 'navy' }
-];
-
-const styles = [
-    { name: '默认', value: 'none' }, { name: '写实', value: 'photorealistic' }, { name: '漫画', value: 'comic book art' },
-    { name: '油画', value: 'oil painting' }, { name: '水彩', value: 'watercolor painting' }, { name: '海报', value: 'poster art' },
-    { name: '梵高', value: 'in the style of Van Gogh' }, { name: '达芬奇', value: 'in the style of Leonardo da Vinci' }, { name: '涂鸦', value: 'graffiti art style' }
-];
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, uploadedImage, setUploadedImage, onGenerate,
-  orderDetails, setOrderDetails, patternHistory, modelHistory, onGoToHistory, selectedStyle, setSelectedStyle
+  patternHistory, onGoToHistory
 }) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -51,37 +29,41 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }
   };
 
+  const SuggestionButton = ({ children }: { children: React.ReactNode }) => (
+    <Button variant="outline" className="rounded-full bg-secondary hover:bg-muted">
+      {children}
+    </Button>
+  );
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow p-6 text-center flex flex-col justify-center">
-        <h2 className="text-4xl text-blue-500 font-medium">你好,</h2>
-        <h1 className="text-4xl text-muted-foreground font-medium">我能为你做些什么？</h1>
-      </div>
-      
-      {patternHistory.length > 0 && (
-          <div className="px-6 mb-4">
-            <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
-            <ScrollArea className="w-full whitespace-nowrap rounded-md">
-                <div className="flex space-x-3 pb-4">
-                {[...patternHistory].reverse().map((_, revIndex) => {
-                    const index = patternHistory.length - 1 - revIndex;
-                    return (
-                        <button key={index} onClick={() => onGoToHistory(index)} className="flex-shrink-0 w-24 h-24 bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                            <Image src={modelHistory[index] || patternHistory[index]} alt={`历史记录 ${index + 1}`} layout="fill" className="object-cover" />
-                        </button>
-                    )
-                })}
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+      <div className="flex-grow p-6 flex flex-col justify-center items-center">
+        {patternHistory.length === 0 ? (
+          <div className="text-center">
+            <h1 className="text-4xl font-medium text-blue-600">FLORENCIO, <span className="text-muted-foreground">你好</span></h1>
           </div>
-      )}
+        ) : (
+          <div className="w-full">
+            <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {[...patternHistory].reverse().map((_, revIndex) => {
+                  const index = patternHistory.length - 1 - revIndex;
+                  return (
+                      <button key={index} onClick={() => onGoToHistory(index)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
+                          <Image src={patternHistory[index]} alt={`历史记录 ${index + 1}`} layout="fill" className="object-cover" />
+                      </button>
+                  )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
-      <div className="mt-auto p-4 bg-background border-t">
-        <div className="relative">
-            <Textarea
-              className="w-full bg-secondary text-foreground p-3 pr-20 rounded-full resize-none focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-300 min-h-[50px] border-none"
-              placeholder="问问AI..."
+      <div className="mt-auto p-4 bg-background">
+        <div className="relative mb-3">
+            <Input
+              className="w-full bg-secondary text-foreground p-3 pr-20 rounded-full h-12 border-none focus-visible:ring-1"
+              placeholder="问问 Gemini"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
@@ -101,16 +83,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
         </div>
 
-        <div className="flex items-center space-x-2 mt-3">
+        <div className="flex items-center space-x-2">
           <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
+          <Button variant="ghost" size="icon" className="rounded-full bg-secondary" asChild>
             <Label htmlFor="imageUpload" className="cursor-pointer"><Plus size={24} /></Label>
           </Button>
 
-          <Button variant="secondary" className="rounded-full">
-            <ImageIcon size={16} className="mr-2"/>
-            图片
-          </Button>
+          <SuggestionButton>图片</SuggestionButton>
+          <SuggestionButton>视频</SuggestionButton>
+          <SuggestionButton>研究</SuggestionButton>
 
           {uploadedImage && (
             <div className="relative w-10 h-10 border rounded-md">
@@ -119,7 +100,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

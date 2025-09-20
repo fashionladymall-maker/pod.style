@@ -13,8 +13,10 @@ import MockupScreen from '@/components/screens/mockup-screen';
 import ShippingScreen from '@/components/screens/shipping-screen';
 import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
-import { Menu, User } from 'lucide-react';
+import { Menu, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'mockup' | 'shipping' | 'payment' | 'confirmation';
 
@@ -87,7 +89,7 @@ const App = () => {
 
             const updatedModelHistory = [...modelHistory];
             updatedModelHistory[historyIndex] = result.modelImageUri;
-setModelHistory(updatedModelHistory);
+            setModelHistory(updatedModelHistory);
             setStep('mockup');
         } catch (err: any) {
             console.error(err);
@@ -100,9 +102,7 @@ setModelHistory(updatedModelHistory);
 
     useEffect(() => {
         if (step === 'patternPreview' && patternHistory[historyIndex] && !modelHistory[historyIndex]) {
-            // No automatic model generation for now
-            // const timer = setTimeout(() => { handleGenerateModel(); }, 3500);
-            // return () => clearTimeout(timer);
+            // No automatic model generation
         }
     }, [step, historyIndex, patternHistory, modelHistory, handleGenerateModel]);
 
@@ -147,17 +147,21 @@ setModelHistory(updatedModelHistory);
     const AppHeader = () => (
       <header className="flex items-center justify-between p-4 bg-background">
           <Button variant="ghost" size="icon"><Menu /></Button>
-          <h1 className="text-xl font-medium">AI T恤</h1>
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-            F
+          <div className="flex flex-col items-center">
+            <h1 className="text-lg font-medium">Gemini</h1>
+            <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs text-muted-foreground">
+                2.5 Pro <ChevronDown className="w-3 h-3 ml-1" />
+            </Button>
           </div>
+          <Avatar className="w-8 h-8">
+            <AvatarFallback className="bg-blue-500 text-white font-bold text-sm">F</AvatarFallback>
+          </Avatar>
       </header>
     );
 
     const renderStep = () => {
         const generatedPattern = patternHistory[historyIndex];
         const modelImage = modelHistory[historyIndex];
-        const isModelGenerating = step === 'patternPreview' && !!generatedPattern && !modelImage;
 
         switch (step) {
             case 'generating': return <LoadingScreen text={loadingText} />;
@@ -189,8 +193,7 @@ setModelHistory(updatedModelHistory);
             />;
             case 'payment': return <PaymentScreen 
                 orderDetails={orderDetails} 
-                paymentInfo={paymentInfo} 
-                setPaymentInfo={setPaymentInfo} 
+                paymentInfo={paymentInfo}                 setPaymentInfo={setPaymentInfo} 
                 onPay={handlePayment} 
                 onBack={() => setStep('shipping')} 
                 isLoading={isLoading} 
@@ -202,10 +205,8 @@ setModelHistory(updatedModelHistory);
                     prompt={prompt} setPrompt={setPrompt}
                     uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
                     onGenerate={handleGeneratePattern}
-                    orderDetails={orderDetails} setOrderDetails={setOrderDetails}
-                    patternHistory={patternHistory} modelHistory={modelHistory}
+                    patternHistory={patternHistory}
                     onGoToHistory={goToHistory}
-                    selectedStyle={selectedStyle} setSelectedStyle={setSelectedStyle}
                 />;
         }
     };
