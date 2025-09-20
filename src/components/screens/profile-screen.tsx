@@ -63,28 +63,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-background animate-fade-in">
-      <div className="flex items-center p-4 border-b sticky top-0 bg-background z-10">
-         <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full">
-            <ArrowLeft size={20} />
-        </Button>
-        <h2 className="text-lg font-medium text-center flex-grow">个人中心</h2>
-        <Button onClick={onSignOut} variant="ghost" size="icon" className="rounded-full">
-          <LogOut className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </div>
       
       <ScrollArea className="flex-grow">
-        <div className="p-6 flex items-center gap-4">
-          <Avatar className="w-16 h-16">
-            <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-            <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-              {user?.isAnonymous ? <User/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="text-xl font-semibold">{user?.isAnonymous ? "匿名用户" : user?.displayName}</h3>
-            <p className="text-sm text-muted-foreground">{user?.isAnonymous ? '您当前为匿名访问状态' : user?.email}</p>
-          </div>
+        <div className="p-6 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16">
+                <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                  {user?.isAnonymous ? <User/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="text-xl font-semibold">{user?.isAnonymous ? "匿名用户" : user?.displayName}</h3>
+                <p className="text-sm text-muted-foreground">{user?.isAnonymous ? '您当前为匿名访问状态' : user?.email}</p>
+              </div>
+            </div>
+            <Button onClick={onSignOut} variant="ghost" size="icon" className="rounded-full">
+              <LogOut className="h-5 w-5 text-muted-foreground" />
+            </Button>
         </div>
 
         <div className="p-4">

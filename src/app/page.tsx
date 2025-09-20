@@ -319,7 +319,6 @@ const App = () => {
 
         switch(step) {
             case 'profile':
-                title = '个人中心';
                 showBack = true;
                 break;
             case 'categorySelection':
