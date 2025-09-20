@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -48,43 +49,40 @@ const MockupScreen = ({
       <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 flex justify-between items-end">
-        <div className="flex flex-col gap-4">
-          {isApparel && (
-            <div className="flex items-center gap-4">
-              <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>尺码</p>
-              <div className="flex gap-2">
-                {sizes.map(size => (
-                  <Button 
-                    key={size} 
-                    variant={orderDetails.size === size ? 'default' : 'outline'} 
-                    onClick={() => setOrderDetails(prev => ({ ...prev, size }))} 
-                    className={cn(
-                      "rounded-full w-12 h-12 text-lg",
-                      orderDetails.size === size 
-                        ? "bg-primary text-primary-foreground border-primary" 
-                        : "bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white"
-                    )}
-                  >
-                    {size}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
+        {isApparel && (
           <div className="flex items-center gap-4">
-            <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>数量</p>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
-              <span className="font-bold text-lg w-8 text-center text-white" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>{orderDetails.quantity}</span>
-              <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+            <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>尺码</p>
+            <div className="flex gap-2">
+              {sizes.map(size => (
+                <Button 
+                  key={size} 
+                  variant={orderDetails.size === size ? 'default' : 'outline'} 
+                  onClick={() => setOrderDetails(prev => ({ ...prev, size }))} 
+                  className={cn(
+                    "rounded-full w-12 h-12 text-lg",
+                    orderDetails.size === size 
+                      ? "bg-primary text-primary-foreground border-primary" 
+                      : "bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white"
+                  )}
+                >
+                  {size}
+                </Button>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        <Button onClick={onNext} variant="outline" className="h-auto px-4 py-2 rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white">
-            下一步 <ShoppingCart className="ml-2" size={20} />
-        </Button>
+        <div className="flex items-center gap-4 ml-auto">
+          <p className="text-sm font-bold text-white/90" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>数量</p>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
+            <span className="font-bold text-lg w-8 text-center text-white" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>{orderDetails.quantity}</span>
+            <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+          </div>
+          <Button onClick={onNext} variant="outline" className="h-auto px-4 py-2 rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white">
+              下一步 <ShoppingCart className="ml-2" size={20} />
+          </Button>
+        </div>
       </div>
     </div>
   );
