@@ -17,12 +17,12 @@ const HistoryNavigator = ({ currentIndex, total, onNavigate }: HistoryNavigatorP
         disabled={currentIndex === 0}
         variant="ghost"
         size="icon"
-        className="rounded-full bg-black/40 hover:bg-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110"
+        className="rounded-sm bg-black/50 hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110 text-primary"
         aria-label="Previous Design"
       >
         <ArrowLeft size={24} />
       </Button>
-      <span className="text-lg font-bold text-white bg-black/40 px-4 py-1 rounded-full" style={{ textShadow: '1px 1px 2px black' }}>
+      <span className="text-lg font-bold text-white bg-black/50 px-4 py-1 rounded-sm border border-primary/50" style={{ textShadow: '1px 1px 2px black' }}>
         {currentIndex + 1} / {total}
       </span>
       <Button
@@ -30,7 +30,7 @@ const HistoryNavigator = ({ currentIndex, total, onNavigate }: HistoryNavigatorP
         disabled={currentIndex >= total - 1}
         variant="ghost"
         size="icon"
-        className="rounded-full bg-black/40 hover:bg-black/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110"
+        className="rounded-sm bg-black/50 hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110 text-primary"
         aria-label="Next Design"
       >
         <ArrowRight size={24} />

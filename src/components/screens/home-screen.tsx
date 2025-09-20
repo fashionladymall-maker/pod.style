@@ -55,30 +55,30 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     <div className="flex flex-col h-full text-center p-6 animate-fade-in overflow-y-auto">
       <ScrollArea className="flex-grow">
         <div className="pr-4">
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2 animate-fade-in-up" style={{ animationDelay: '100ms' }}>AI一件T</h1>
-            <p className="text-muted-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>输入您的奇思妙想</p>
+            <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2 animate-fade-in-up" style={{ animationDelay: '100ms', textShadow: '0 0 10px hsl(var(--primary)/0.5), 0 0 20px hsl(var(--accent)/0.5)' }}>AI一件T</h1>
+            <p className="text-muted-foreground mb-6 animate-fade-in-up tracking-widest" style={{ animationDelay: '200ms' }}>输入您的奇思妙想</p>
 
             <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
               <Textarea
-                className="w-full bg-secondary text-foreground p-4 rounded-xl resize-none focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-300 min-h-[100px]"
+                className="w-full bg-secondary text-foreground p-4 rounded-md resize-none focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-300 min-h-[100px] border-primary/30"
                 rows={4}
                 placeholder="例如：一只宇航员猫在月球弹吉他"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
               {uploadedImage && (
-                <div className="mt-2 relative w-24 h-24 mx-auto">
-                  <Image src={uploadedImage} alt="Uploaded preview" layout="fill" className="rounded-lg object-cover" />
+                <div className="mt-2 relative w-24 h-24 mx-auto border-2 border-accent rounded-md">
+                  <Image src={uploadedImage} alt="Uploaded preview" layout="fill" className="rounded-sm object-cover" />
                   <Button onClick={() => setUploadedImage(null)} variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0">X</Button>
                 </div>
               )}
 
               <div>
-                <h3 className="font-semibold mb-2 flex items-center justify-center text-foreground"><Palette size={18} className="mr-2 text-primary" />选择颜色</h3>
+                <h3 className="font-semibold mb-3 flex items-center justify-center text-primary tracking-wider"><Palette size={18} className="mr-2" />选择颜色</h3>
                 <div className="flex space-x-4 justify-center">
                   {colors.map((c) => (
                     <button key={c.value} onClick={() => setOrderDetails(prev => ({ ...prev, color: c.value, colorName: c.colorName }))}
-                      className={cn(`w-10 h-10 rounded-full border-2 ${c.value} transition-all duration-300 hover:scale-110 active:scale-100`, orderDetails.color === c.value ? 'border-primary scale-110' : 'border-border')}
+                      className={cn(`w-10 h-10 rounded-md border-2 ${c.value} transition-all duration-300 hover:scale-110 active:scale-100 hover:shadow-[0_0_15px_white]`, orderDetails.color === c.value ? 'border-primary scale-110 shadow-[0_0_15px_hsl(var(--primary))]' : 'border-border')}
                       aria-label={`Select ${c.name} color`}
                     ></button>
                   ))}
@@ -86,13 +86,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2 flex items-center justify-center text-foreground"><Wand2 size={18} className="mr-2 text-primary" />选择风格</h3>
+                <h3 className="font-semibold mb-3 mt-4 flex items-center justify-center text-primary tracking-wider"><Wand2 size={18} className="mr-2" />选择风格</h3>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {styles.map((style) => (
                     <Button key={style.value} onClick={() => setSelectedStyle(style.value)}
                       variant={selectedStyle === style.value ? 'default' : 'secondary'}
                       size="sm"
-                      className="rounded-full"
+                      className="rounded-sm !uppercase tracking-wider"
                     >
                       {style.name}
                     </Button>
@@ -106,13 +106,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       <div className="mt-auto pt-6 space-y-4">
         {patternHistory.length > 0 && (
           <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-            <h3 className="font-semibold mb-3 flex items-center justify-center text-foreground"><History size={18} className="mr-2 text-primary" />创作历史</h3>
-            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+            <h3 className="font-semibold mb-3 flex items-center justify-center text-primary tracking-wider"><History size={18} className="mr-2" />创作历史</h3>
+            <ScrollArea className="w-full whitespace-nowrap rounded-md">
                 <div className="flex space-x-3 p-2">
                 {[...patternHistory].reverse().map((_, revIndex) => {
                     const index = patternHistory.length - 1 - revIndex;
                     return (
-                        <button key={index} onClick={() => onGoToHistory(index)} className="flex-shrink-0 w-20 h-20 bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background focus:ring-primary relative">
+                        <button key={index} onClick={() => onGoToHistory(index)} className="flex-shrink-0 w-20 h-20 bg-secondary rounded-md overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background focus:ring-primary relative border-2 border-transparent hover:border-accent">
                             <Image src={modelHistory[index] || patternHistory[index]} alt={`历史记录 ${index + 1}`} layout="fill" className="object-cover" />
                         </button>
                     )
@@ -124,11 +124,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         )}
 
         <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
-        <Label htmlFor="imageUpload" className="w-full bg-secondary hover:bg-muted text-primary font-bold py-3 px-4 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-100 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+        <Label htmlFor="imageUpload" className="w-full bg-secondary hover:bg-muted text-primary font-bold py-3 px-4 rounded-sm flex items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-100 animate-fade-in-up uppercase tracking-widest border-2 border-primary/50" style={{ animationDelay: '500ms' }}>
           <Upload className="mr-2" size={20} />
           <span>{uploadedImage ? '更换灵感图' : '上传灵感图'}</span>
         </Label>
-        <Button onClick={onGenerate} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground font-bold py-3 px-4 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-100 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+        <Button onClick={onGenerate} className="cyber-button w-full animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Sparkles className="mr-2" size={20} />
           <span>开始创作</span>
         </Button>

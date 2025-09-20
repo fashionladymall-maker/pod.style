@@ -199,7 +199,7 @@ const App = () => {
 
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-gradient-to-br from-background to-accent/30 rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden relative" style={{ height: '85vh', minHeight: '650px' }}>
+            <div className="w-full max-w-md bg-card rounded-lg shadow-2xl shadow-primary/20 overflow-hidden relative border-2 border-primary/50" style={{ height: '85vh', minHeight: '650px' }}>
                 <div key={`${step}-${historyIndex}`} className="h-full flex flex-col">
                     {renderStep()}
                 </div>
