@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -10,14 +9,6 @@ interface ConfirmationScreenProps {
 }
 
 const ConfirmationScreen = ({ onReset }: ConfirmationScreenProps) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onReset();
-    }, 3000); // 3 seconds delay
-
-    // Cleanup the timer if the component is unmounted before the timer fires
-    return () => clearTimeout(timer);
-  }, [onReset]);
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-6 animate-fade-in bg-background">
