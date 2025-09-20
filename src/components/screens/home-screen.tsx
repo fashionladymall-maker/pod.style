@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { FirebaseUser } from '@/lib/types';
+import type { FirebaseUser, Creation } from '@/lib/types';
 
 interface HomeScreenProps {
   prompt: string;
@@ -19,7 +19,7 @@ interface HomeScreenProps {
   uploadedImage: string | null;
   setUploadedImage: (value: string | null) => void;
   onGenerate: () => void;
-  patternHistory: string[];
+  creations: Creation[];
   onGoToHistory: (index: number) => void;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
@@ -30,7 +30,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
-  patternHistory, onGoToHistory, isRecording, setIsRecording,
+  creations, onGoToHistory, isRecording, setIsRecording,
   artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
@@ -85,14 +85,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }
 
     try {
-        // We need to request permission before starting recognition.
-        // The stream is not used, but it triggers the permission prompt.
         await navigator.mediaDevices.getUserMedia({ audio: true });
 
         if (isRecording) {
             setIsRecording(false);
             recognitionRef.current.stop();
-            finalTranscriptRef.current = prompt; // Save the final transcript
+            finalTranscriptRef.current = prompt;
         } else {
             finalTranscriptRef.current = prompt;
             setIsRecording(true);
@@ -117,7 +115,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow flex flex-col">
-        {patternHistory.length === 0 ? (
+        {creations.length === 0 ? (
           <div className="flex-grow flex justify-center items-center p-6">
               <div className="text-center">
                 <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
@@ -132,14 +130,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <div className="p-6">
             <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
             <div className="grid grid-cols-2 gap-4">
-              {[...patternHistory].reverse().map((_, revIndex) => {
-                  const index = patternHistory.length - 1 - revIndex;
-                  return (
-                      <button key={index} onClick={() => onGoToHistory(index)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                          <Image src={patternHistory[index]} alt={`历史记录 ${index + 1}`} layout="fill" className="object-cover" />
-                      </button>
-                  )
-              })}
+              {creations.map((creation, index) => (
+                  <button key={creation.id} onClick={() => onGoToHistory(index)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
+                      <Image src={creation.patternUri} alt={`创意 ${creation.id}`} layout="fill" className="object-cover" />
+                  </button>
+              ))}
             </div>
           </div>
         )}
@@ -160,7 +155,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               }}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-                {prompt ? (
+                {prompt || uploadedImage ? (
                     <Button onClick={onGenerate} variant="ghost" size="icon" className="rounded-full bg-blue-500 text-white hover:bg-blue-600">
                         <ArrowUp size={20} />
                     </Button>

@@ -2,10 +2,10 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction } from '@/app/actions';
+import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation } from '@/lib/types';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 
@@ -105,14 +105,13 @@ const artStyles = [
 
 
 const App = () => {
-    const [step, setStep] = useState<AppStep>('home');
+    const [step, setStep] = useState<AppStep>('login');
     const [prompt, setPrompt] = useState('');
     const [user, setUser] = useState<FirebaseUser | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const [patternHistory, setPatternHistory] = useState<string[]>([]);
-    const [modelHistory, setModelHistory] = useState<(string | null)[]>([]);
-    const [historyIndex, setHistoryIndex] = useState(-1);
+    const [creations, setCreations] = useState<Creation[]>([]);
+    const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [loadingText, setLoadingText] = useState('');
@@ -123,20 +122,36 @@ const App = () => {
     const [selectedCategory, setSelectedCategory] = useState(podCategories[0].name);
     const { toast } = useToast();
 
+    const fetchCreations = useCallback(async (userId: string) => {
+        try {
+            const userCreations = await getCreationsAction(userId);
+            setCreations(userCreations);
+        } catch (error) {
+            console.error("Failed to fetch creations:", error);
+            toast({ variant: "destructive", title: "获取作品失败", description: "加载您的作品时发生错误。" });
+        }
+    }, [toast]);
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setAuthLoading(false);
             if (!firebaseUser) {
                 setStep('login');
+                setCreations([]);
             } else {
                 setStep('home');
+                fetchCreations(firebaseUser.uid);
             }
         });
         return () => unsubscribe();
-    }, []);
+    }, [fetchCreations]);
 
     const handleGeneratePattern = useCallback(async () => {
+        if (!user) {
+            toast({ variant: 'destructive', title: '请先登录', description: '您需要登录后才能生成创意图案。' });
+            return;
+        }
         if (!prompt && !uploadedImage) {
             toast({ variant: 'destructive', title: 'Prompt is empty', description: 'Please enter your creative ideas or upload an image!' });
             return;
@@ -147,21 +162,17 @@ const App = () => {
 
         try {
             const styleValue = selectedStyle.split(' ')[0];
-            const result = await generatePatternAction({
+            const newCreation = await generatePatternAction({
+                userId: user.uid,
                 prompt,
                 inspirationImage: uploadedImage ?? undefined,
                 style: styleValue !== '无' ? styleValue : undefined,
+                category: selectedCategory,
             });
 
-            const newPattern = result.generatedImage;
-            
-            const newPatternHistory = [...patternHistory.slice(0, historyIndex + 1), newPattern];
-            const newModelHistory = [...modelHistory.slice(0, historyIndex + 1), null];
-            const newHistoryIndex = newPatternHistory.length - 1;
-
-            setPatternHistory(newPatternHistory);
-            setModelHistory(newModelHistory);
-            setHistoryIndex(newHistoryIndex);
+            const updatedCreations = [newCreation, ...creations];
+            setCreations(updatedCreations);
+            setActiveCreationIndex(0);
             setStep('patternPreview');
         } catch (err: any) {
             console.error(err);
@@ -170,10 +181,11 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, uploadedImage, patternHistory, modelHistory, selectedStyle, toast, historyIndex]);
+    }, [prompt, uploadedImage, selectedStyle, selectedCategory, user, creations, toast]);
 
     const handleGenerateModel = useCallback(async () => {
-        if (historyIndex < 0 || !patternHistory[historyIndex]) {
+        const activeCreation = creations[activeCreationIndex];
+        if (!activeCreation) {
             toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
             setStep('home');
             return;
@@ -183,16 +195,17 @@ const App = () => {
         setStep('generating');
 
         try {
-            const patternData = patternHistory[historyIndex];
-            const result = await generateModelAction({
-                patternDataUri: patternData,
+            const updatedCreation = await generateModelAction({
+                creationId: activeCreation.id,
+                patternDataUri: activeCreation.patternUri,
                 colorName: orderDetails.colorName,
-                category: selectedCategory,
+                category: activeCreation.category,
             });
 
-            const updatedModelHistory = [...modelHistory];
-            updatedModelHistory[historyIndex] = result.modelImageUri;
-            setModelHistory(updatedModelHistory);
+            const updatedCreations = creations.map((c, index) => 
+                index === activeCreationIndex ? updatedCreation : c
+            );
+            setCreations(updatedCreations);
             setStep('mockup');
         } catch (err: any) {
             console.error(err);
@@ -201,27 +214,43 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [historyIndex, patternHistory, modelHistory, orderDetails.colorName, selectedCategory, toast]);
+    }, [activeCreationIndex, creations, orderDetails.colorName, toast]);
 
-    useEffect(() => {
-        if (step === 'patternPreview' && patternHistory[historyIndex] && !modelHistory[historyIndex]) {
-            // No automatic model generation
+    const handleDeleteCreation = useCallback(async (creationId: string) => {
+        const originalCreations = creations;
+        const newCreations = creations.filter(c => c.id !== creationId);
+        setCreations(newCreations); // Optimistic update
+
+        try {
+            await deleteCreationAction(creationId);
+            toast({ title: "删除成功", description: "您的作品已被删除。" });
+            if (step === 'profile') {
+                // If on profile page, stay there
+            } else {
+               setStep('home'); // Go home after deletion from other screens
+            }
+        } catch (error) {
+            console.error("Failed to delete creation:", error);
+            toast({ variant: "destructive", title: "删除失败", description: "无法删除您的作品，请重试。" });
+            setCreations(originalCreations); // Revert on failure
         }
-    }, [step, historyIndex, patternHistory, modelHistory, handleGenerateModel]);
+    }, [creations, toast, step]);
 
     const navigateHistory = (direction: number) => {
-        const newIndex = historyIndex + direction;
-        if (newIndex >= 0 && newIndex < patternHistory.length) {
-            setHistoryIndex(newIndex);
-            if (step === 'mockup' && !modelHistory[newIndex]) {
+        const newIndex = activeCreationIndex + direction;
+        if (newIndex >= 0 && newIndex < creations.length) {
+            setActiveCreationIndex(newIndex);
+            const newCreation = creations[newIndex];
+            if (step === 'mockup' && !newCreation.modelUri) {
                 setStep('patternPreview');
             }
         }
     };
 
     const goToHistory = (index: number) => {
-        setHistoryIndex(index);
-        if (modelHistory[index]) {
+        setActiveCreationIndex(index);
+        const creation = creations[index];
+        if (creation.modelUri) {
             setStep('mockup');
         } else {
             setStep('patternPreview');
@@ -253,6 +282,8 @@ const App = () => {
         setStep('home');
         setPrompt('');
         setUploadedImage(null);
+        setCreations([]);
+        setActiveCreationIndex(-1);
         setOrderDetails({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
@@ -296,32 +327,31 @@ const App = () => {
             return <LoadingScreen text="正在验证您的身份..." />;
         }
         
-        const generatedPattern = patternHistory[historyIndex];
-        const modelImage = modelHistory[historyIndex];
+        const activeCreation = creations[activeCreationIndex];
 
         switch (step) {
             case 'login': return <LoginScreen />;
             case 'generating': return <LoadingScreen text={loadingText} />;
             case 'patternPreview': return <PatternPreviewScreen 
-                generatedPattern={generatedPattern} 
+                generatedPattern={activeCreation?.patternUri}
                 onBack={() => setStep('home')} 
-                historyIndex={historyIndex} 
-                totalHistory={patternHistory.length} 
+                historyIndex={activeCreationIndex} 
+                totalHistory={creations.length} 
                 onNavigate={navigateHistory} 
                 isModelGenerating={isLoading}
                 onGoToModel={handleGenerateModel} 
             />;
             case 'mockup': return <MockupScreen 
-                modelImage={modelImage} 
+                modelImage={activeCreation?.modelUri}
                 orderDetails={orderDetails} 
                 setOrderDetails={setOrderDetails} 
                 handleQuantityChange={handleQuantityChange} 
                 onNext={() => setStep('shipping')} 
                 onBack={() => setStep('patternPreview')} 
-                historyIndex={historyIndex} 
-                totalHistory={patternHistory.length} 
+                historyIndex={activeCreationIndex} 
+                totalHistory={creations.length} 
                 onNavigate={navigateHistory}
-                category={selectedCategory}
+                category={activeCreation?.category || selectedCategory}
             />;
             case 'shipping': return <ShippingScreen 
                 shippingInfo={shippingInfo} 
@@ -339,11 +369,11 @@ const App = () => {
             case 'confirmation': return <ConfirmationScreen onReset={reset} />;
             case 'profile': return <ProfileScreen
                 user={user}
-                patternHistory={patternHistory}
-                modelHistory={modelHistory}
+                creations={creations}
                 onBack={() => setStep('home')}
                 onGoToHistory={goToHistory}
                 onSignOut={handleSignOut}
+                onDeleteCreation={handleDeleteCreation}
             />;
             case 'home':
             default:
@@ -352,7 +382,7 @@ const App = () => {
                     user={user}
                     uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
                     onGenerate={handleGeneratePattern}
-                    patternHistory={patternHistory}
+                    creations={creations}
                     onGoToHistory={goToHistory}
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
@@ -366,7 +396,7 @@ const App = () => {
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
-                <div key={`${step}-${historyIndex}`} className="h-full flex flex-col">
+                <div key={`${step}-${activeCreationIndex}`} className="h-full flex flex-col">
                     {step !== 'login' && <AppHeader/>}
                     <div className="flex-grow overflow-y-auto">
                         {renderStep()}
@@ -378,5 +408,3 @@ const App = () => {
 };
 
 export default App;
-
-    

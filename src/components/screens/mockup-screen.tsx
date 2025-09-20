@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 interface MockupScreenProps {
-  modelImage: string | null;
+  modelImage: string | null | undefined;
   orderDetails: OrderDetails;
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;

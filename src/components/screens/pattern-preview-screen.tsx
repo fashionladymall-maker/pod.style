@@ -7,7 +7,7 @@ import HistoryNavigator from '@/components/ui/history-navigator';
 import { useSwipe } from '@/hooks/use-swipe';
 
 interface PatternPreviewScreenProps {
-  generatedPattern: string;
+  generatedPattern: string | undefined;
   onBack: () => void;
   historyIndex: number;
   totalHistory: number;
@@ -48,7 +48,7 @@ const PatternPreviewScreen = ({
       <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/50 to-transparent text-center">
-        <Button onClick={onGoToModel} disabled={isModelGenerating} className="w-full rounded-full h-12">
+        <Button onClick={onGoToModel} disabled={isModelGenerating || !generatedPattern} className="w-full rounded-full h-12">
             {isModelGenerating ? <Loader2 className="animate-spin mr-2" size={20} /> : <Sparkles className="mr-2" size={20} />}
             <span>{isModelGenerating ? '正在生成模特图...' : '查看模特效果'}</span>
         </Button>
