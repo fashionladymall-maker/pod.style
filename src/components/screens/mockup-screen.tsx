@@ -82,7 +82,7 @@ const MockupScreen = ({
           </div>
         </div>
 
-        <Button onClick={onNext} className="h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button onClick={onNext} variant="outline" className="h-auto px-4 py-2 rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white">
             下一步 <ShoppingCart className="ml-2" size={20} />
         </Button>
       </div>
