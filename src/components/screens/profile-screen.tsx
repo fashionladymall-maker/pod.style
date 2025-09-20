@@ -45,7 +45,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       </Button>
       
       <ScrollArea className="flex-grow">
-        <div className="pt-12 pb-4 px-6 flex items-center justify-between border-b">
+        <div className="pt-6 pb-2 px-6 flex items-center justify-between border-b">
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
                 <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
