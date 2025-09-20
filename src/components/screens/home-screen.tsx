@@ -39,7 +39,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
       recognition.onresult = (event: any) => {
         let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        finalTranscriptRef.current = '';
+        for (let i = 0; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTranscriptRef.current += event.results[i][0].transcript;
           } else {
@@ -53,16 +54,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         console.error('Speech recognition error:', event.error);
         if (event.error !== 'no-speech' && event.error !== 'aborted') {
           toast({ variant: 'destructive', title: '语音识别错误', description: event.error });
+          setIsRecording(false);
         }
-        setIsRecording(false);
       };
       
       recognition.onend = () => {
         if (isRecording) {
            recognition.start();
-        } else {
-           recognition.stop();
-           finalTranscriptRef.current = ''; 
         }
       };
 
@@ -82,6 +80,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         if (isRecording) {
             recognitionRef.current.stop();
             setIsRecording(false);
+            finalTranscriptRef.current = '';
         } else {
             finalTranscriptRef.current = prompt;
             recognitionRef.current.start();
