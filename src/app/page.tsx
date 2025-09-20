@@ -88,8 +88,8 @@ const App = () => {
             const newPattern = result.generatedImage;
             
             // Add to history instead of overwriting
-            const newPatternHistory = [...patternHistory, newPattern];
-            const newModelHistory = [...modelHistory, null];
+            const newPatternHistory = [...patternHistory.slice(0, historyIndex + 1), newPattern];
+            const newModelHistory = [...modelHistory.slice(0, historyIndex + 1), null];
             const newHistoryIndex = newPatternHistory.length - 1;
 
             setPatternHistory(newPatternHistory);
@@ -103,7 +103,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, uploadedImage, patternHistory, modelHistory, selectedStyle, toast]);
+    }, [prompt, uploadedImage, patternHistory, modelHistory, selectedStyle, toast, historyIndex]);
 
     const handleGenerateModel = useCallback(async () => {
         if (historyIndex < 0 || !patternHistory[historyIndex]) {
@@ -187,7 +187,7 @@ const App = () => {
             <h1 className="text-lg font-medium">AIPOD</h1>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs text-muted-foreground">
+                        <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs font-semibold">
                             {selectedCategory.split(' ')[0]} <ChevronDown className="w-3 h-3 ml-1" />
                         </Button>
                     </DropdownMenuTrigger>
