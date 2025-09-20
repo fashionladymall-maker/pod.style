@@ -51,9 +51,9 @@ function loadServiceAccount() {
 if (!getApps().length) {
   try {
     const serviceAccount = loadServiceAccount();
-    const projectId = serviceAccount.project_id;
+    const projectId = serviceAccount.project_id || process.env.FIREBASE_PROJECT_ID;
     if (!projectId) {
-        throw new Error("Project ID not found in service account.");
+        throw new Error("Project ID not found in service account or environment variables.");
     }
     initializeApp({
       credential: cert(serviceAccount),
