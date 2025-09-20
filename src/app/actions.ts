@@ -1,12 +1,81 @@
 
 "use server";
 
+import { db } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
-import { addCreation, getCreations, deleteCreation, updateCreationModel } from '@/lib/firestore';
-import { Creation } from '@/lib/types';
+import { Creation, CreationData } from '@/lib/types';
+import { Timestamp } from 'firebase-admin/firestore';
+
+
+// --- Firestore Helper Functions (moved from firestore.ts) ---
+
+const creationsCollection = db.collection("creations");
+
+const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
+  const data = doc.data() as CreationData;
+  return {
+    id: doc.id,
+    userId: data.userId,
+    prompt: data.prompt,
+    style: data.style,
+    category: data.category,
+    patternUri: data.patternUri,
+    modelUri: data.modelUri || null,
+    createdAt: data.createdAt.toDate().toISOString(),
+  };
+};
+
+interface AddCreationData {
+    userId: string;
+    prompt: string;
+    style: string;
+    category: string;
+    patternUri: string;
+}
+
+const addCreation = async (data: AddCreationData): Promise<Creation> => {
+  const creationData = {
+    ...data,
+    modelUri: null,
+    createdAt: Timestamp.now(),
+  };
+  const docRef = await creationsCollection.add(creationData);
+  const newDoc = await docRef.get();
+  return docToCreation(newDoc);
+};
+
+const getCreations = async (userId: string): Promise<Creation[]> => {
+  const querySnapshot = await creationsCollection.where("userId", "==", userId).get();
+  const creations = querySnapshot.docs.map(docToCreation);
+  
+  return creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+};
+
+const updateCreationModel = async (creationId: string, modelUri: string): Promise<Creation> => {
+  const creationRef = creationsCollection.doc(creationId);
+  
+  const docSnap = await creationRef.get();
+  if (!docSnap.exists) {
+    throw new Error("Creation not found. Cannot update model.");
+  }
+
+  await creationRef.update({ modelUri });
+  
+  const updatedDoc = await creationRef.get();
+  return docToCreation(updatedDoc);
+};
+
+const deleteCreation = async (creationId: string): Promise<void> => {
+  const creationRef = creationsCollection.doc(creationId);
+  await creationRef.delete();
+};
+
+
+// --- Server Actions ---
+
 
 interface GeneratePatternActionInput extends GenerateTShirtPatternWithStyleInput {
   userId: string;
@@ -37,7 +106,8 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
 
   } catch (error) {
     console.error('Error in generatePatternAction:', error);
-    throw new Error(error instanceof Error ? error.message : 'An unknown error occurred during pattern generation.');
+    if (error instanceof Error) throw error;
+    throw new Error(String(error));
   }
 }
 
@@ -62,7 +132,8 @@ export async function generateModelAction(input: GenerateModelActionInput): Prom
 
   } catch (error) {
     console.error('Error in generateModelAction:', error);
-    throw new Error(error instanceof Error ? error.message : 'An unknown error occurred during model generation.');
+    if (error instanceof Error) throw error;
+    throw new Error(String(error));
   }
 }
 
@@ -73,7 +144,8 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
         return creations;
     } catch (error) {
         console.error('Error in getCreationsAction:', error);
-        throw new Error('Failed to fetch creations.');
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
     }
 }
 
@@ -83,6 +155,7 @@ export async function deleteCreationAction(creationId: string): Promise<{ succes
         return { success: true };
     } catch (error) {
         console.error('Error in deleteCreationAction:', error);
-        throw new Error('Failed to delete creation.');
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
     }
 }
