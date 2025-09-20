@@ -14,9 +14,10 @@ interface PaymentScreenProps {
   onPay: (e: React.FormEvent) => void;
   onBack: () => void;
   isLoading: boolean;
+  price: number;
 }
 
-const PaymentScreen = ({ orderDetails, paymentInfo, setPaymentInfo, onPay, onBack, isLoading }: PaymentScreenProps) => {
+const PaymentScreen = ({ orderDetails, paymentInfo, setPaymentInfo, onPay, onBack, isLoading, price }: PaymentScreenProps) => {
   const { toast } = useToast();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPaymentInfo({ ...paymentInfo, [e.target.name]: e.target.value });
@@ -63,7 +64,7 @@ const PaymentScreen = ({ orderDetails, paymentInfo, setPaymentInfo, onPay, onBac
         </div>
         <div className="mt-auto animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Button type="submit" disabled={isLoading} className="w-full rounded-full h-12 disabled:opacity-50">
-            {isLoading ? <Loader2 className="animate-spin" /> : <span>确认支付 ¥{129 * (orderDetails?.quantity || 1)}</span>}
+            {isLoading ? <Loader2 className="animate-spin" /> : <span>确认支付 ¥{price * (orderDetails?.quantity || 1)}</span>}
           </Button>
         </div>
       </form>

@@ -27,12 +27,13 @@ interface MockupScreenProps {
   onSelectModel: (index: number) => void;
   category: string;
   onRegenerate: () => void;
+  price: number;
 }
 
 const MockupScreen = ({
   modelImage, models, creation, orderDetails, setOrderDetails, handleQuantityChange,
   onNext, onBack, creationHistoryIndex, totalCreations, onNavigateCreations,
-  modelHistoryIndex, onSelectModel, category, onRegenerate
+  modelHistoryIndex, onSelectModel, category, onRegenerate, price
 }: MockupScreenProps) => {
   const onNavigateModels = (direction: number) => {
     const newIndex = modelHistoryIndex + direction;
@@ -48,7 +49,6 @@ const MockupScreen = ({
   
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
   const isApparel = category.includes("T-shirts") || category.includes("Hoodies") || category.includes("Sweatshirts") || category.includes("T恤") || category.includes("连帽衫") || category.includes("运动卫衣");
-  const price = 129; 
 
   return (
     <div className="relative flex flex-col h-full bg-muted" {...swipeHandlers}>

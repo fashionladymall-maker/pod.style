@@ -1,12 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { ArrowLeft, LogOut, User, Trash2 } from 'lucide-react';
+import { ArrowLeft, LogOut, User, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { FirebaseUser, Creation } from '@/lib/types';
+import type { FirebaseUser, Creation, Order } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCreationsAction } from '@/app/actions'; // Assuming this action exists
+import { getCreationsAction, getOrdersAction } from '@/app/actions'; 
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Separator } from '../ui/separator';
+import { Badge } from '../ui/badge';
 
 interface ProfileScreenProps {
   user: FirebaseUser | null;
@@ -37,21 +39,43 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onDeleteCreation,
 }) => {
   const [creations, setCreations] = useState(initialCreations);
-  const [isLoading, setIsLoading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoadingCreations, setIsLoadingCreations] = useState(false);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   useEffect(() => {
-    // This allows the profile screen to fetch its own data if it's navigated to directly
-    // or if the initialCreations prop is stale.
     const fetchCreations = async () => {
       if (user) {
-        setIsLoading(true);
-        const userCreations = await getCreationsAction(user.uid);
-        setCreations(userCreations);
-        setIsLoading(false);
+        setIsLoadingCreations(true);
+        try {
+          const userCreations = await getCreationsAction(user.uid);
+          setCreations(userCreations);
+        } catch (error) {
+          console.error("Failed to fetch creations:", error);
+        } finally {
+          setIsLoadingCreations(false);
+        }
       }
     };
+    const fetchOrders = async () => {
+        if(user) {
+            setIsLoadingOrders(true);
+            try {
+                const userOrders = await getOrdersAction(user.uid);
+                setOrders(userOrders);
+            } catch (error) {
+                console.error("Failed to fetch orders:", error);
+            } finally {
+                setIsLoadingOrders(false);
+            }
+        }
+    }
+
     if (!initialCreations.length && user) {
       fetchCreations();
+    }
+    if (user) {
+        fetchOrders();
     }
   }, [user, initialCreations.length]);
 
@@ -59,6 +83,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const handleDeleteAll = () => {
     creations.forEach(c => onDeleteCreation(c.id));
     setCreations([]);
+  }
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
   return (
@@ -83,6 +111,39 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </Button>
         </div>
 
+        {/* Orders Section */}
+        <div className="p-4">
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <ShoppingBag className="text-muted-foreground" />
+                <h3 className="text-lg font-semibold">我的订单</h3>
+            </div>
+             {isLoadingOrders ? (
+                <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>
+            ) : orders.length > 0 ? (
+                <div className="space-y-4">
+                    {orders.map(order => (
+                        <div key={order.id} className="border rounded-lg p-3 flex gap-4 text-sm">
+                            <Image src={order.modelUri} alt={order.category} width={80} height={80} className="rounded-md aspect-square object-cover bg-secondary" />
+                            <div className="flex flex-col flex-grow">
+                                <span className="font-semibold">{order.category.split(" ")[0]}</span>
+                                <span className="text-muted-foreground">x{order.quantity}</span>
+                                <div className="flex items-center justify-between mt-auto">
+                                    <Badge variant={order.status === 'Processing' ? 'default' : 'secondary'}>{order.status}</Badge>
+                                    <span className="font-bold">¥{order.price.toFixed(2)}</span>
+                                </div>
+                                <span className="text-xs text-muted-foreground mt-1">{formatDate(order.createdAt)}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                 <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
+            )}
+        </div>
+        
+        <Separator className="my-6" />
+
+        {/* Creations Section */}
         <div className="p-4">
             <div className="flex justify-between items-center mb-4 px-2">
               <h3 className="text-lg font-semibold">我的创作 ({creations.length})</h3>
@@ -107,8 +168,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-            {isLoading ? (
-                <div className="text-center p-12 text-muted-foreground">正在加载作品...</div>
+            {isLoadingCreations ? (
+                <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>
             ) : creations.length > 0 ? (
                 <div className="space-y-6">
                 {creations.map((creation, index) => (

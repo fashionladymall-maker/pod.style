@@ -52,3 +52,37 @@ export interface CreationData {
     models: Model[];
     createdAt: Timestamp | { _seconds: number; _nanoseconds: number }; // Allow for raw object from client
 }
+
+
+export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+
+// Client-side Order type
+export interface Order {
+    id: string;
+    userId: string;
+    creationId: string;
+    modelUri: string;
+    category: string;
+    size: string;
+    colorName: string;
+    quantity: number;
+    price: number;
+    shippingInfo: ShippingInfo;
+    createdAt: string; // ISO string
+    status: OrderStatus;
+}
+
+// Firestore Order data type
+export interface OrderData {
+    userId: string;
+    creationId: string;
+    modelUri: string;
+    category: string;
+    size: string;
+    colorName: string;
+    quantity: number;
+    price: number;
+    shippingInfo: ShippingInfo;
+    createdAt: Timestamp;
+    status: OrderStatus;
+}

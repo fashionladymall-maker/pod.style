@@ -8,13 +8,14 @@ import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
-import { Creation, CreationData, Model } from '@/lib/types';
+import { Creation, CreationData, Model, Order, OrderData, OrderDetails, ShippingInfo } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 
 // --- Firestore Helper Functions ---
 
 const getCreationsCollection = () => db.collection("creations");
+const getOrdersCollection = () => db.collection("orders");
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
@@ -34,6 +35,27 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     createdAt: createdAt,
   };
 };
+
+const docToOrder = (doc: FirebaseFirestore.DocumentSnapshot): Order => {
+  const data = doc.data() as OrderData;
+  const createdAt = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
+
+  return {
+      id: doc.id,
+      userId: data.userId,
+      creationId: data.creationId,
+      modelUri: data.modelUri,
+      category: data.category,
+      size: data.size,
+      colorName: data.colorName,
+      quantity: data.quantity,
+      price: data.price,
+      shippingInfo: data.shippingInfo,
+      createdAt: createdAt,
+      status: data.status,
+  };
+};
+
 
 interface AddCreationData {
     userId: string;
@@ -247,6 +269,69 @@ export async function deleteCreationAction(creationId: string): Promise<{ succes
         return { success: true };
     } catch (error) {
         console.error('Error in deleteCreationAction:', error);
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
+    }
+}
+
+
+// ---- Order Actions ----
+
+interface CreateOrderActionInput {
+    userId: string;
+    creationId: string;
+    model: Model;
+    orderDetails: OrderDetails;
+    shippingInfo: ShippingInfo;
+    price: number;
+}
+
+export async function createOrderAction(input: CreateOrderActionInput): Promise<Order> {
+    const { userId, creationId, model, orderDetails, shippingInfo, price } = input;
+    try {
+        const orderData: OrderData = {
+            userId,
+            creationId,
+            modelUri: model.uri,
+            category: model.category,
+            size: orderDetails.size,
+            colorName: orderDetails.colorName,
+            quantity: orderDetails.quantity,
+            price: price * orderDetails.quantity,
+            shippingInfo,
+            status: 'Processing',
+            createdAt: admin.firestore.Timestamp.now(),
+        };
+
+        const docRef = await getOrdersCollection().add(orderData);
+        const newDoc = await docRef.get();
+        return docToOrder(newDoc);
+    } catch (error) {
+        console.error('Error in createOrderAction:', error);
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
+    }
+}
+
+export async function getOrdersAction(userId: string): Promise<Order[]> {
+    if (!userId) {
+        return [];
+    }
+    try {
+        const querySnapshot = await getOrdersCollection()
+            .where("userId", "==", userId)
+            .orderBy("createdAt", "desc")
+            .get();
+        
+        if (querySnapshot.empty) {
+            return [];
+        }
+
+        const orders = querySnapshot.docs.map(docToOrder);
+        return orders;
+
+    } catch (error) {
+        console.error('Error in getOrdersAction:', error);
         if (error instanceof Error) throw error;
         throw new Error(String(error));
     }

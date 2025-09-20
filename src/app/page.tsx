@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction } from '@/app/actions';
+import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation } from '@/lib/types';
@@ -100,6 +100,7 @@ const artStyles = [
     "天野喜孝 (Yoshitaka Amano)",
 ];
 
+const MOCK_PRICE = 129;
 
 const App = () => {
     const [step, setStep] = useState<AppStep>('login');
@@ -294,9 +295,39 @@ const App = () => {
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsLoading(false);
-        setStep('confirmation');
+        setLoadingText("正在处理您的订单...");
+        
+        const activeCreation = creations[activeCreationIndex];
+        const activeModel = activeCreation?.models[activeModelIndex];
+
+        if (!user || !activeCreation || !activeModel) {
+            toast({ variant: 'destructive', title: '订单错误', description: '无法找到订单信息，请重试。' });
+            setIsLoading(false);
+            setStep('mockup');
+            return;
+        }
+
+        try {
+            // Simulate payment processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            await createOrderAction({
+                userId: user.uid,
+                creationId: activeCreation.id,
+                model: activeModel,
+                orderDetails,
+                shippingInfo,
+                price: MOCK_PRICE,
+            });
+            
+            setStep('confirmation');
+
+        } catch (error) {
+            console.error("Failed to create order:", error);
+            toast({ variant: 'destructive', title: '下单失败', description: '创建订单时发生错误，请稍后重试。' });
+        } finally {
+            setIsLoading(false);
+        }
     };
     
     const handleQuantityChange = (amount: number) => { setOrderDetails(prev => ({ ...prev, quantity: Math.max(1, prev.quantity + amount) })); };
@@ -447,6 +478,7 @@ const App = () => {
                 onSelectModel={selectModel}
                 category={activeModel?.category || ''}
                 onRegenerate={() => setStep('categorySelection')}
+                price={MOCK_PRICE}
             />;
             case 'shipping': return <ShippingScreen 
                 shippingInfo={shippingInfo} 
@@ -460,6 +492,7 @@ const App = () => {
                 onPay={handlePayment} 
                 onBack={() => setStep('shipping')} 
                 isLoading={isLoading} 
+                price={MOCK_PRICE}
             />;
             case 'confirmation': return <ConfirmationScreen onReset={reset} />;
             case 'profile': return <ProfileScreen
