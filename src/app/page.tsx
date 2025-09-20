@@ -50,6 +50,35 @@ const podCategories = [
     { name: "拼图 (Puzzles)" },
 ];
 
+const artStyles = [
+  "无 (None)",
+  "赛博朋克 (Cyberpunk)",
+  "蒸汽朋克 (Steampunk)",
+  "日系动漫 (Anime)",
+  "美式漫画 (American Comic)",
+  "汉服古风 (Hanfu/Ancient Chinese)",
+  "水墨画 (Ink Wash Painting)",
+  "油画 (Oil Painting)",
+  "水彩 (Watercolor)",
+  "素描 (Sketch)",
+  "波普艺术 (Pop Art)",
+  "超现实主义 (Surrealism)",
+  "立体主义 (Cubism)",
+  "印象派 (Impressionism)",
+  "表现主义 (Expressionism)",
+  "极简主义 (Minimalism)",
+  "孟菲斯 (Memphis)",
+  "Low Poly",
+  "像素艺术 (Pixel Art)",
+  "卡通 (Cartoon)",
+  "概念艺术 (Concept Art)",
+  "幻想 (Fantasy)",
+  "哥特 (Gothic)",
+  "抽象 (Abstract)",
+  "部落图腾 (Tribal)",
+];
+
+
 const App = () => {
     const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
@@ -64,7 +93,7 @@ const App = () => {
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
     const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({ name: '', address: '', phone: '' });
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ cardNumber: '', expiry: '', cvv: '' });
-    const [selectedStyle, setSelectedStyle] = useState('none');
+    const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
     const [selectedCategory, setSelectedCategory] = useState(podCategories[0].name);
     const { toast } = useToast();
 
@@ -78,16 +107,15 @@ const App = () => {
         setStep('generating');
 
         try {
-            const styleInstruction = selectedStyle !== 'none' ? selectedStyle : undefined;
+            const styleValue = selectedStyle.split(' ')[0];
             const result = await generatePatternAction({
                 prompt,
                 inspirationImage: uploadedImage ?? undefined,
-                style: styleInstruction,
+                style: styleValue !== '无' ? styleValue : undefined,
             });
 
             const newPattern = result.generatedImage;
             
-            // Add to history instead of overwriting
             const newPatternHistory = [...patternHistory.slice(0, historyIndex + 1), newPattern];
             const newModelHistory = [...modelHistory.slice(0, historyIndex + 1), null];
             const newHistoryIndex = newPatternHistory.length - 1;
@@ -267,6 +295,9 @@ const App = () => {
                     onGoToHistory={goToHistory}
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
+                    artStyles={artStyles}
+                    selectedStyle={selectedStyle}
+                    setSelectedStyle={setSelectedStyle}
                 />;
         }
     };
@@ -286,5 +317,3 @@ const App = () => {
 };
 
 export default App;
-
-    

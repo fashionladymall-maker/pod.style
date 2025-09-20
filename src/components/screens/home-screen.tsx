@@ -2,11 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Mic } from 'lucide-react';
+import { Plus, Mic, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface HomeScreenProps {
   prompt: string;
@@ -18,15 +20,20 @@ interface HomeScreenProps {
   onGoToHistory: (index: number) => void;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
+  artStyles: string[];
+  selectedStyle: string;
+  setSelectedStyle: (style: string) => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, uploadedImage, setUploadedImage, onGenerate,
-  patternHistory, onGoToHistory, isRecording, setIsRecording
+  patternHistory, onGoToHistory, isRecording, setIsRecording,
+  artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef('');
+  const [stylePopoverOpen, setStylePopoverOpen] = useState(false);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -101,11 +108,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }
   };
 
-  const SuggestionButton = ({ children }: { children: React.ReactNode }) => (
-    <Button variant="outline" className="rounded-full bg-secondary hover:bg-muted">
-      {children}
-    </Button>
-  );
 
   return (
     <div className="flex flex-col h-full">
@@ -158,12 +160,42 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <Label htmlFor="imageUpload" className="cursor-pointer"><Plus size={24} /></Label>
           </Button>
 
-          <SuggestionButton>图片</SuggestionButton>
-          <SuggestionButton>视频</SuggestionButton>
-          <SuggestionButton>研究</SuggestionButton>
+          <Popover open={stylePopoverOpen} onOpenChange={setStylePopoverOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={stylePopoverOpen}
+                    className="rounded-full bg-secondary hover:bg-muted"
+                >
+                    <Palette className="mr-2 h-4 w-4" />
+                    风格: {selectedStyle.split(' ')[0]}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0 mb-2">
+                <ScrollArea className="h-72">
+                    <div className="p-1">
+                        {artStyles.map((style) => (
+                            <Button
+                                variant="ghost"
+                                key={style}
+                                onClick={() => {
+                                    setSelectedStyle(style);
+                                    setStylePopoverOpen(false);
+                                }}
+                                className="w-full justify-start"
+                            >
+                                {style}
+                            </Button>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </PopoverContent>
+          </Popover>
+
 
           {uploadedImage && (
-            <div className="relative w-10 h-10 border rounded-md">
+            <div className="relative w-10 h-10 border rounded-md ml-auto">
               <Image src={uploadedImage} alt="Uploaded preview" layout="fill" className="rounded-sm object-cover" />
               <Button onClick={() => setUploadedImage(null)} variant="destructive" size="sm" className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0">X</Button>
             </div>
