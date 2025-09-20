@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 
 interface ConfirmationScreenProps {
   onReset: () => void;
+  onGoHome: () => void;
 }
 
-const ConfirmationScreen = ({ onReset }: ConfirmationScreenProps) => {
+const ConfirmationScreen = ({ onReset, onGoHome }: ConfirmationScreenProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onReset();
@@ -27,7 +28,7 @@ const ConfirmationScreen = ({ onReset }: ConfirmationScreenProps) => {
       </div>
       <h2 className="text-2xl font-medium mt-6 mb-2 animate-fade-in-up">支付成功!</h2>
       <p className="text-muted-foreground mb-8 animate-fade-in-up" style={{ animationDelay: '300ms' }}>您的创意T恤正在制作中，请耐心等待发货。</p>
-      <Button onClick={onReset} className="w-full animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+      <Button onClick={onGoHome} className="w-full animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         再创作一件
       </Button>
     </div>

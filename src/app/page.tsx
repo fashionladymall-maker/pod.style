@@ -314,7 +314,7 @@ const App = () => {
         try {
             await firebaseSignOut(auth);
             setStep('login');
-            reset();
+            resetState();
         } catch (error) {
             console.error("Error signing out:", error);
             toast({ variant: "destructive", title: "退出登录失败", description: "退出时发生错误，请稍后重试。" });
@@ -364,7 +364,7 @@ const App = () => {
     
     const handleQuantityChange = (amount: number) => { setOrderDetails(prev => ({ ...prev, quantity: Math.max(1, prev.quantity + amount) })); };
     
-    const reset = () => {
+    const resetState = () => {
         setStep('home');
         setPrompt('');
         setUploadedImage(null);
@@ -528,7 +528,7 @@ const App = () => {
                 isLoading={isLoading} 
                 price={MOCK_PRICE}
             />;
-            case 'confirmation': return <ConfirmationScreen onReset={reset} />;
+            case 'confirmation': return <ConfirmationScreen onReset={resetState} onGoHome={() => setStep('home')} />;
             case 'profile': return <ProfileScreen
                 user={user}
                 creations={creations}
