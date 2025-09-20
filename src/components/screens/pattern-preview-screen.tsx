@@ -50,7 +50,7 @@ const PatternPreviewScreen = ({
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/50 to-transparent text-center">
         <Button onClick={onGoToModel} disabled={isModelGenerating || !generatedPattern} className="w-full rounded-full h-12">
             {isModelGenerating ? <Loader2 className="animate-spin mr-2" size={20} /> : <Sparkles className="mr-2" size={20} />}
-            <span>{isModelGenerating ? '正在生成模特图...' : '查看模特效果'}</span>
+            <span>{isModelGenerating ? '正在生成效果图...' : '查看POD商品效果图'}</span>
         </Button>
       </div>
     </div>

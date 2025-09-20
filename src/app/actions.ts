@@ -1,6 +1,7 @@
 
 "use server";
 
+import admin from 'firebase-admin';
 import { db, storage } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
@@ -39,12 +40,10 @@ interface AddCreationData {
 }
 
 const addCreation = async (data: AddCreationData): Promise<Creation> => {
-  // We need to import the Timestamp from firebase-admin/firestore
-  const { Timestamp } = await import('firebase-admin/firestore');
   const creationData: CreationData = {
     ...data,
     modelUri: null,
-    createdAt: Timestamp.now(),
+    createdAt: admin.firestore.Timestamp.now(),
   };
   const docRef = await db.collection("creations").add(creationData);
   const newDoc = await docRef.get();
@@ -68,7 +67,7 @@ const getCreations = async (userId: string): Promise<Creation[]> => {
   return creations;
 };
 
-const updateCreationModel = async (creationId: string, modelUri: string): Promise<Creation> => {
+const updateCreationModel = async (creationId: string, modelUri: string, category: string): Promise<Creation> => {
   const creationRef = getCreationsCollection().doc(creationId);
   
   const docSnap = await creationRef.get();
@@ -76,7 +75,7 @@ const updateCreationModel = async (creationId: string, modelUri: string): Promis
     throw new Error("Creation not found. Cannot update model.");
   }
 
-  await creationRef.update({ modelUri });
+  await creationRef.update({ modelUri, category });
   
   const updatedDoc = await creationRef.get();
   return docToCreation(updatedDoc);
@@ -100,15 +99,13 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');
     
-    const fileName = `creations/${userId}/${uuidv4()}`; // 建議的路徑結構
+    const fileName = `creations/${userId}/${uuidv4()}`;
     const file = bucket.file(fileName);
 
     await file.save(buffer, {
         metadata: { contentType: mimeType },
     });
     
-    // For simplicity in this app, we will make it public.
-    await file.makePublic();
     return file.publicUrl();
 };
 
@@ -130,7 +127,6 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
         throw new Error('The AI failed to return an image. This might be due to a safety policy violation.');
     }
     
-    // Upload the generated image to Cloud Storage and get the public URL
     const publicUrl = await uploadDataUriToStorage(result.generatedImage, userId);
 
     const newCreation = await addCreation({
@@ -138,7 +134,7 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
         prompt,
         style: style || 'None',
         category,
-        patternUri: publicUrl, // Store the public URL instead of the Data URI
+        patternUri: publicUrl,
     });
 
     return newCreation;
@@ -158,14 +154,6 @@ interface GenerateModelActionInput extends GenerateModelMockupInput {
 export async function generateModelAction(input: GenerateModelActionInput): Promise<Creation> {
   const { creationId, userId, patternDataUri, colorName, category } = input;
   try {
-    // Note: The `generateModelMockup` flow expects a Data URI, but `patternDataUri` is now a public URL.
-    // For this to work, we'd need to either:
-    // 1. Fetch the image content from the public URL and convert it back to a Data URI before passing it to the flow.
-    // 2. Modify the `generateModelMockup` flow to accept a public URL directly.
-    // For now, we will assume `patternDataUri` is still a Data URI for this flow, which means the client
-    // might need to send the original data URI or we fetch it here.
-    // Let's fetch it to keep the client simple.
-
     const response = await fetch(patternDataUri);
     if (!response.ok) throw new Error('Failed to fetch pattern image from storage.');
     const imageBuffer = await response.arrayBuffer();
@@ -182,10 +170,9 @@ export async function generateModelAction(input: GenerateModelActionInput): Prom
         throw new Error('The AI failed to return a model image.');
     }
     
-    // Upload the model image to storage as well
     const modelUrl = await uploadDataUriToStorage(result.modelImageUri, userId);
 
-    const updatedCreation = await updateCreationModel(creationId, modelUrl);
+    const updatedCreation = await updateCreationModel(creationId, modelUrl, category);
     return updatedCreation;
 
   } catch (error) {
