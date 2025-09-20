@@ -1,11 +1,12 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Plus, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface HomeScreenProps {
   prompt: string;
@@ -15,12 +16,86 @@ interface HomeScreenProps {
   onGenerate: () => void;
   patternHistory: string[];
   onGoToHistory: (index: number) => void;
+  isRecording: boolean;
+  setIsRecording: (value: boolean) => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, uploadedImage, setUploadedImage, onGenerate,
-  patternHistory, onGoToHistory
+  patternHistory, onGoToHistory, isRecording, setIsRecording
 }) => {
+  const { toast } = useToast();
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      const recognition = recognitionRef.current;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'zh-CN';
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        setPrompt(prompt + finalTranscript + interimTranscript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        toast({ variant: 'destructive', title: '语音识别错误', description: event.error });
+        setIsRecording(false);
+      };
+      
+      recognition.onend = () => {
+        if (isRecording) {
+           // If recording ended unexpectedly, try to restart it.
+           // This can happen if the user stops talking for a while.
+           recognition.start();
+        }
+      };
+
+    } else {
+      console.warn('SpeechRecognition API is not supported in this browser.');
+    }
+
+    return () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    };
+  }, [isRecording, prompt, setPrompt, toast, setIsRecording]);
+
+  const handleMicClick = async () => {
+    if (!recognitionRef.current) {
+        toast({ variant: 'destructive', title: '语音识别不可用', description: '您的浏览器不支持语音识别功能。' });
+        return;
+    }
+
+    try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (isRecording) {
+            recognitionRef.current.stop();
+            setIsRecording(false);
+        } else {
+            recognitionRef.current.start();
+            setIsRecording(true);
+        }
+    } catch (error) {
+        console.error("Microphone permission denied:", error);
+        toast({ variant: 'destructive', title: '麦克风权限被拒绝', description: '请在浏览器设置中允许使用麦克风。' });
+    }
+  };
+
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
@@ -74,7 +149,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               }}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-              <Button onClick={onGenerate} size="icon" className="rounded-full bg-blue-500 hover:bg-blue-600 text-white">
+              <Button onClick={prompt ? onGenerate : handleMicClick} size="icon" className={`rounded-full text-white ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}>
                 <Mic size={20} />
               </Button>
             </div>
@@ -103,3 +178,5 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 };
 
 export default HomeScreen;
+
+    

@@ -59,6 +59,7 @@ const App = () => {
     const [modelHistory, setModelHistory] = useState<(string | null)[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
     const [loadingText, setLoadingText] = useState('');
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
     const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({ name: '', address: '', phone: '' });
@@ -262,6 +263,8 @@ const App = () => {
                     onGenerate={handleGeneratePattern}
                     patternHistory={patternHistory}
                     onGoToHistory={goToHistory}
+                    isRecording={isRecording}
+                    setIsRecording={setIsRecording}
                 />;
         }
     };
@@ -281,3 +284,5 @@ const App = () => {
 };
 
 export default App;
+
+    
