@@ -121,9 +121,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               <div className="text-center">
                 <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
                 <p className="mt-4 text-muted-foreground">
-                  放飞自我，随心定制
+                  放飞思想，随心定制
                   <br />
-                  <span className="text-sm">Unleash Your Creativity, Customize Your Way</span>
+                  <span className="text-sm">Free Your Mind, Customize Your Way.</span>
                 </p>
               </div>
           </div>
