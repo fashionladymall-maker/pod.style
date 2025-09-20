@@ -45,17 +45,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       </Button>
       
       <ScrollArea className="flex-grow">
-        <div className="pt-20 p-6 flex flex-col items-center border-b">
-            <Avatar className="w-24 h-24 mb-4">
-              <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-              <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
-                {user?.displayName?.[0].toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <h3 className="text-2xl font-semibold">{user?.displayName}</h3>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-            <Button onClick={onSignOut} variant="destructive" className="mt-6 rounded-full">
-                <LogOut className="mr-2 h-4 w-4" /> 退出登录
+        <div className="pt-20 p-6 flex items-center justify-between border-b">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16">
+                <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                  {user?.displayName?.[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="text-xl font-semibold">{user?.displayName}</h3>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+            </div>
+            <Button onClick={onSignOut} variant="ghost" size="icon" className="rounded-full">
+                <LogOut className="h-5 w-5 text-muted-foreground" />
             </Button>
         </div>
 
