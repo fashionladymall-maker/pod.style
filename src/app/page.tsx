@@ -232,10 +232,12 @@ const App = () => {
                 colorName: orderDetails.colorName,
                 category: category,
             });
-
-            setCreations(prev => prev.map((c, index) => 
+            
+            const newCreations = creations.map((c, index) => 
                 index === activeCreationIndex ? updatedCreation : c
-            ));
+            );
+
+            setCreations(newCreations);
             // Set the active model to the newly created one
             setActiveModelIndex(updatedCreation.models.length - 1);
             setStep('mockup');
