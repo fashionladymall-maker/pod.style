@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Mic, Palette } from 'lucide-react';
+import { Plus, Mic, Palette, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,7 +58,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error === 'network' || event.error === 'service-not-allowed') {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
           toast({ variant: 'destructive', title: '语音识别错误', description: event.error });
           setIsRecording(false);
         }
@@ -89,7 +89,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         if (isRecording) {
             setIsRecording(false);
             recognitionRef.current.stop();
-            finalTranscriptRef.current = '';
+            finalTranscriptRef.current = prompt; // Save the final transcript
         } else {
             finalTranscriptRef.current = prompt;
             setIsRecording(true);
@@ -152,13 +152,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               }}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-              <Button onClick={handleMicClick} size="icon" className={`rounded-full text-white ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}>
+              <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
                 <Mic size={20} />
               </Button>
             </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mb-4">
           <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
           <Button variant="ghost" size="icon" className="rounded-full bg-secondary" asChild>
             <Label htmlFor="imageUpload" className="cursor-pointer"><Plus size={24} /></Label>
@@ -205,9 +205,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           )}
         </div>
+
+        <Button onClick={onGenerate} className="w-full h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white">
+            <Sparkles className="mr-2" size={20}/>
+            生成创意
+        </Button>
       </div>
     </div>
   );
 };
 
 export default HomeScreen;
+
+    
