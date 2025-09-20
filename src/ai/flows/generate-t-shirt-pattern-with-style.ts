@@ -65,8 +65,14 @@ const generateTShirtPatternWithStyleFlow = ai.defineFlow(
     outputSchema: GenerateTShirtPatternWithStyleOutputSchema,
   },
   async input => {
+    const prompt = await generateTShirtPatternWithStylePrompt(input);
+    const promptParts = [{ text: prompt.prompt }];
+    if (input.inspirationImage) {
+      promptParts.push({ media: { url: input.inspirationImage } });
+    }
+
     const {media} = await ai.generate({
-      prompt: await generateTShirtPatternWithStylePrompt(input),
+      prompt: promptParts,
       model: 'googleai/gemini-2.5-flash-image-preview',
       config: {
         responseModalities: ['IMAGE'],
