@@ -223,17 +223,18 @@ const App = () => {
         try {
             await deleteCreationAction(creationId);
             toast({ title: "删除成功", description: "您的作品已被删除。" });
-            if (step === 'profile') {
-                // If on profile page, stay there
-            } else {
-               setStep('home'); // Go home after deletion from other screens
+            if (activeCreationIndex >= newCreations.length) {
+                setActiveCreationIndex(Math.max(0, newCreations.length - 1));
+            }
+            if (newCreations.length === 0) {
+                setStep('home');
             }
         } catch (error) {
             console.error("Failed to delete creation:", error);
             toast({ variant: "destructive", title: "删除失败", description: "无法删除您的作品，请重试。" });
             setCreations(originalCreations); // Revert on failure
         }
-    }, [creations, toast, step]);
+    }, [creations, toast, activeCreationIndex]);
 
     const navigateCreationHistory = (direction: number) => {
         const newIndex = activeCreationIndex + direction;
@@ -266,7 +267,7 @@ const App = () => {
     const goToHistory = (creationIndex: number, modelIndex: number = -1) => {
         setActiveCreationIndex(creationIndex);
         const creation = creations[creationIndex];
-        if (modelIndex !== -1 && creation.models[modelIndex]) {
+        if (modelIndex > -1 && creation.models[modelIndex]) {
             setActiveModelIndex(modelIndex);
             setStep('mockup');
         } else if (creation.models.length > 0) {
@@ -313,7 +314,7 @@ const App = () => {
     
     const AppHeader = () => (
       <header className="flex items-center justify-between p-4 bg-background border-b">
-          <Button variant="ghost" size="icon" onClick={() => setStep('home')}><Menu /></Button>
+          <Button variant="ghost" size="icon" onClick={() => (step === 'profile' || step === 'home') ? setStep('home') : window.history.back()}><Menu /></Button>
           <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
               <h1 className="text-lg font-medium">AIPOD</h1>
           </Button>
@@ -381,7 +382,10 @@ const App = () => {
                 setOrderDetails={setOrderDetails} 
                 handleQuantityChange={handleQuantityChange} 
                 onNext={() => setStep('shipping')} 
-                onBack={() => setStep('categorySelection')} 
+                onBack={() => {
+                  setActiveModelIndex(-1);
+                  setStep('patternPreview');
+                }} 
                 creationHistoryIndex={activeCreationIndex} 
                 totalCreations={creations.length} 
                 onNavigateCreations={navigateCreationHistory}
@@ -389,6 +393,7 @@ const App = () => {
                 totalModels={activeCreation?.models.length || 0}
                 onNavigateModels={navigateModelHistory}
                 category={activeModel?.category || ''}
+                onRegenerate={() => setStep('categorySelection')}
             />;
             case 'shipping': return <ShippingScreen 
                 shippingInfo={shippingInfo} 
@@ -434,7 +439,7 @@ const App = () => {
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
                 <div key={`${step}-${activeCreationIndex}-${activeModelIndex}`} className="h-full flex flex-col">
-                    {step !== 'login' && step !== 'categorySelection' && <AppHeader/>}
+                    {step !== 'login' && <AppHeader/>}
                     <div className="flex-grow overflow-y-auto">
                         {renderStep()}
                     </div>

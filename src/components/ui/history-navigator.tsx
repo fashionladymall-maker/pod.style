@@ -12,22 +12,20 @@ interface HistoryNavigatorProps {
 const HistoryNavigator = ({ currentIndex, total, onNavigate, variant = 'creation' }: HistoryNavigatorProps) => {
   if (total <= 1) return null;
 
-  const positionClass = variant === 'creation' ? 'bottom-6' : 'bottom-40';
-
   return (
-    <div className={cn("absolute left-1/2 -translate-x-1/2 flex justify-center items-center space-x-2 animate-fade-in-up", positionClass)} style={{ animationDelay: '500ms' }}>
+    <div className={cn("flex justify-center items-center space-x-2 animate-fade-in-up", variant === 'model' && 'z-20')}>
       <Button
         onClick={() => onNavigate(-1)}
         disabled={currentIndex === 0}
         variant="secondary"
         size="icon"
         className="rounded-full bg-background/70 hover:bg-background disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Previous Design"
+        aria-label={`Previous ${variant}`}
       >
         <ArrowLeft size={20} />
       </Button>
-      <span className="text-sm font-medium text-foreground bg-background/70 px-4 py-2 rounded-full border">
-        {currentIndex + 1} / {total}
+      <span className="text-sm font-medium text-foreground bg-background/70 px-4 py-2 rounded-full border shadow-sm">
+        {variant === 'creation' ? '创意' : '商品'} {currentIndex + 1} / {total}
       </span>
       <Button
         onClick={() => onNavigate(1)}
@@ -35,7 +33,7 @@ const HistoryNavigator = ({ currentIndex, total, onNavigate, variant = 'creation
         variant="secondary"
         size="icon"
         className="rounded-full bg-background/70 hover:bg-background disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Next Design"
+        aria-label={`Next ${variant}`}
       >
         <ArrowRight size={20} />
       </Button>

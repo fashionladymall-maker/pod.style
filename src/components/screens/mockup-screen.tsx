@@ -2,7 +2,7 @@
 "use client";
 
 import Image from 'next/image';
-import { ArrowLeft, ShoppingCart, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HistoryNavigator from '@/components/ui/history-navigator';
 import type { OrderDetails } from '@/lib/types';
@@ -24,12 +24,13 @@ interface MockupScreenProps {
   totalModels: number;
   onNavigateModels: (direction: number) => void;
   category: string;
+  onRegenerate: () => void;
 }
 
 const MockupScreen = ({
   modelImage, orderDetails, setOrderDetails, handleQuantityChange,
   onNext, onBack, creationHistoryIndex, totalCreations, onNavigateCreations,
-  modelHistoryIndex, totalModels, onNavigateModels, category
+  modelHistoryIndex, totalModels, onNavigateModels, category, onRegenerate
 }: MockupScreenProps) => {
   const swipeHandlers = useSwipe({ 
       onSwipeLeft: () => totalModels > 1 ? onNavigateModels(1) : onNavigateCreations(1), 
@@ -49,23 +50,27 @@ const MockupScreen = ({
             <div className="flex items-center justify-center h-full text-muted-foreground">正在生成商品效果图...</div>
         )}
          <Button onClick={onBack} variant="ghost" size="icon" className="absolute top-4 left-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
+         <Button onClick={onRegenerate} variant="ghost" size="icon" className="absolute top-4 right-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><RefreshCw size={18} /></Button>
       </div>
       
-      {totalModels > 1 && (
+      <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-full px-4 flex flex-col gap-2">
+        {totalModels > 1 && (
+          <HistoryNavigator 
+            currentIndex={modelHistoryIndex} 
+            total={totalModels} 
+            onNavigate={onNavigateModels} 
+            variant="model"
+          />
+        )}
+        
         <HistoryNavigator 
-          currentIndex={modelHistoryIndex} 
-          total={totalModels} 
-          onNavigate={onNavigateModels} 
-          variant="model"
+          currentIndex={creationHistoryIndex} 
+          total={totalCreations} 
+          onNavigate={onNavigateCreations} 
+          variant="creation"
         />
-      )}
-      
-      <HistoryNavigator 
-        currentIndex={creationHistoryIndex} 
-        total={totalCreations} 
-        onNavigate={onNavigateCreations} 
-        variant="creation"
-      />
+      </div>
+
 
       <div className="bg-background rounded-t-2xl shadow-lg p-6 pt-5 flex-shrink-0">
           <div className="text-2xl font-bold mb-4">¥ {price}</div>

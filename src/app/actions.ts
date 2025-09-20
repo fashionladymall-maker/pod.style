@@ -66,16 +66,14 @@ const getCreations = async (userId: string): Promise<Creation[]> => {
 const addModelToCreation = async (creationId: string, newModel: Model): Promise<Creation> => {
   const creationRef = getCreationsCollection().doc(creationId);
   
-  const docSnap = await creationRef.get();
-  if (!docSnap.exists) {
-    throw new Error("Creation not found. Cannot add model.");
-  }
-
   await creationRef.update({
     models: admin.firestore.FieldValue.arrayUnion(newModel)
   });
   
   const updatedDoc = await creationRef.get();
+  if (!updatedDoc.exists) {
+    throw new Error("Creation not found after adding model.");
+  }
   return docToCreation(updatedDoc);
 };
 
@@ -85,24 +83,31 @@ const deleteCreation = async (creationId: string): Promise<void> => {
   if (!doc.exists) return;
 
   const creation = docToCreation(doc);
-  const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
   const bucket = storage.bucket();
-  
+
+  // Collect all file URIs to be deleted
+  const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
+
   const deletePromises = fileUris.map(uri => {
+    if (!uri) return Promise.resolve();
     try {
+      // Extract file path from the public URL
+      // e.g., https://storage.googleapis.com/your-bucket-name/creations/user-id/uuid
       const url = new URL(uri);
       const filePath = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
       if (filePath) {
+        console.log(`Attempting to delete: ${filePath}`);
         return bucket.file(filePath).delete().catch(err => console.warn(`Failed to delete ${filePath}:`, err.message));
       }
     } catch(e) {
-      console.warn(`Invalid URI for deletion: ${uri}`);
+      console.warn(`Invalid URI for deletion: ${uri}`, e);
     }
     return Promise.resolve();
   });
   
   await Promise.all(deletePromises);
   await creationRef.delete();
+  console.log(`Creation ${creationId} and associated files deleted.`);
 };
 
 
@@ -125,9 +130,8 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
         metadata: { contentType: mimeType },
     });
     
-    // Return a public URL. Make sure bucket has correct permissions.
-    // e.g., make objects public by default or set up signed URLs.
-    // For simplicity, we'll use a public URL.
+    // Make the file public and return the public URL
+    await file.makePublic();
     return file.publicUrl();
 };
 
