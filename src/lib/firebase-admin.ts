@@ -52,6 +52,9 @@ if (!getApps().length) {
   try {
     const serviceAccount = loadServiceAccount();
     const projectId = serviceAccount.project_id;
+    if (!projectId) {
+        throw new Error("Project ID not found in service account.");
+    }
     initializeApp({
       credential: cert(serviceAccount),
       storageBucket: `${projectId}.appspot.com`,
