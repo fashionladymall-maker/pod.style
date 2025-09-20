@@ -1,4 +1,5 @@
 
+
 import {
   getFirestore,
   collection,
@@ -51,9 +52,13 @@ export const addCreation = async (data: AddCreationData): Promise<Creation> => {
 
 // Get all creations for a user
 export const getCreations = async (userId: string): Promise<Creation[]> => {
-  const q = query(creationsCollection, where("userId", "==", userId), orderBy("createdAt", "desc"));
+  // The where clause was removed to avoid needing a composite index in Firestore.
+  // Filtering is now done in the code. This is less efficient at very large scale
+  // but avoids a manual configuration step for the user.
+  const q = query(creationsCollection, orderBy("createdAt", "desc"));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => docToCreation(doc));
+  const allCreations = querySnapshot.docs.map(doc => docToCreation(doc));
+  return allCreations.filter(creation => creation.userId === userId);
 };
 
 // Update a creation with a model URI
@@ -82,3 +87,4 @@ export const deleteCreation = async (creationId: string): Promise<void> => {
   const creationRef = doc(db, "creations", creationId);
   await deleteDoc(creationRef);
 };
+
