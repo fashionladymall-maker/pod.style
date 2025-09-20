@@ -53,6 +53,7 @@ const podCategories = [
 const App = () => {
     const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
+    const [user, setUser] = useState({ name: 'Florencio' });
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [patternHistory, setPatternHistory] = useState<string[]>([]);
     const [modelHistory, setModelHistory] = useState<(string | null)[]>([]);
@@ -199,7 +200,7 @@ const App = () => {
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
             <Avatar className="w-8 h-8">
               <AvatarFallback className="bg-primary text-primary-foreground">
-                <User size={20} />
+                {user.name?.[0].toUpperCase() || <User size={20} />}
               </AvatarFallback>
             </Avatar>
           </Button>
