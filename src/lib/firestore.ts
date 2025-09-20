@@ -1,3 +1,4 @@
+
 import {
   getFirestore,
   collection,
@@ -58,10 +59,18 @@ export const getCreations = async (userId: string): Promise<Creation[]> => {
 // Update a creation with a model URI
 export const updateCreationModel = async (creationId: string, modelUri: string): Promise<Creation> => {
   const creationRef = doc(db, "creations", creationId);
+  
+  // First, check if the document exists
+  const docSnap = await getDoc(creationRef);
+  if (!docSnap.exists()) {
+    throw new Error("Creation not found. Cannot update model.");
+  }
+
   await updateDoc(creationRef, {
     modelUri: modelUri,
   });
   const updatedDoc = await getDoc(creationRef);
+  // This check is now slightly redundant due to the one above, but it's good for safety.
   if (!updatedDoc.exists()) {
     throw new Error("Creation not found after update.");
   }
