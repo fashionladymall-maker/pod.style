@@ -45,16 +45,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       </Button>
       
       <ScrollArea className="flex-grow">
-        <div className="pt-20 p-6 flex items-center justify-between border-b">
+        <div className="pt-12 pb-4 px-6 flex items-center justify-between border-b">
             <div className="flex items-center gap-4">
-              <Avatar className="w-16 h-16">
+              <Avatar className="w-12 h-12">
                 <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                <AvatarFallback className="text-xl bg-primary text-primary-foreground">
                   {user?.displayName?.[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl font-semibold">{user?.displayName}</h3>
+                <h3 className="text-lg font-semibold">{user?.displayName}</h3>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
