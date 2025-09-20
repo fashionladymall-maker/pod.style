@@ -320,7 +320,6 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
     try {
         const querySnapshot = await getOrdersCollection()
             .where("userId", "==", userId)
-            .orderBy("createdAt", "desc")
             .get();
         
         if (querySnapshot.empty) {
@@ -328,6 +327,10 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
         }
 
         const orders = querySnapshot.docs.map(docToOrder);
+        
+        // Sort in-memory after fetching
+        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        
         return orders;
 
     } catch (error) {
