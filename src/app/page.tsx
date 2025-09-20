@@ -24,6 +24,7 @@ import { Menu, ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'categorySelection' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
@@ -343,7 +344,7 @@ const App = () => {
               {showBack ? (
                   <Button variant="ghost" size="icon" onClick={handleBack}><ArrowLeft /></Button>
               ) : (
-                  <Button variant="ghost" size="icon" onClick={() => (step === 'profile' || step === 'home') ? setStep('home') : window.history.back()}><Menu /></Button>
+                  <Button variant="ghost" size="icon"><Menu /></Button>
               )}
               
               <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
@@ -366,24 +367,45 @@ const App = () => {
         );
     };
 
-    const CategorySelectionScreen = () => (
-        <div className="flex flex-col h-full animate-fade-in">
-            <ScrollArea className="flex-grow">
-                <div className="grid grid-cols-2 gap-4 p-4">
-                    {podCategories.map((category) => (
-                        <Button
-                            key={category.name}
-                            variant="outline"
-                            className="h-20 text-base font-semibold"
-                            onClick={() => handleGenerateModel(category.name)}
-                        >
-                            {category.name}
-                        </Button>
-                    ))}
-                </div>
-            </ScrollArea>
-        </div>
-    );
+    const CategorySelectionScreen = () => {
+        const colors = [
+          'bg-rose-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-indigo-500', 'bg-pink-500', 'bg-sky-500', 'bg-emerald-500', 'bg-fuchsia-500', 'bg-amber-500', 'bg-cyan-500'
+        ];
+        
+        const parseCategory = (name: string) => {
+            const match = name.match(/^(.*?)\s*\((.*?)\)$/);
+            if (match) {
+                return { chinese: match[1], english: match[2] };
+            }
+            return { chinese: name, english: '' };
+        }
+
+        return (
+            <div className="flex flex-col h-full animate-fade-in">
+                <ScrollArea className="flex-grow">
+                    <div className="grid grid-cols-2 gap-4 p-4">
+                        {podCategories.map((category, index) => {
+                            const { chinese, english } = parseCategory(category.name);
+                            return (
+                                <Button
+                                    key={category.name}
+                                    variant="secondary"
+                                    className={cn(
+                                        "h-24 text-white flex flex-col justify-center items-center text-center p-2 leading-tight rounded-lg shadow-md",
+                                        colors[index % colors.length]
+                                    )}
+                                    onClick={() => handleGenerateModel(category.name)}
+                                >
+                                    <span className="font-semibold text-base">{chinese}</span>
+                                    {english && <span className="text-xs opacity-90 mt-1">{english}</span>}
+                                </Button>
+                            )
+                        })}
+                    </div>
+                </ScrollArea>
+            </div>
+        );
+    };
 
     const renderStep = () => {
         if (authLoading) {
