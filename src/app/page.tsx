@@ -391,8 +391,9 @@ const App = () => {
                                     key={category.name}
                                     variant="secondary"
                                     className={cn(
-                                        "h-24 text-white flex flex-col justify-center items-center text-center p-2 leading-tight rounded-lg shadow-md",
-                                        colors[index % colors.length]
+                                        "h-24 text-white flex flex-col justify-center items-center text-center p-2 leading-tight rounded-lg shadow-md transition-colors duration-200",
+                                        colors[index % colors.length],
+                                        "hover:bg-black hover:text-white"
                                     )}
                                     onClick={() => handleGenerateModel(category.name)}
                                 >
