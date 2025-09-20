@@ -261,21 +261,23 @@ const App = () => {
       <header className="flex items-center justify-between p-4 bg-background border-b">
           <Button variant="ghost" size="icon"><Menu /></Button>
           <div className="flex flex-col items-center">
-            <h1 className="text-lg font-medium">AIPOD</h1>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs font-semibold">
-                            {selectedCategory.split(' ')[0]} <ChevronDown className="w-3 h-3 ml-1" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="max-h-80 overflow-y-auto">
-                        {podCategories.map((category) => (
-                            <DropdownMenuItem key={category.name} onSelect={() => setSelectedCategory(category.name)}>
-                                {category.name}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
+                <h1 className="text-lg font-medium">AIPOD</h1>
+            </Button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-auto px-2 py-0.5 text-xs font-semibold">
+                        {selectedCategory.split(' ')[0]} <ChevronDown className="w-3 h-3 ml-1" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="max-h-80 overflow-y-auto">
+                    {podCategories.map((category) => (
+                        <DropdownMenuItem key={category.name} onSelect={() => setSelectedCategory(category.name)}>
+                            {category.name}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
             <Avatar className="w-8 h-8">
