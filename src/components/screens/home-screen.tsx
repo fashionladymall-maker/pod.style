@@ -46,20 +46,20 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
       recognition.onresult = (event: any) => {
         let interimTranscript = '';
-        finalTranscriptRef.current = '';
+        let finalTranscript = '';
         for (let i = 0; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            finalTranscriptRef.current += event.results[i][0].transcript;
+            finalTranscript += event.results[i][0].transcript;
           } else {
             interimTranscript += event.results[i][0].transcript;
           }
         }
-        setPrompt(finalTranscriptRef.current + interimTranscript);
+        setPrompt(finalTranscriptRef.current + finalTranscript + interimTranscript);
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        if (event.error === 'network' || event.error === 'service-not-allowed') {
           toast({ variant: 'destructive', title: '语音识别错误', description: event.error });
           setIsRecording(false);
         }
@@ -74,7 +74,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     } else {
       console.warn('SpeechRecognition API is not supported in this browser.');
     }
-  }, [setPrompt, toast, setIsRecording, isRecording]);
+  }, [setPrompt, toast, isRecording, setIsRecording]);
 
   const handleMicClick = async () => {
     if (!recognitionRef.current) {
@@ -83,15 +83,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }
 
     try {
+        // We need to request permission before starting recognition.
+        // The stream is not used, but it triggers the permission prompt.
         await navigator.mediaDevices.getUserMedia({ audio: true });
+
         if (isRecording) {
-            recognitionRef.current.stop();
             setIsRecording(false);
+            recognitionRef.current.stop();
             finalTranscriptRef.current = '';
         } else {
             finalTranscriptRef.current = prompt;
-            recognitionRef.current.start();
             setIsRecording(true);
+            recognitionRef.current.start();
         }
     } catch (error) {
         console.error("Microphone permission denied:", error);
@@ -111,13 +114,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow p-6 flex flex-col justify-center items-center">
+      <div className="flex-grow flex flex-col">
         {patternHistory.length === 0 ? (
-          <div className="text-center">
-            <h1 className="text-4xl font-medium text-blue-600">FLORENCIO, <span className="text-muted-foreground">你好</span></h1>
+          <div className="flex-grow flex justify-center items-center p-6">
+              <div className="text-center">
+                <h1 className="text-4xl font-medium text-blue-600">FLORENCIO, <span className="text-muted-foreground">你好</span></h1>
+              </div>
           </div>
         ) : (
-          <div className="w-full">
+          <div className="p-6">
             <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
             <div className="grid grid-cols-2 gap-4">
               {[...patternHistory].reverse().map((_, revIndex) => {
