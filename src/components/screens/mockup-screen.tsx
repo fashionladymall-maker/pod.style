@@ -47,31 +47,43 @@ const MockupScreen = ({
       
       <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 border-t bg-background/5 backdrop-blur-sm rounded-t-2xl">
-        {isApparel && (
-          <div className="mb-4">
-            <p className="text-sm font-medium mb-2 text-foreground/80">尺码</p>
-            <div className="flex justify-center gap-2">
-              {sizes.map(size => (
-                <Button key={size} variant={orderDetails.size === size ? 'default' : 'outline'} onClick={() => setOrderDetails(prev => ({ ...prev, size }))} className="rounded-full w-12 h-12">
-                  {size}
-                </Button>
-              ))}
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 flex justify-between items-end">
+        <div className="flex flex-col gap-4">
+          {isApparel && (
+            <div>
+              <p className="text-sm font-bold mb-2 text-white/90" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>尺码</p>
+              <div className="flex gap-2">
+                {sizes.map(size => (
+                  <Button 
+                    key={size} 
+                    variant={orderDetails.size === size ? 'default' : 'outline'} 
+                    onClick={() => setOrderDetails(prev => ({ ...prev, size }))} 
+                    className={cn(
+                      "rounded-full w-12 h-12 text-lg",
+                      orderDetails.size === size 
+                        ? "bg-primary text-primary-foreground border-primary" 
+                        : "bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white"
+                    )}
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-medium text-foreground/80">数量</p>
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" className="rounded-full" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
-            <span className="font-medium text-lg w-8 text-center">{orderDetails.quantity}</span>
-            <Button variant="outline" size="icon" className="rounded-full" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+            <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>数量</p>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
+              <span className="font-bold text-lg w-8 text-center text-white" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>{orderDetails.quantity}</span>
+              <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+            </div>
           </div>
         </div>
 
-        <Button onClick={onNext} className="w-full h-12 rounded-full">
-            下一步：填写地址 <ShoppingCart className="ml-2" />
+        <Button onClick={onNext} className="h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground">
+            下一步 <ShoppingCart className="ml-2" size={20} />
         </Button>
       </div>
     </div>
