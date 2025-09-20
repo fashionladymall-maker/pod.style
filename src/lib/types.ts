@@ -30,5 +30,9 @@ export interface Creation {
     category: string;
     patternUri: string;
     modelUri: string | null;
+    createdAt: string; // Changed from Timestamp to string for serialization
+}
+
+export interface CreationData extends Omit<Creation, 'id' | 'createdAt'> {
     createdAt: Timestamp;
 }
