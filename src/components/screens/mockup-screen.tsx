@@ -47,35 +47,6 @@ const MockupScreen = ({
       
       <HistoryNavigator currentIndex={historyIndex} total={totalHistory} onNavigate={onNavigate} />
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-6 border-t bg-background/5 backdrop-blur-sm rounded-t-2xl">
-        <div className="space-y-4">
-          {isApparel && (
-            <div>
-              <h3 className="font-medium mb-2 text-muted-foreground">尺码</h3>
-              <div className="flex space-x-2">
-                {sizes.map(s => (
-                  <Button key={s} onClick={() => setOrderDetails(prev => ({ ...prev, size: s }))}
-                    variant={orderDetails.size === s ? 'default' : 'outline'}
-                    className="rounded-full">
-                    {s}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-          <div>
-            <h3 className="font-medium mb-2 text-muted-foreground">数量</h3>
-            <div className="flex items-center bg-secondary rounded-full w-fit">
-              <Button onClick={() => handleQuantityChange(-1)} variant="ghost" size="icon" className="rounded-full"><Minus size={16} /></Button>
-              <span className="px-4 font-medium">{orderDetails.quantity}</span>
-              <Button onClick={() => handleQuantityChange(1)} variant="ghost" size="icon" className="rounded-full"><Plus size={16} /></Button>
-            </div>
-          </div>
-        </div>
-        <Button onClick={onNext} className="mt-6 w-full rounded-full">
-          <span>下一步：填写地址</span>
-        </Button>
-      </div>
     </div>
   );
 };
