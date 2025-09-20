@@ -47,7 +47,6 @@ export async function generateTShirtPatternWithStyle(
 const generateTShirtPatternWithStylePrompt = ai.definePrompt({
   name: 'generateTShirtPatternWithStylePrompt',
   input: {schema: GenerateTShirtPatternWithStyleInputSchema},
-  output: {schema: GenerateTShirtPatternWithStyleOutputSchema},
   prompt: `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '{{prompt}}'{{#if style}}, in the style of {{style}}{{/if}}. It should be incredibly detailed with sharp focus.
 
 IMPORTANT RULES:
@@ -65,8 +64,8 @@ const generateTShirtPatternWithStyleFlow = ai.defineFlow(
     outputSchema: GenerateTShirtPatternWithStyleOutputSchema,
   },
   async input => {
-    const prompt = await generateTShirtPatternWithStylePrompt(input);
-    const promptParts = [{ text: prompt.prompt }];
+    const prompt = generateTShirtPatternWithStylePrompt(input).prompt;
+    const promptParts = [{ text: prompt }];
     if (input.inspirationImage) {
       promptParts.push({ media: { url: input.inspirationImage } });
     }
