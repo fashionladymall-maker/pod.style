@@ -73,7 +73,7 @@ const MockupScreen = ({
           )}
 
           <div className="flex items-center gap-4">
-            <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>数量</p>
+            <p className="text-sm font-bold text-white/90 w-12" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>数量</p>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="icon" className="rounded-full bg-black/20 text-white border-white/30 hover:bg-white/20 hover:text-white" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
               <span className="font-bold text-lg w-8 text-center text-white" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>{orderDetails.quantity}</span>
