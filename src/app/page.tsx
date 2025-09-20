@@ -185,7 +185,7 @@ const App = () => {
 
     const handleGenerateModel = useCallback(async () => {
         const activeCreation = creations[activeCreationIndex];
-        if (!activeCreation) {
+        if (!user || !activeCreation) {
             toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
             setStep('home');
             return;
@@ -197,6 +197,7 @@ const App = () => {
         try {
             const updatedCreation = await generateModelAction({
                 creationId: activeCreation.id,
+                userId: user.uid,
                 patternDataUri: activeCreation.patternUri,
                 colorName: orderDetails.colorName,
                 category: activeCreation.category,
@@ -214,7 +215,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [activeCreationIndex, creations, orderDetails.colorName, toast]);
+    }, [activeCreationIndex, creations, orderDetails.colorName, user, toast]);
 
     const handleDeleteCreation = useCallback(async (creationId: string) => {
         const originalCreations = creations;

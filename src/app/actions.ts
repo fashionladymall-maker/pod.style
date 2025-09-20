@@ -1,7 +1,7 @@
 
 "use server";
 
-import { db } from '@/lib/firebase-admin';
+import { db, storage } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
@@ -90,6 +90,30 @@ const deleteCreation = async (creationId: string): Promise<void> => {
 
 // --- Server Actions ---
 
+const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<string> => {
+    const bucket = storage.bucket();
+    // e.g. "data:image/png;base64,iVBORw0KGgo..."
+    const match = dataUri.match(/^data:(image\/(\w+));base64,(.+)$/);
+    if (!match) {
+        throw new Error("Invalid Data URI format.");
+    }
+    
+    const [, mimeType, fileExtension, base64Data] = match;
+    const buffer = Buffer.from(base64Data, 'base64');
+    const fileName = `creations/${userId}/${Date.now()}.${fileExtension}`;
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+        metadata: {
+            contentType: mimeType,
+        },
+    });
+
+    // Make the file public and get the URL
+    await file.makePublic();
+    return file.publicUrl();
+};
+
 
 interface GeneratePatternActionInput extends GenerateTShirtPatternWithStyleInput {
   userId: string;
@@ -108,12 +132,15 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
         throw new Error('The AI failed to return an image. This might be due to a safety policy violation.');
     }
     
+    // Upload the generated image to Cloud Storage and get the public URL
+    const publicUrl = await uploadDataUriToStorage(result.generatedImage, userId);
+
     const newCreation = await addCreation({
         userId,
         prompt,
         style: style || 'None',
         category,
-        patternUri: result.generatedImage,
+        patternUri: publicUrl, // Store the public URL instead of the Data URI
     });
 
     return newCreation;
@@ -127,10 +154,11 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
 
 interface GenerateModelActionInput extends GenerateModelMockupInput {
     creationId: string;
+    userId: string;
 }
 
 export async function generateModelAction(input: GenerateModelActionInput): Promise<Creation> {
-  const { creationId, patternDataUri, colorName, category } = input;
+  const { creationId, userId, patternDataUri, colorName, category } = input;
   try {
     const result = await generateModelMockup({
         patternDataUri,
@@ -140,8 +168,11 @@ export async function generateModelAction(input: GenerateModelActionInput): Prom
     if (!result.modelImageUri) {
         throw new Error('The AI failed to return a model image.');
     }
+    
+    // Upload the model image to storage as well
+    const modelUrl = await uploadDataUriToStorage(result.modelImageUri, userId);
 
-    const updatedCreation = await updateCreationModel(creationId, result.modelImageUri);
+    const updatedCreation = await updateCreationModel(creationId, modelUrl);
     return updatedCreation;
 
   } catch (error) {
