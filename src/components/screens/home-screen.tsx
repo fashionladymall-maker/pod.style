@@ -63,7 +63,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="relative mb-3">
             <Input
               className="w-full bg-secondary text-foreground p-3 pr-12 rounded-full h-12 border-none focus-visible:ring-1"
-              placeholder="问问 Gemini"
+              placeholder="说出你喜欢的创意"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
