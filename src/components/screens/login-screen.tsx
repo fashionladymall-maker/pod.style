@@ -30,7 +30,7 @@ const LoginScreen = () => {
         try {
             await linkWithCredential(currentUser, credential);
             toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
-            return { success: true };
+            return { success: true, switched: false };
         } catch (error: any) {
             // This is a special case: the credential belongs to another existing user.
             if (error.code === 'auth/credential-already-in-use') {
