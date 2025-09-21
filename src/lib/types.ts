@@ -50,6 +50,7 @@ export interface Creation {
     favoritedBy: string[];
     commentCount: number;
     shareCount: number;
+    remakeCount: number;
 }
 
 // This is the object shape that is stored in Firestore.
@@ -70,6 +71,7 @@ export interface CreationData {
     favoritedBy: string[];
     commentCount: number;
     shareCount: number;
+    remakeCount: number;
 }
 
 

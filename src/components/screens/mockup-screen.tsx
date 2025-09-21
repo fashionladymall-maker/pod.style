@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Model, OrderDetails } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -20,13 +20,12 @@ interface MockupScreenProps {
   modelHistoryIndex: number;
   onNavigateModels: (index: number) => void;
   category: string;
-  onRegenerate: () => void;
   price: number;
 }
 
 const MockupScreen = ({
   modelImage, models, orderDetails, setOrderDetails, handleQuantityChange,
-  onNext, modelHistoryIndex, onNavigateModels, category, onRegenerate, price
+  onNext, modelHistoryIndex, onNavigateModels, category, price
 }: MockupScreenProps) => {
   
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];

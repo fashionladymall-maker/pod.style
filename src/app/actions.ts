@@ -40,6 +40,7 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     favoritedBy: data.favoritedBy || [],
     commentCount: data.commentCount || 0,
     shareCount: data.shareCount || 0,
+    remakeCount: data.remakeCount || 0,
   };
 };
 
@@ -96,6 +97,7 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
     favoritedBy: [],
     commentCount: 0,
     shareCount: 0,
+    remakeCount: 0,
   };
   const docRef = await getCreationsCollection().add(creationData);
   const newDoc = await docRef.get();
@@ -564,6 +566,19 @@ export async function incrementShareCountAction(creationId: string): Promise<{ s
         return { success: true };
     } catch (error) {
         console.error('Error in incrementShareCountAction:', error);
+        return { success: false };
+    }
+}
+
+export async function incrementRemakeCountAction(creationId: string): Promise<{ success: boolean }> {
+    const creationRef = getCreationsCollection().doc(creationId);
+    try {
+        await creationRef.update({
+            remakeCount: admin.firestore.FieldValue.increment(1)
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error in incrementRemakeCountAction:', error);
         return { success: false };
     }
 }

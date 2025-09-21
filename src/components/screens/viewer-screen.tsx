@@ -29,6 +29,7 @@ interface ViewerScreenProps {
   onFavoriteToggle: (creationId: string, userId: string, isFavorited: boolean) => Promise<{ success: boolean }>;
   onShare: (creationId: string) => Promise<{ success: boolean }>;
   onUpdateCreation: (creation: Creation) => void;
+  onRemake: (creationId: string) => Promise<{ success: boolean }>;
 }
 
 const ViewerScreen: React.FC<ViewerScreenProps> = ({
@@ -46,6 +47,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   onFavoriteToggle,
   onShare,
   onUpdateCreation,
+  onRemake,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -205,6 +207,17 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     }
   };
 
+  const handleRemake = () => {
+    if (!currentCreation) return;
+    
+    // Optimistic update
+    const updatedCreation = { ...currentCreation, remakeCount: currentCreation.remakeCount + 1 };
+    onUpdateCreation(updatedCreation);
+
+    onRemake(currentCreation.id);
+    onGoToCategorySelection();
+  };
+
 
   const isLiked = user && currentCreation ? currentCreation.likedBy.includes(user.uid) : false;
   const isFavorited = user && currentCreation ? currentCreation.favoritedBy.includes(user.uid) : false;
@@ -237,7 +250,6 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
                 modelHistoryIndex={viewerState.modelIndex}
                 onNavigateModels={onSelectModel}
                 category={currentModel?.category || ''}
-                onRegenerate={onGoToCategorySelection}
                 price={price}
             />
         );
@@ -251,17 +263,14 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       className="fixed inset-0 z-50 bg-black flex flex-col"
       style={{ touchAction: 'pan-y' }}
     >
-      
-      {/* Main Content Area */}
-      <div className="flex-grow relative w-full h-full">
-         {renderContent()}
-      </div>
-
-      {/* Overlays: Header and Social Buttons */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
         <Button onClick={handleClose} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40">
           <ArrowLeft size={20} />
         </Button>
+      </div>
+
+      <div className="flex-grow relative w-full h-full">
+         {renderContent()}
       </div>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-4">
@@ -290,10 +299,11 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             <span>{currentCreation && formatCount(currentCreation.shareCount)}</span>
         </button>
          {!isPatternView && (
-            <button onClick={onGoToCategorySelection} className={socialButtonClass}>
+            <button onClick={handleRemake} className={socialButtonClass}>
                 <div className={iconButtonClass}>
                     <RefreshCw size={26} />
                 </div>
+                <span>{currentCreation && formatCount(currentCreation.remakeCount)}</span>
             </button>
         )}
       </div>

@@ -14,7 +14,8 @@ import {
     getTrendingCreationsAction,
     toggleLikeAction,
     toggleFavoriteAction,
-    incrementShareCountAction
+    incrementShareCountAction,
+    incrementRemakeCountAction
 } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
@@ -672,6 +673,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 onFavoriteToggle={toggleFavoriteAction}
                 onShare={incrementShareCountAction}
                 onUpdateCreation={updateCreationsState}
+                onRemake={incrementRemakeCountAction}
               />
             )}
         </main>
