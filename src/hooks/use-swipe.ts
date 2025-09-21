@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface SwipeHandlers {
   onTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void;
   onTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void;
-  onTouchEnd: () => void;
+  onTouchEnd: (e: React.TouchEvent<HTMLDivElement>) => void;
 }
 
 interface UseSwipeProps {
@@ -17,55 +17,62 @@ interface UseSwipeProps {
 }
 
 export const useSwipe = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown }: UseSwipeProps): SwipeHandlers => {
-  const [touchStartX, setTouchStartX] = useState(0);
-  const [touchEndX, setTouchEndX] = useState(0);
-  const [touchStartY, setTouchStartY] = useState(0);
-  const [touchEndY, setTouchEndY] = useState(0);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isSwipingRef = useRef(false);
   const minSwipeDistance = 50;
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setTouchEndX(0);
-    setTouchEndY(0);
-    setTouchStartX(e.targetTouches[0].clientX);
-    setTouchStartY(e.targetTouches[0].clientY);
+    isSwipingRef.current = true;
+    touchStartRef.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    };
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    setTouchEndX(e.targetTouches[0].clientX);
-    setTouchEndY(e.targetTouches[0].clientY);
+    if (!isSwipingRef.current || !touchStartRef.current) return;
+
+    const touchCurrentX = e.targetTouches[0].clientX;
+    const touchCurrentY = e.targetTouches[0].clientY;
+
+    const deltaX = touchCurrentX - touchStartRef.current.x;
+    const deltaY = touchCurrentY - touchStartRef.current.y;
+
+    // Prioritize vertical swipe and prevent default browser scroll
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      e.preventDefault();
+    }
   };
 
-  const handleTouchEnd = () => {
-    if (!touchStartX || !touchStartY || !touchEndX || !touchEndY) return;
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isSwipingRef.current || !touchStartRef.current) return;
 
-    const distanceX = touchStartX - touchEndX;
-    const distanceY = touchStartY - touchEndY;
-    const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY);
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
 
-    if (isHorizontalSwipe) {
-      const isSwipeLeft = distanceX > minSwipeDistance;
-      const isSwipeRight = distanceX < -minSwipeDistance;
+    const deltaX = touchEndX - touchStartRef.current.x;
+    const deltaY = touchEndY - touchStartRef.current.y;
 
-      if (isSwipeLeft && onSwipeLeft) {
-        onSwipeLeft();
-      } else if (isSwipeRight && onSwipeRight) {
-        onSwipeRight();
-      }
-    } else { // Vertical swipe
-      const isSwipeUp = distanceY > minSwipeDistance;
-      const isSwipeDown = distanceY < -minSwipeDistance;
-
-      if (isSwipeUp && onSwipeUp) {
-        onSwipeUp();
-      } else if (isSwipeDown && onSwipeDown) {
-        onSwipeDown();
+    if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        // Vertical swipe
+        if (deltaY < -minSwipeDistance && onSwipeUp) {
+          onSwipeUp();
+        } else if (deltaY > minSwipeDistance && onSwipeDown) {
+          onSwipeDown();
+        }
+      } else {
+        // Horizontal swipe
+        if (deltaX < -minSwipeDistance && onSwipeLeft) {
+          onSwipeLeft();
+        } else if (deltaX > minSwipeDistance && onSwipeRight) {
+          onSwipeRight();
+        }
       }
     }
-
-    setTouchStartX(0);
-    setTouchStartY(0);
-    setTouchEndX(0);
-    setTouchEndY(0);
+    
+    isSwipingRef.current = false;
+    touchStartRef.current = null;
   };
 
   return {
