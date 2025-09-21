@@ -145,7 +145,7 @@ const App = () => {
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
-    }, []);
+    }, [toast]);
 
 
     useEffect(() => {
@@ -325,6 +325,7 @@ const App = () => {
         e.preventDefault();
         setIsLoading(true);
         setLoadingText("正在处理您的订单...");
+        setStep('generating');
         
         const activeCreation = creations[activeCreationIndex];
         const activeModel = activeCreation?.models[activeModelIndex];
@@ -365,7 +366,7 @@ const App = () => {
     const handleQuantityChange = (amount: number) => { setOrderDetails(prev => ({ ...prev, quantity: Math.max(1, prev.quantity + amount) })); };
     
     const resetState = () => {
-        setStep('home');
+        setStep('login');
         setPrompt('');
         setUploadedImage(null);
         setCreations([]);
@@ -575,3 +576,5 @@ export default App;
     
 
       
+
+    
