@@ -625,11 +625,21 @@ const App = () => {
         }
     };
 
+    const renderMainContent = () => (
+        <div className="w-full bg-card overflow-hidden" style={{ height: '100%' }}>
+            <div className="h-full flex flex-col">
+                <AppHeader/>
+                <div className="flex-grow min-h-0">
+                    {renderStep()}
+                </div>
+            </div>
+        </div>
+    );
+
     return (
-        <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
-            <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
-                { authLoading ? (
-                     <LoadingScreen>
+        <main className="bg-background text-foreground font-sans h-full w-full">
+            { authLoading ? (
+                    <LoadingScreen>
                         <div className="text-center">
                             <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
                             <p className="mt-4">
@@ -639,15 +649,9 @@ const App = () => {
                             </p>
                         </div>
                     </LoadingScreen>
-                ) : (
-                    <div className="h-full flex flex-col">
-                        <AppHeader/>
-                        <div className="flex-grow min-h-0">
-                            {renderStep()}
-                        </div>
-                    </div>
-                )}
-            </div>
+            ) : (
+                renderMainContent()
+            )}
 
             {viewerState.isOpen && (
               <ViewerScreen

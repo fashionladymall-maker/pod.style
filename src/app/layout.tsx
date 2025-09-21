@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body className="flex items-center justify-center">
+      <body className="flex items-center justify-center bg-zinc-900">
         {children}
         <Toaster />
       </body>
