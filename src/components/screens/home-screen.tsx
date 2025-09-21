@@ -154,7 +154,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             
             <div className="grid grid-cols-2 gap-4">
                 <Button variant="outline" className="h-16 text-base"><Sparkles className="mr-2"/>流行创意</Button>
-                <Button variant="outline" className="h-16 text-base"><TrendingUp className="mr-2"/>畅销排行</Button>
+                <Button variant="outline" className="h-16 text-base"><TrendingUp className="mr-2"/>定制排行</Button>
             </div>
 
             {publicCreations.length > 0 && <Separator />}
