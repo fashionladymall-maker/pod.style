@@ -33,14 +33,10 @@ const PatternPreviewScreen = ({
   const bind = useDrag(
     ({ last, swipe: [, swipeY] }) => {
       if (last && !isNavigating && totalCreations > 1) {
-        if (swipeY === -1) { // Swipe Up
-          setIsNavigating(true);
-          onNavigateCreations(1);
-          setTimeout(() => setIsNavigating(false), 500); // Cooldown
-        } else if (swipeY === 1) { // Swipe Down
-          setIsNavigating(true);
-          onNavigateCreations(-1);
-          setTimeout(() => setIsNavigating(false), 500); // Cooldown
+        if (swipeY !== 0) {
+            setIsNavigating(true);
+            onNavigateCreations(swipeY); // swipeY is -1 for up, 1 for down
+            setTimeout(() => setIsNavigating(false), 500); // Cooldown
         }
       }
     },
@@ -54,7 +50,7 @@ const PatternPreviewScreen = ({
     <div 
       {...bind()} 
       className="relative h-full w-full bg-secondary flex flex-col animate-fade-in"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'pan-y' }}
     >
       {generatedPattern ? (
           <div className="absolute inset-0 w-full h-full animate-scale-in">

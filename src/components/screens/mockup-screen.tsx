@@ -47,18 +47,16 @@ const MockupScreen = ({
   const bind = useDrag(
     ({ last, swipe: [, swipeY], axis }) => {
       if (last && !isNavigating) {
-        const isVerticalSwipe = Math.abs(swipeY) > 0;
-        
-        if (isVerticalSwipe && models.length > 1) { // Vertical swipe for models
-          if (swipeY === -1) { // Swipe Up
+        if (axis === 'y' && swipeY !== 0) { // It's a vertical swipe
             setIsNavigating(true);
-            onNavigateModels(1);
+            onNavigateModels(swipeY);
             setTimeout(() => setIsNavigating(false), 500);
-          } else if (swipeY === 1) { // Swipe Down
+        } else if (axis === 'x' && totalCreations > 1) { // Horizontal swipe for creations
+            const swipeX = swipeY; // In useDrag with axis:'y', swipeX is not available, we use swipeY for direction
+            const direction = swipeX === -1 ? 1 : -1;
             setIsNavigating(true);
-            onNavigateModels(-1);
+            onNavigateCreations(direction);
             setTimeout(() => setIsNavigating(false), 500);
-          }
         }
       }
     },
@@ -75,7 +73,7 @@ const MockupScreen = ({
     <div 
       {...bind()} 
       className="relative flex flex-col h-full bg-muted"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'pan-y' }}
     >
       <div className="flex-grow relative">
         {modelImage ? (
