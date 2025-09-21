@@ -20,7 +20,7 @@ const LoginScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     
     // This helper function centralizes the logic for linking an anonymous account.
-    const linkAnonymousAccount = async (credential: AuthCredential) => {
+    const linkAnonymousAccount = async (credential: AuthCredential): Promise<{ success: boolean, switched: boolean }> => {
         const currentUser = auth.currentUser;
         if (!currentUser || !currentUser.isAnonymous) {
             // Not an anonymous user, so no linking is needed.
@@ -115,11 +115,10 @@ const LoginScreen = () => {
             try {
                 await linkAnonymousAccount(credential);
                 // If linkAnonymousAccount succeeds or switches account, it will show a toast.
-                // We don't need to do anything else here.
+                // The onAuthStateChanged listener in page.tsx will handle the UI update.
             } catch (error: any) {
                 // linkAnonymousAccount already shows a toast for failures.
                 // We catch the re-thrown error here just to stop execution.
-                // The error toast is already displayed inside linkAnonymousAccount.
             } finally {
                 setIsLoading(false);
             }
