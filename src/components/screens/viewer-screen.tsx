@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useDrag } from '@use-gesture/react';
-import { ArrowLeft, Heart, MessageCircle, Star, Send } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Star, Send, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Creation, OrderDetails, FirebaseUser } from '@/lib/types';
 import type { ViewerState } from '@/app/app-client';
@@ -212,6 +212,39 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   const socialButtonClass = "flex flex-col items-center text-white text-xs font-semibold gap-1";
   const iconButtonClass = "flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 h-12 w-12";
 
+  const renderContent = () => {
+    if (!currentCreation) {
+        return null; // or a loading/error state
+    }
+    
+    if (isPatternView) {
+        return (
+            <PatternPreviewScreen
+                creation={currentCreation}
+                isModelGenerating={false}
+                onGoToModel={onGoToCategorySelection}
+            />
+        );
+    } else {
+        return (
+            <MockupScreen
+                modelImage={currentModel?.uri}
+                models={currentCreation.models || []}
+                orderDetails={orderDetails}
+                setOrderDetails={setOrderDetails}
+                handleQuantityChange={handleQuantityChange}
+                onNext={onNext}
+                modelHistoryIndex={viewerState.modelIndex}
+                onNavigateModels={onSelectModel}
+                category={currentModel?.category || ''}
+                onRegenerate={onGoToCategorySelection}
+                price={price}
+            />
+        );
+    }
+  };
+
+
   const content = (
     <div
       {...bind()}
@@ -219,29 +252,10 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       style={{ touchAction: 'pan-y' }}
     >
       
-      {/* Main Content Area: Use ternary to ensure only one view is ever rendered */}
-      {isPatternView ? (
-        <PatternPreviewScreen
-            creation={currentCreation}
-            isModelGenerating={false}
-            onGoToModel={onGoToCategorySelection}
-        />
-      ) : (
-        <MockupScreen
-            modelImage={currentModel?.uri}
-            models={currentCreation?.models || []}
-            orderDetails={orderDetails}
-            setOrderDetails={setOrderDetails}
-            handleQuantityChange={handleQuantityChange}
-            onNext={onNext}
-            modelHistoryIndex={viewerState.modelIndex}
-            onNavigateModels={onSelectModel}
-            category={currentModel?.category || ''}
-            onRegenerate={onGoToCategorySelection}
-            price={price}
-        />
-      )}
-
+      {/* Main Content Area */}
+      <div className="flex-grow relative w-full h-full">
+         {renderContent()}
+      </div>
 
       {/* Overlays: Header and Social Buttons */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
@@ -275,6 +289,14 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             </div>
             <span>{currentCreation && formatCount(currentCreation.shareCount)}</span>
         </button>
+         {!isPatternView && (
+            <button onClick={onGoToCategorySelection} className={socialButtonClass}>
+                <div className={iconButtonClass}>
+                    <RefreshCw size={26} />
+                </div>
+                <span>循环定制</span>
+            </button>
+        )}
       </div>
 
       {/* Comment Sheet Portal */}

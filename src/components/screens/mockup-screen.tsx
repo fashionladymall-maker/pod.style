@@ -42,7 +42,6 @@ const MockupScreen = ({
         ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">正在生成商品效果图...</div>
         )}
-         <Button onClick={onRegenerate} variant="ghost" size="icon" className="absolute top-4 right-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><RefreshCw size={18} /></Button>
       </div>
       
       <div className="absolute bottom-0 left-0 right-0 p-4 pt-6 text-white bg-gradient-to-t from-black/60 to-transparent">
