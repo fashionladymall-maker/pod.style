@@ -25,6 +25,7 @@ const LoginScreen = () => {
             try {
                 await linkWithCredential(currentUser, credential);
                 toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
+                return { success: true };
             } catch (error: any) {
                 if (error.code === 'auth/credential-already-in-use') {
                     toast({ 
@@ -32,18 +33,21 @@ const LoginScreen = () => {
                         title: '关联失败', 
                         description: '此账户已关联其他用户。请先退出，然后直接登录。' 
                     });
+                     // This specific error means we should sign out the anonymous user
+                     // and then sign in with the credential directly.
                      await auth.signOut();
-                     // For Google, we can try to sign in directly. For email, this is more complex.
-                     if (credential.providerId === GoogleAuthProvider.PROVIDER_ID) {
-                        await signInWithPopup(auth, new GoogleAuthProvider());
-                     }
+                     await signInWithEmailAndPassword(auth, email, password);
+                     return { success: true, switched: true }; // Switched accounts instead of linking
                 } else {
                     toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户: ${error.message}` });
                     console.error("Link error:", error);
                 }
+                // Re-throw other errors to be caught by the caller
                 throw error;
             }
         }
+        // If not anonymous, just return indicating no action was taken
+        return { success: false };
     };
 
 
@@ -51,23 +55,30 @@ const LoginScreen = () => {
         setIsLoading(true);
         const provider = new GoogleAuthProvider();
         try {
+            // The signInWithPopup will either sign in a new user or an existing user.
             const result = await signInWithPopup(auth, provider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential) {
-                // linkAnonymousAccount will check if the current user is anonymous
-                await linkAnonymousAccount(credential);
+                // If the user was anonymous before this, Firebase automatically handles the upgrade.
+                // We can add a toast to confirm.
+                if (result.user) {
+                     toast({ title: '登录成功', description: '您的账户已成功关联。' });
+                }
             }
         } catch (error: any) {
-            if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+             if (error.code === 'auth/account-exists-with-different-credential') {
+                toast({
+                    variant: "destructive",
+                    title: "登录失败",
+                    description: "该邮箱已通过其他方式注册，请使用原方式登录。",
+                });
+             } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
                 console.error("Google sign-in error:", error);
-                // Avoid showing toast if linking logic already showed one
-                if (error.code !== 'auth/credential-already-in-use') {
-                    toast({
-                        variant: "destructive",
-                        title: "Google 登录失败",
-                        description: '登录过程中发生错误，请稍后再试。',
-                    });
-                }
+                toast({
+                    variant: "destructive",
+                    title: "Google 登录失败",
+                    description: '登录过程中发生错误，请稍后再试。',
+                });
             }
         } finally {
             setIsLoading(false);
@@ -78,10 +89,10 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const credential = EmailAuthProvider.credential(email, password);
-             // After creation, the new user is signed in. We don't need to link.
-             toast({ title: "注册成功", description: "欢迎！" });
+            // This will sign out the anonymous user and create a new permanent one.
+            // Data migration for this path is more complex and can be a future improvement.
+            await createUserWithEmailAndPassword(auth, email, password);
+            toast({ title: "注册成功", description: "欢迎！您的新账户已创建。" });
         } catch (error: any) {
             toast({
                 variant: "destructive",
@@ -97,23 +108,43 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const credential = EmailAuthProvider.credential(email, password);
-            // First, try to link with an existing anonymous account.
-            // This will throw an error if the user is not anonymous, which we'll catch.
-            await linkAnonymousAccount(credential);
-        } catch (linkError: any) {
-            // If linking fails (e.g., user is not anonymous, or credential in use error handled in linkAnonymousAccount)
-            // try a normal sign-in. We only proceed if it's not a "credential-in-use" error.
-            if (linkError.code !== 'auth/credential-already-in-use') {
+            const currentUser = auth.currentUser;
+            if (currentUser && currentUser.isAnonymous) {
+                // If user is anonymous, try to link first.
+                const credential = EmailAuthProvider.credential(email, password);
+                await linkWithCredential(currentUser, credential);
+                toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
+            } else {
+                // If not anonymous or no user, just sign in.
+                await signInWithEmailAndPassword(auth, email, password);
+            }
+        } catch (error: any) {
+            if (error.code === 'auth/credential-already-in-use') {
+                // This case happens if the email is already linked to another account
+                // and we tried to link it again. The best UX is to sign out anonymous
+                // and sign in with the permanent account.
                 try {
+                    await auth.signOut();
                     await signInWithEmailAndPassword(auth, email, password);
-                } catch (signInError: any) {
-                     toast({
-                        variant: "destructive",
-                        title: "登录失败",
-                        description: "邮箱或密码错误，请重试。",
-                    });
+                    toast({ title: "登录成功", description: "已切换到您的现有账户。" });
+                } catch (signInError) {
+                    toast({ variant: "destructive", title: "登录失败", description: "邮箱或密码错误。" });
                 }
+
+            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                toast({
+                    variant: "destructive",
+                    title: "登录失败",
+                    description: "邮箱或密码错误，请重试。",
+                });
+            } else {
+                // Handle other errors like network issues
+                 toast({
+                    variant: "destructive",
+                    title: "登录时发生错误",
+                    description: error.message,
+                });
+                console.error("Sign-in error:", error);
             }
         } finally {
             setIsLoading(false);
