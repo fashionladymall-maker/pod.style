@@ -73,7 +73,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creati
                         onClick={() => onSelect(creation, modelIndex)} 
                         className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                     >
-                        <Image src={model.uri} alt={`商品: ${model.category}`} layout="fill" className="object-cover" />
+                        <Image src={model.uri} alt={`商品: ${model.category}`} fill className="object-cover" />
                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs">
                             <p className="truncate">{creation.prompt}</p>
                         </div>
@@ -101,7 +101,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creati
                     onClick={() => onSelect(creation)} 
                     className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                 >
-                    <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
+                    <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} fill className="object-cover" />
                 </button>
             ))}
         </div>
@@ -207,7 +207,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   return (
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-grow">
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-4">
              <Tabs defaultValue="popular" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="popular"><Sparkles className="mr-2 h-4 w-4" />流行创意</TabsTrigger>
@@ -231,10 +231,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </ScrollArea>
 
-      <div className="mt-auto p-4 bg-background border-t">
-        <div className="relative mb-3">
+      <div className="mt-auto p-3 bg-background border-t">
+        <div className="relative">
             <Input
-              className="w-full bg-secondary text-foreground p-3 pr-12 rounded-full h-12 border-none focus-visible:ring-1 transition-all duration-300"
+              className="w-full bg-secondary text-foreground p-3 pr-10 rounded-full h-11 border-none focus-visible:ring-1 transition-all duration-300"
               placeholder={placeholder}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -245,21 +245,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 }
               }}
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center">
                 {prompt || uploadedImage ? (
-                    <Button onClick={onGenerate} variant="ghost" size="icon" className="rounded-full bg-blue-500 text-white hover:bg-blue-600">
-                        <ArrowUp size={20} />
+                    <Button onClick={onGenerate} variant="ghost" size="icon" className="rounded-full bg-blue-500 text-white hover:bg-blue-600 w-8 h-8">
+                        <ArrowUp size={18} />
                     </Button>
                 ) : (
-                    <div className="w-10 h-10" /> 
+                    <div className="w-8 h-8" /> 
                 )}
             </div>
         </div>
 
-        <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center space-x-2 mt-2">
           <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
-          <Button variant="ghost" size="icon" className="rounded-full bg-secondary" asChild>
-            <Label htmlFor="imageUpload" className="cursor-pointer"><Plus size={24} /></Label>
+          <Button variant="ghost" size="icon" className="rounded-full bg-secondary w-8 h-8" asChild>
+            <Label htmlFor="imageUpload" className="cursor-pointer flex items-center justify-center"><Plus size={20} /></Label>
           </Button>
 
           <Popover open={stylePopoverOpen} onOpenChange={setStylePopoverOpen}>
@@ -268,10 +268,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={stylePopoverOpen}
-                    className="rounded-full bg-secondary hover:bg-muted"
+                    className="rounded-full bg-secondary hover:bg-muted h-8 px-3"
                 >
                     <Palette className="mr-2 h-4 w-4" />
-                    风格: {selectedStyle.split(' ')[0]}
+                    <span className="text-xs">风格: {selectedStyle.split(' ')[0]}</span>
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[250px] p-0 mb-2">
@@ -295,14 +295,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </PopoverContent>
           </Popover>
 
-          <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full bg-secondary ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
-            <Mic size={20} />
+          <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full bg-secondary w-8 h-8 ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
+            <Mic size={18} />
           </Button>
 
           {uploadedImage && (
-            <div className="relative w-10 h-10 border rounded-md ml-auto">
-              <Image src={uploadedImage} alt="Uploaded preview" layout="fill" className="rounded-sm object-cover" />
-              <Button onClick={() => setUploadedImage(null)} variant="destructive" size="sm" className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0">X</Button>
+            <div className="relative w-8 h-8 border rounded-md ml-auto">
+              <Image src={uploadedImage} alt="Uploaded preview" fill className="rounded-sm object-cover" />
+              <Button onClick={() => setUploadedImage(null)} variant="destructive" size="sm" className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full p-0">X</Button>
             </div>
           )}
         </div>
