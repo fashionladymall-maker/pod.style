@@ -7,18 +7,19 @@ import { Button } from '@/components/ui/button';
 
 interface ConfirmationScreenProps {
   onGoHome: () => void;
+  onReset: () => void;
   category: string;
 }
 
-const ConfirmationScreen = ({ onGoHome, category }: ConfirmationScreenProps) => {
+const ConfirmationScreen = ({ onGoHome, onReset, category }: ConfirmationScreenProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onGoHome();
+      onReset();
     }, 3000); 
 
     // Cleanup the timer if the component is unmounted
     return () => clearTimeout(timer);
-  }, [onGoHome]);
+  }, [onReset]);
 
 
   return (

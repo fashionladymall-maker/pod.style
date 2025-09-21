@@ -123,7 +123,6 @@ const App = () => {
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
-        if (creations.length > 0) return;
         setIsLoading(true);
         try {
             const userCreations = await getCreationsAction(userId);
@@ -137,7 +136,6 @@ const App = () => {
     }, [toast]);
     
     const fetchOrders = useCallback(async (userId: string) => {
-      if (orders.length > 0) return;
       try {
         const userOrders = await getOrdersAction(userId);
         setOrders(userOrders);
@@ -478,7 +476,18 @@ const App = () => {
 
     const renderStep = () => {
         if (authLoading) {
-            return <LoadingScreen text="正在验证您的身份..." />;
+            return (
+              <LoadingScreen>
+                <div className="text-center">
+                    <h1 className="text-2xl font-medium text-foreground">欢迎来到 AIPOD.STYLE</h1>
+                    <p className="mt-4">
+                        放飞思想，随心定制
+                        <br />
+                        <span className="text-sm">Free Your Mind, Customize Your Way.</span>
+                    </p>
+                </div>
+              </LoadingScreen>
+            );
         }
         
         const activeCreation = creations[activeCreationIndex];
@@ -534,7 +543,7 @@ const App = () => {
                 isLoading={isLoading} 
                 price={MOCK_PRICE}
             />;
-            case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} category={lastOrderedCategory} />;
+            case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} onReset={resetState} category={lastOrderedCategory} />;
             case 'profile': return <ProfileScreen
                 user={user}
                 creations={creations}
