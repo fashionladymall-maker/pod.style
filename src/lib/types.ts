@@ -12,6 +12,7 @@ export interface ShippingInfo {
     name: string;
     address: string;
     phone: string;
+    email?: string; // Add email for guest checkout
 }
 
 export interface PaymentInfo {

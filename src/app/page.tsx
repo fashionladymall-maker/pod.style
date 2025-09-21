@@ -135,7 +135,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast]);
+    }, [toast, creations.length]);
     
     const fetchOrders = useCallback(async (userId: string) => {
       // Only fetch if orders are not already loaded
@@ -146,7 +146,7 @@ const App = () => {
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
-    }, [toast]);
+    }, [toast, orders.length]);
 
 
     useEffect(() => {
@@ -314,8 +314,8 @@ const App = () => {
     const handleSignOut = async () => {
         try {
             await firebaseSignOut(auth);
-            setStep('login');
             resetState();
+            setStep('login');
         } catch (error) {
             console.error("Error signing out:", error);
             toast({ variant: "destructive", title: "退出登录失败", description: "退出时发生错误，请稍后重试。" });
@@ -359,6 +359,7 @@ const App = () => {
         } catch (error) {
             console.error("Failed to create order:", error);
             toast({ variant: 'destructive', title: '下单失败', description: '创建订单时发生错误，请稍后重试。' });
+            setStep('payment');
         } finally {
             setIsLoading(false);
         }
@@ -367,7 +368,6 @@ const App = () => {
     const handleQuantityChange = (amount: number) => { setOrderDetails(prev => ({ ...prev, quantity: Math.max(1, prev.quantity + amount) })); };
     
     const resetState = () => {
-        setStep('login');
         setPrompt('');
         setUploadedImage(null);
         setCreations([]);
@@ -377,6 +377,7 @@ const App = () => {
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
         setOrders([]);
+        setStep('login');
     };
     
     const AppHeader = () => {
@@ -516,6 +517,7 @@ const App = () => {
                 price={MOCK_PRICE}
             />;
             case 'shipping': return <ShippingScreen 
+                user={user}
                 shippingInfo={shippingInfo} 
                 setShippingInfo={setShippingInfo} 
                 onNext={() => setStep('payment')} 
