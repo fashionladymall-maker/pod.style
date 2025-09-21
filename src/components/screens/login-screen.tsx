@@ -148,7 +148,7 @@ const LoginScreen = () => {
 
     const renderOptions = () => (
         <>
-            <h1 className="text-3xl font-bold mb-2 text-center">欢迎来到 POD.STYLE</h1>
+            <h1 className="text-3xl font-bold mb-2 text-center">POD.STYLE</h1>
             <p className="text-muted-foreground mb-8 text-center">
               放飞思想，随心定制
               <br />

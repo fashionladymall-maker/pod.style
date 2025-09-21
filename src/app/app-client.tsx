@@ -637,8 +637,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                     <div className="flex-grow min-h-0">
                         <LoadingScreen>
                             <div className="text-center">
-                                <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
-                                <p className="mt-4">
+                                <h1 className="text-2xl font-medium text-foreground">POD.STYLE</h1>
+                                <p className="text-muted-foreground mt-4">
                                     放飞思想，随心定制
                                     <br />
                                     <span className="text-sm">Free Your Mind, Customize Your Way.</span>
