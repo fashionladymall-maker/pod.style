@@ -4,12 +4,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useDrag } from '@use-gesture/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Star, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Creation, OrderDetails } from '@/lib/types';
 import type { ViewerState } from '@/app/app-client';
 import PatternPreviewScreen from './pattern-preview-screen';
 import MockupScreen from './mockup-screen';
+import { useToast } from '@/hooks/use-toast';
 
 interface ViewerScreenProps {
   viewerState: ViewerState;
@@ -36,6 +37,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
@@ -106,8 +108,8 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   }
 
   const currentCreation = sourceCreations.find(c => c.id === viewerState.creationId);
-  const currentModel = currentCreation?.models[viewerState.modelIndex];
   const isPatternView = viewerState.modelIndex === -1;
+  const currentModel = !isPatternView ? currentCreation?.models[viewerState.modelIndex] : undefined;
 
   const bind = useDrag(
     ({ last, swipe: [, swipeY] }) => {
@@ -125,11 +127,18 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     }
   );
 
+  const handleSocialClick = (action: string) => {
+    toast({
+      title: `功能开发中`,
+      description: `“${action}”功能即将上线，敬请期待！`,
+    });
+  };
+
   const renderContent = () => {
     if (!currentCreation) {
       return null;
     }
-
+    
     if (isPatternView) {
       return (
         <PatternPreviewScreen
@@ -167,6 +176,21 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
         <Button onClick={handleClose} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40">
           <ArrowLeft size={20} />
+        </Button>
+      </div>
+
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-4">
+        <Button onClick={() => handleSocialClick('点赞')} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40 h-10 w-10">
+          <Heart size={22} />
+        </Button>
+        <Button onClick={() => handleSocialClick('评论')} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40 h-10 w-10">
+          <MessageCircle size={22} />
+        </Button>
+        <Button onClick={() => handleSocialClick('收藏')} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40 h-10 w-10">
+          <Star size={22} />
+        </Button>
+        <Button onClick={() => handleSocialClick('转发')} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40 h-10 w-10">
+          <Send size={22} />
         </Button>
       </div>
 
