@@ -4,7 +4,6 @@
 import Image from 'next/image';
 import { ArrowLeft, ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import HistoryNavigator from '@/components/ui/history-navigator';
 import type { Model, OrderDetails, Creation } from '@/lib/types';
 import { useSwipe } from '@/hooks/use-swipe';
 import { cn } from '@/lib/utils';

@@ -4,7 +4,6 @@
 import Image from 'next/image';
 import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import HistoryNavigator from '@/components/ui/history-navigator';
 import { useSwipe } from '@/hooks/use-swipe';
 import type { Creation } from '@/lib/types';
 
@@ -51,16 +50,6 @@ const PatternPreviewScreen = ({
         <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
         <h2 className="text-xl font-medium mx-auto text-white" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>创意图案</h2>
         <div className="w-10 h-10"></div>
-      </div>
-      
-      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full px-4">
-        <HistoryNavigator 
-          currentIndex={creationHistoryIndex} 
-          total={totalCreations} 
-          onNavigate={onNavigateCreations} 
-          variant="creation"
-          summary={creation?.summary}
-        />
       </div>
 
       <div className="absolute bottom-6 left-0 right-0 z-10 px-6 text-center">
