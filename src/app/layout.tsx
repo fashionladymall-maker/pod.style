@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 const APP_NAME = "POD.STYLE";
-const APP_DEFAULT_TITLE = "POD.STYLE - AI驱动的个性化定制平台";
+const APP_DEFAULT_TITLE = "POD.STYLE - 放飞思想，随心定制";
 const APP_TITLE_TEMPLATE = "%s | POD.STYLE";
-const APP_DESCRIPTION = "使用AI释放您的创造力！在POD.STYLE上，您可以利用人工智能生成独特的图案，并将其定制在T恤、连帽衫、马克杯等各种商品上。";
+const APP_DESCRIPTION = "使用AI释放您的创造力！在POD.STYLE上，您可以利用人工智能生成独特的图案，并将其定制在T恤、连帽衫、马克杯等各种商品上。Free Your Mind, Customize Your Way.";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
