@@ -33,17 +33,19 @@ const LoginScreen = () => {
             return { success: true, switched: false };
         } catch (error: any) {
             // This is a special case: the credential belongs to another existing user.
-            if (error.code === 'auth/credential-already-in-use') {
+            if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
                  // To handle this, we must sign out the anonymous user and then sign in with the permanent account.
                  // This will NOT merge the data, but it will log the user in successfully.
                  await signOut(auth);
+                 // We need email/password from the credential, but credential object is opaque.
+                 // So we must rely on the component's state for email/password.
                  await signInWithEmailAndPassword(auth, email, password);
                  toast({ title: "登录成功", description: "已切换到您的现有账户。匿名会话未合并。" });
                  return { success: true, switched: true };
             } else {
                 // For other errors (like network failure), re-throw to be caught by the caller.
                 console.error("Link error:", error);
-                toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户，请重试。` });
+                toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户，请重试。 (${error.code})` });
                 throw error;
             }
         }
@@ -112,9 +114,12 @@ const LoginScreen = () => {
             const credential = EmailAuthProvider.credential(email, password);
             try {
                 await linkAnonymousAccount(credential);
+                // If linkAnonymousAccount succeeds or switches account, it will show a toast.
+                // We don't need to do anything else here.
             } catch (error: any) {
                 // linkAnonymousAccount already shows a toast for failures.
-                // No further action needed here, we don't want to sign out the user and lose their data.
+                // We catch the re-thrown error here just to stop execution.
+                // The error toast is already displayed inside linkAnonymousAccount.
             } finally {
                 setIsLoading(false);
             }
