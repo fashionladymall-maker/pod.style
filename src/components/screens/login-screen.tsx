@@ -90,9 +90,9 @@ const LoginScreen = () => {
         <>
             <h1 className="text-3xl font-bold mb-2 text-center">欢迎来到 AIPOD</h1>
             <p className="text-muted-foreground mb-8 text-center">
-                用AI释放你的创造力
+                放飞思想，随心定制
                 <br />
-                <span className="text-sm">放飞思想，随心定制 Free Your Mind, Customize Your Way.</span>
+                <span className="text-sm">Free Your Mind, Customize Your Way.</span>
             </p>
             <div className="space-y-4">
                 <Button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full rounded-full h-12 text-lg">
