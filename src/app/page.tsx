@@ -149,19 +149,23 @@ const App = () => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
-                const isAnonymousUser = firebaseUser.isAnonymous;
-                const isNewUser = user === null; // Check if this is the first auth state change
+                const wasAnonymous = user?.isAnonymous;
+                const isPermanent = !firebaseUser.isAnonymous;
 
-                // If the user just signed in (from anonymous to permanent, or first load)
-                if (isNewUser || (user?.isAnonymous && !isAnonymousUser)) {
+                // If user transitions from anonymous to permanent, or if it's a new login,
+                // force a refresh of their data.
+                if ((wasAnonymous && isPermanent) || user?.uid !== firebaseUser.uid) {
                     fetchCreations(firebaseUser.uid);
                     fetchOrders(firebaseUser.uid);
-                    if (step === 'login') {
-                        setStep('home');
-                    }
                 }
+
                 setUser(firebaseUser);
                 setAuthLoading(false);
+                
+                // If user is now logged in, navigate away from login screen
+                if (isPermanent && step === 'login') {
+                    setStep('home');
+                }
 
             } else {
                 // Not logged in, sign in anonymously

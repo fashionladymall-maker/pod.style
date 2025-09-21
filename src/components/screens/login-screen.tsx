@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, type AuthCredential, EmailAuthProvider } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, type AuthCredential, EmailAuthProvider, signOut } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
@@ -19,31 +19,34 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
+    // This helper function centralizes the logic for linking an anonymous account.
     const linkAnonymousAccount = async (credential: AuthCredential) => {
         const currentUser = auth.currentUser;
-        if (currentUser && currentUser.isAnonymous) {
-            try {
-                await linkWithCredential(currentUser, credential);
-                toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
-                return { success: true };
-            } catch (error: any) {
-                // This is a special case. The credential belongs to another user.
-                // We must sign out the anonymous user and sign in with the credential.
-                if (error.code === 'auth/credential-already-in-use') {
-                     await auth.signOut();
-                     await signInWithEmailAndPassword(auth, email, password);
-                     toast({ title: "登录成功", description: "已切换到您的现有账户。" });
-                     return { success: true, switched: true }; // Switched accounts instead of linking
-                } else {
-                    // For other errors (like network failure), re-throw to be caught by the caller.
-                    console.error("Link error:", error);
-                    toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户: ${error.message}` });
-                }
+        if (!currentUser || !currentUser.isAnonymous) {
+            // Not an anonymous user, so no linking is needed.
+            return { success: false, switched: false };
+        }
+
+        try {
+            await linkWithCredential(currentUser, credential);
+            toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
+            return { success: true };
+        } catch (error: any) {
+            // This is a special case: the credential belongs to another existing user.
+            if (error.code === 'auth/credential-already-in-use') {
+                 // To handle this, we must sign out the anonymous user and then sign in with the permanent account.
+                 // This will NOT merge the data, but it will log the user in successfully.
+                 await signOut(auth);
+                 await signInWithEmailAndPassword(auth, email, password);
+                 toast({ title: "登录成功", description: "已切换到您的现有账户。匿名会话未合并。" });
+                 return { success: true, switched: true };
+            } else {
+                // For other errors (like network failure), re-throw to be caught by the caller.
+                console.error("Link error:", error);
+                toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户，请重试。` });
                 throw error;
             }
         }
-        // If not anonymous, just return indicating no action was taken
-        return { success: false, switched: false };
     };
 
 
@@ -52,16 +55,14 @@ const LoginScreen = () => {
         const provider = new GoogleAuthProvider();
         try {
             // The signInWithPopup will either sign in a new user or an existing user.
-            const result = await signInWithPopup(auth, provider);
             // If the user was anonymous before this, Firebase automatically handles the upgrade.
-            // We can add a toast to confirm.
-            if (result.user) {
-                const isNewUser = result.additionalUserInfo?.isNewUser;
-                if (isNewUser) {
-                    toast({ title: '注册成功', description: '欢迎！您的 Google 账户已成功创建并关联。' });
-                } else {
-                    toast({ title: '登录成功', description: '您的账户已成功关联。' });
-                }
+            const result = await signInWithPopup(auth, provider);
+            const isNewUser = result.user.metadata.creationTime === result.user.metadata.lastSignInTime;
+
+            if (isNewUser) {
+                toast({ title: '注册并登录成功', description: '欢迎！您的匿名创作已合并到新账户。' });
+            } else {
+                toast({ title: '登录成功', description: '欢迎回来！' });
             }
         } catch (error: any) {
              if (error.code === 'auth/account-exists-with-different-credential') {
@@ -87,10 +88,9 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // This will sign out the anonymous user and create a new permanent one.
-            // Data migration for this path is more complex and can be a future improvement.
+            // Firebase automatically handles linking the anonymous account on createUserWithEmailAndPassword.
             await createUserWithEmailAndPassword(auth, email, password);
-            toast({ title: "注册成功", description: "欢迎！您的新账户已创建。" });
+            toast({ title: "注册成功", description: "欢迎！您的新账户已创建，匿名创作历史已保留。" });
         } catch (error: any) {
             toast({
                 variant: "destructive",
@@ -108,42 +108,18 @@ const LoginScreen = () => {
         const currentUser = auth.currentUser;
         
         if (currentUser && currentUser.isAnonymous) {
-            // --- This is the ANONYMOUS user path ---
+            // --- Anonymous user path: try to link account first ---
             const credential = EmailAuthProvider.credential(email, password);
             try {
-                // Try to link the anonymous account with the email/password credential
-                await linkWithCredential(currentUser, credential);
-                toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
+                await linkAnonymousAccount(credential);
             } catch (error: any) {
-                // This catch block handles ALL failures from linkWithCredential
-                
-                // This is our robust fallback. If linking fails for ANY reason 
-                // (e.g., auth/network-request-failed, auth/credential-already-in-use),
-                // we sign out the anonymous user and sign in with the permanent account.
-                // This prioritizes successful login over data migration if migration fails.
-                try {
-                    await auth.signOut(); // Ensure anonymous user is signed out
-                    await signInWithEmailAndPassword(auth, email, password);
-                    
-                    if (error.code === 'auth/credential-already-in-use') {
-                        toast({ title: "登录成功", description: "已切换到您的现有账户。" });
-                    } else {
-                        // This case handles network errors during linking.
-                        toast({ title: "登录成功", description: "欢迎回来！由于网络问题，匿名会话未能合并。" });
-                    }
-                } catch (signInError: any) {
-                    // This inner catch handles the case where the fallback sign-in also fails (e.g., wrong password)
-                     toast({
-                        variant: "destructive",
-                        title: "登录失败",
-                        description: "邮箱或密码错误，请重试。",
-                    });
-                }
+                // linkAnonymousAccount already shows a toast for failures.
+                // No further action needed here, we don't want to sign out the user and lose their data.
             } finally {
                 setIsLoading(false);
             }
         } else {
-            // --- This is the NORMAL (non-anonymous) user path ---
+            // --- Normal (non-anonymous) user path ---
             try {
                 await signInWithEmailAndPassword(auth, email, password);
                 toast({ title: "登录成功" });
