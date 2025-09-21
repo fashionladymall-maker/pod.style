@@ -115,6 +115,7 @@ const App = () => {
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [activeModelIndex, setActiveModelIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDataLoading, setIsDataLoading] = useState(false); // For user data fetching
     const [isRecording, setIsRecording] = useState(false);
     const [loadingText, setLoadingText] = useState('');
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
@@ -125,7 +126,7 @@ const App = () => {
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
-        setIsLoading(true);
+        setIsDataLoading(true);
         try {
             const userCreations = await getCreationsAction(userId);
             setCreations(userCreations);
@@ -133,7 +134,7 @@ const App = () => {
             console.error("Failed to fetch creations:", error);
             toast({ variant: "destructive", title: "获取作品失败", description: "加载您的作品时发生错误。" });
         } finally {
-            setIsLoading(false);
+            setIsDataLoading(false);
         }
     }, [toast]);
     
@@ -638,6 +639,7 @@ const App = () => {
                     publicCreations={publicCreations}
                     onGoToHistory={goToHistory}
                     onSelectPublicCreation={handleSelectPublicCreation}
+                    isLoading={isDataLoading}
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
                     artStyles={artStyles}
@@ -662,3 +664,5 @@ const App = () => {
 };
 
 export default App;
+
+  

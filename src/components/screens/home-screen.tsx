@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Mic, Palette, ArrowUp, TrendingUp, Sparkles } from 'lucide-react';
+import { Plus, Mic, Palette, ArrowUp, TrendingUp, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ interface HomeScreenProps {
   publicCreations: Creation[];
   onGoToHistory: (index: number) => void;
   onSelectPublicCreation: (creation: Creation) => void;
+  isLoading: boolean;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
   artStyles: string[];
@@ -47,7 +48,7 @@ const creativePrompts = [
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
   creations, publicCreations, onGoToHistory, onSelectPublicCreation,
-  isRecording, setIsRecording, artStyles, selectedStyle, setSelectedStyle
+  isLoading, isRecording, setIsRecording, artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
@@ -149,18 +150,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Button variant="outline" className="h-10 text-sm"><TrendingUp className="mr-2"/>定制排行</Button>
             </div>
 
-            {publicCreations.length > 0 && <Separator />}
+            <Separator />
 
-            {publicCreations.length > 0 && (
-            <div>
-                <div className="grid grid-cols-2 gap-4">
-                    {publicCreations.filter(pc => !creations.some(c => c.id === pc.id)).map((creation) => (
-                        <button key={creation.id} onClick={() => onSelectPublicCreation(creation)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                            <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
-                        </button>
-                    ))}
+            {isLoading ? (
+                <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
+            ) : publicCreations.length > 0 ? (
+                <div>
+                    <div className="grid grid-cols-2 gap-4">
+                        {publicCreations.filter(pc => !creations.some(c => c.id === pc.id)).map((creation) => (
+                            <button key={creation.id} onClick={() => onSelectPublicCreation(creation)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
+                                <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            ) : (
+                 <div className="text-center py-10 text-muted-foreground">
+                    <p>还没有公开的创意作品</p>
+                    <p className="text-sm">成为第一个分享你的杰作的人！</p>
+                </div>
             )}
         </div>
       </ScrollArea>
@@ -246,3 +254,5 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 };
 
 export default HomeScreen;
+
+  
