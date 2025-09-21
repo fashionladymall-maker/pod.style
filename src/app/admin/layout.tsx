@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin - AIPOD.STYLE',
-  description: 'Admin dashboard for AIPOD.STYLE',
+  title: 'Admin - POD.STYLE',
+  description: 'Admin dashboard for POD.STYLE',
 };
 
 export default function AdminLayout({

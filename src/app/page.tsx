@@ -407,7 +407,7 @@ const App = () => {
     }
     
     const AppHeader = () => {
-        let title = 'AIPOD.STYLE';
+        let title = 'POD.STYLE';
         let showBack = false;
 
         switch(step) {
@@ -504,7 +504,7 @@ const App = () => {
             return (
               <LoadingScreen>
                 <div className="text-center">
-                    <h1 className="text-2xl font-medium text-foreground">欢迎来到 AIPOD.STYLE</h1>
+                    <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
                     <p className="mt-4">
                         放飞思想，随心定制
                         <br />
@@ -620,4 +620,3 @@ export default App;
     
 
     
-
