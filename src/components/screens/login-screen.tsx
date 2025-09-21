@@ -3,10 +3,10 @@
 
 import React, { useState } from 'react';
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Chrome, Mail, User, ArrowLeft } from "lucide-react";
+import { Chrome, Mail, ArrowLeft } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -37,23 +37,6 @@ const LoginScreen = () => {
         }
     };
 
-    const handleAnonymousSignIn = async () => {
-        setIsLoading(true);
-        try {
-            await signInAnonymously(auth);
-            // Auth state change will handle navigation
-        } catch (error: any) {
-            console.error("Anonymous sign-in error:", error);
-            toast({
-                variant: "destructive",
-                title: "匿名登录失败",
-                description: "登录过程中发生错误，请稍后再试。",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
     const handleEmailSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -90,9 +73,9 @@ const LoginScreen = () => {
         <>
             <h1 className="text-3xl font-bold mb-2 text-center">欢迎来到 AIPOD</h1>
             <p className="text-muted-foreground mb-8 text-center">
-                放飞思想，随心定制
-                <br />
-                <span className="text-sm">Free Your Mind, Customize Your Way.</span>
+              放飞思想，随心定制
+              <br />
+              <span className="text-sm">Free Your Mind, Customize Your Way.</span>
             </p>
             <div className="space-y-4">
                 <Button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full rounded-full h-12 text-lg">
@@ -100,9 +83,6 @@ const LoginScreen = () => {
                 </Button>
                 <Button onClick={() => setView('email-signin')} variant="secondary" disabled={isLoading} className="w-full rounded-full h-12 text-lg">
                     <Mail className="mr-3" /> 使用邮箱登录或注册
-                </Button>
-                <Button onClick={handleAnonymousSignIn} variant="ghost" disabled={isLoading} className="w-full rounded-full h-12 text-lg text-muted-foreground">
-                    <User className="mr-3" /> 匿名访问
                 </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-6 text-center">登录或注册即表示您同意我们的服务条款</p>

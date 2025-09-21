@@ -135,7 +135,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, creations.length]);
+    }, [toast]);
     
     const fetchOrders = useCallback(async (userId: string) => {
       // Only fetch if orders are not already loaded
@@ -146,7 +146,7 @@ const App = () => {
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
-    }, [toast, orders.length]);
+    }, [toast]);
 
 
     useEffect(() => {
@@ -379,6 +379,10 @@ const App = () => {
         setOrders([]);
         setStep('login');
     };
+
+    const handleGoHome = () => {
+        setStep('home');
+    }
     
     const AppHeader = () => {
         let title = 'AIPOD';
@@ -422,7 +426,7 @@ const App = () => {
                   <Avatar className="w-8 h-8">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user?.isAnonymous ? <User size={20}/> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase() || <User size={20} />}
+                      {(user?.displayName?.[0] || user?.email?.[0])?.toUpperCase() || <User size={20} />}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -532,7 +536,7 @@ const App = () => {
                 isLoading={isLoading} 
                 price={MOCK_PRICE}
             />;
-            case 'confirmation': return <ConfirmationScreen onGoHome={() => setStep('home')} category={lastOrderedCategory} />;
+            case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} category={lastOrderedCategory} />;
             case 'profile': return <ProfileScreen
                 user={user}
                 creations={creations}
