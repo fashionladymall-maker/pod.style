@@ -20,12 +20,10 @@ const LoginScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     
     // This helper function centralizes the logic for linking an anonymous account.
-    const linkAnonymousAccount = async (credential: AuthCredential, emailForSignIn?: string, passwordForSignIn?: string) => {
+    const linkAnonymousAccount = async (credential: AuthCredential) => {
         const currentUser = auth.currentUser;
         if (!currentUser || !currentUser.isAnonymous) {
-            // Not an anonymous user, so no linking is needed.
-            // This could happen if the auth state changes unexpectedly.
-            // Let the caller handle the sign-in.
+            // Should not happen in this flow, but as a safeguard, just sign in.
             await signInWithCredential(auth, credential);
             return;
         }
@@ -34,18 +32,14 @@ const LoginScreen = () => {
             await linkWithCredential(currentUser, credential);
             toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
         } catch (error: any) {
-            // This is the special case: the credential belongs to another existing user.
-            if (error.code === 'auth/credential-already-in-use') {
+            if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
                  toast({
                     title: "邮箱已被注册",
                     description: "此邮箱已绑定其他账户，正在为您登录已有账户。匿名创作历史无法合并。",
                  });
                  try {
-                    if (!emailForSignIn || !passwordForSignIn) {
-                        throw new Error("Email/password required for sign-in fallback.");
-                    }
-                    // signInWith... automatically handles the session switch from anonymous to permanent.
-                    await signInWithEmailAndPassword(auth, emailForSignIn, passwordForSignIn);
+                    // Firebase's signInWith... automatically handles session switching.
+                    await signInWithEmailAndPassword(auth, email, password);
                     toast({ title: "登录成功", description: "已切换到您的现有账户。" });
                  } catch (signInError: any) {
                     // This handles cases like wrong password for the existing account.
@@ -123,7 +117,7 @@ const LoginScreen = () => {
             // 1. Successful link
             // 2. Already-in-use credential (signs in to existing account)
             // 3. Other errors
-            await linkAnonymousAccount(credential, email, password);
+            await linkAnonymousAccount(credential);
         } catch (error: any) {
             // Errors are already toasted inside linkAnonymousAccount,
             // but we catch here to stop execution and prevent the loading spinner from hanging.
