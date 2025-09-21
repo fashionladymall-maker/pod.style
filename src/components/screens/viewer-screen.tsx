@@ -39,7 +39,6 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 
   useEffect(() => {
     setIsMounted(true);
-    // Prevent body scroll when viewer is open
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = 'auto';
@@ -51,6 +50,8 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   };
 
   const handleNavigateCreation = (direction: 'prev' | 'next') => {
+    if (isNavigating) return;
+    setIsNavigating(true);
     setViewerState(prev => {
       const newIndex = prev.creationIndex + (direction === 'next' ? 1 : -1);
       if (newIndex >= 0 && newIndex < creations.length) {
@@ -58,12 +59,14 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       }
       return prev;
     });
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   const handleNavigateModel = (direction: 'prev' | 'next') => {
     const currentCreation = creations[viewerState.creationIndex];
-    if (!currentCreation) return;
+    if (!currentCreation || isNavigating) return;
 
+    setIsNavigating(true);
     setViewerState(prev => {
       const newIndex = prev.modelIndex + (direction === 'next' ? 1 : -1);
       if (newIndex >= -1 && newIndex < currentCreation.models.length) {
@@ -71,27 +74,26 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       }
       return prev;
     });
+    setTimeout(() => setIsNavigating(false), 500);
   };
   
   const onSelectModel = (index: number) => {
     setViewerState(prev => ({ ...prev, modelIndex: index }));
   }
 
-  const bind = useDrag(
-    ({ last, swipe: [, swipeY], velocity: [, vy] }) => {
-      if (last && !isNavigating) {
-        const currentCreation = creations[viewerState.creationIndex];
-        const isPatternView = viewerState.modelIndex === -1;
-        const targetHandler = isPatternView ? handleNavigateCreation : handleNavigateModel;
+  const currentCreation = creations[viewerState.creationIndex];
+  const currentModel = currentCreation?.models[viewerState.modelIndex];
+  const isPatternView = viewerState.modelIndex === -1;
 
-        if (swipeY === -1 && vy > 0.2) { // Swipe Up
-          setIsNavigating(true);
+  const bind = useDrag(
+    ({ last, swipe: [, swipeY] }) => {
+      if (last && !isNavigating) {
+        const targetHandler = isPatternView ? handleNavigateCreation : handleNavigateModel;
+        
+        if (swipeY === -1) { // Swipe Up
           targetHandler('next');
-          setTimeout(() => setIsNavigating(false), 500);
-        } else if (swipeY === 1 && vy > 0.2) { // Swipe Down
-          setIsNavigating(true);
+        } else if (swipeY === 1) { // Swipe Down
           targetHandler('prev');
-          setTimeout(() => setIsNavigating(false), 500);
         }
       }
     },
@@ -100,10 +102,6 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       swipe: { distance: 50, velocity: 0.3 },
     }
   );
-
-  const currentCreation = creations[viewerState.creationIndex];
-  const currentModel = currentCreation?.models[viewerState.modelIndex];
-  const isPatternView = viewerState.modelIndex === -1;
 
   const content = (
     <div
