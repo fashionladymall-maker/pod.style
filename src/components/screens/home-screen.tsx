@@ -12,7 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { HomeTab } from '@/app/page';
+import type { HomeTab } from '@/app/app-client';
+import { Skeleton } from '../ui/skeleton';
 
 interface HomeScreenProps {
   prompt: string;
@@ -45,15 +46,19 @@ const creativePrompts = [
   "蒸汽朋克风格的飞行器"
 ];
 
-const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab, isLoading }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model', sourceTab: HomeTab, isLoading: boolean }) => {
+const CreationGridSkeleton = () => (
+    <div className="grid grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => (
+             <Skeleton key={i} className="aspect-square w-full rounded-lg" />
+        ))}
+    </div>
+)
+
+
+const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model', isLoading: boolean }) => {
     
     if (isLoading) {
-      return (
-          <div className="text-center py-10 text-muted-foreground">
-              <Loader2 className="animate-spin inline-block mr-2" />
-              正在加载...
-          </div>
-      );
+      return <CreationGridSkeleton />;
     }
     
     if (displayMode === 'model') {
@@ -65,7 +70,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab,
             }))
         );
 
-        if (allModels.length === 0) {
+        if (allModels.length === 0 && !isLoading) {
             return (
                 <div className="text-center py-10 text-muted-foreground">
                     <p>还没有作品</p>
@@ -93,7 +98,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab,
     }
 
     // Default 'pattern' display mode
-    if (creations.length === 0) {
+    if (creations.length === 0 && !isLoading) {
         return (
             <div className="text-center py-10 text-muted-foreground">
                 <p>还没有作品</p>
@@ -223,10 +228,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     <TabsTrigger value="trending" className="py-1"><TrendingUp className="mr-2 h-4 w-4" />定制排行</TabsTrigger>
                 </TabsList>
                 <TabsContent value="popular" className="mt-4">
-                  <CreationGrid creations={publicCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)} displayMode="pattern" sourceTab="popular" isLoading={isLoading} />
+                  <CreationGrid creations={publicCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)} displayMode="pattern" isLoading={isLoading} />
                 </TabsContent>
                 <TabsContent value="trending" className="mt-4">
-                  <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" sourceTab="trending" isLoading={isLoading} />
+                  <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" isLoading={isLoading} />
                 </TabsContent>
             </Tabs>
         </div>
