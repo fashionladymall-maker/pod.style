@@ -60,34 +60,40 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
     if (isLoading) {
       return <CreationGridSkeleton />;
     }
+
+    if (creations.length === 0) {
+        return (
+            <div className="text-center py-10 text-muted-foreground">
+                <p>还没有公开作品</p>
+                <p className="text-sm">敬请期待！</p>
+            </div>
+        );
+    }
     
     if (displayMode === 'model') {
-        const allModels = creations.flatMap(creation => 
-            creation.models.map((model, modelIndex) => ({
-                creation,
-                model,
-                modelIndex
-            }))
-        );
+        const itemsToDisplay = creations.map(creation => {
+            const latestModel = creation.models.length > 0 ? creation.models[creation.models.length - 1] : null;
+            const modelIndex = latestModel ? creation.models.length - 1 : -1;
+            const imageUrl = latestModel ? latestModel.uri : creation.patternUri;
+            const altText = latestModel ? `商品: ${latestModel.category}` : `创意: ${creation.prompt}`;
 
-        if (allModels.length === 0 && !isLoading) {
-            return (
-                <div className="text-center py-10 text-muted-foreground">
-                    <p>还没有作品</p>
-                    <p className="text-sm">敬请期待！</p>
-                </div>
-            );
-        }
+            return {
+                creation,
+                modelIndex,
+                imageUrl,
+                altText
+            };
+        });
 
         return (
             <div className="grid grid-cols-2 gap-4">
-                {allModels.map(({ creation, model, modelIndex }) => (
+                {itemsToDisplay.map(({ creation, modelIndex, imageUrl, altText }) => (
                     <button 
-                        key={`${creation.id}-${model.uri}`} 
+                        key={`${creation.id}-${modelIndex}`} 
                         onClick={() => onSelect(creation, modelIndex)} 
                         className="aspect-[9/16] bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                     >
-                        <Image src={model.uri} alt={`商品: ${model.category}`} fill className="object-cover" />
+                        <Image src={imageUrl} alt={altText} fill className="object-cover" />
                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs">
                             <p className="truncate">{creation.prompt}</p>
                         </div>
@@ -98,15 +104,6 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
     }
 
     // Default 'pattern' display mode
-    if (creations.length === 0 && !isLoading) {
-        return (
-            <div className="text-center py-10 text-muted-foreground">
-                <p>还没有作品</p>
-                <p className="text-sm">敬请期待！</p>
-            </div>
-        );
-    }
-
     return (
         <div className="grid grid-cols-2 gap-4">
             {creations.map((creation) => (

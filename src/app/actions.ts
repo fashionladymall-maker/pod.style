@@ -426,7 +426,6 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .limit(20)
             .get();
         
         const creations = querySnapshot.docs.map(docToCreation);
@@ -447,7 +446,6 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .limit(20)
             .get();
 
         const creations = querySnapshot.docs.map(docToCreation);
