@@ -122,7 +122,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                   <div className="relative group">
                                     <button
                                         onClick={() => onGoToHistory(creation, -1)}
-                                        className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
+                                        className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary bg-secondary"
                                     >
                                         <Image
                                             src={creation.patternUri}
@@ -170,7 +170,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                     <div key={model.uri} className="relative group">
                                       <button
                                           onClick={() => onGoToHistory(creation, modelIndex)}
-                                          className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
+                                          className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary bg-secondary"
                                       >
                                           <Image
                                               src={model.uri}
