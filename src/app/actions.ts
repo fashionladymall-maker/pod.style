@@ -462,7 +462,10 @@ export async function getTrendingCreationsAction(): Promise<Creation[]> {
         // This query requires a composite index on (isPublic, orderCount)
         // If it fails, provide a helpful message.
         if (error instanceof Error && (error as any).code === 'FAILED_PRECONDITION') {
-            throw new Error(`The 'getTrendingCreationsAction' query requires a composite index. Please create one in your Firebase console for the 'creations' collection on the fields 'isPublic' (ascending) and 'orderCount' (descending).`);
+            const errorMessage = `The 'getTrendingCreationsAction' query requires a composite index. Please create one in your Firebase console for the 'creations' collection on the fields 'isPublic' (ascending) and 'orderCount' (descending). The error includes a direct link to create it.`;
+            console.error(errorMessage);
+            // Re-throw a more user-friendly error to be caught by the client
+            throw new Error(errorMessage);
         }
         if (error instanceof Error) throw error;
         throw new Error(String(error));
