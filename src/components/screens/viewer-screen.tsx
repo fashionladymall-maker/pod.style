@@ -46,6 +46,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   }, []);
 
   const flatNavigationMap = useMemo(() => {
+    if (!sourceCreations) return [];
     const map: { creationId: string, modelIndex: number }[] = [];
     sourceCreations.forEach((creation) => {
       map.push({ creationId: creation.id, modelIndex: -1 }); // The pattern itself
@@ -141,7 +142,8 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
           isPatternView ? (
             <PatternPreviewScreen
               creation={currentCreation}
-              onGoToModel={() => handleNavigate('next')}
+              isModelGenerating={false}
+              onGoToModel={onRegenerate}
             />
           ) : (
             <MockupScreen
