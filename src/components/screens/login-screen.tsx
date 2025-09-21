@@ -53,12 +53,14 @@ const LoginScreen = () => {
         try {
             // The signInWithPopup will either sign in a new user or an existing user.
             const result = await signInWithPopup(auth, provider);
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            if (credential) {
-                // If the user was anonymous before this, Firebase automatically handles the upgrade.
-                // We can add a toast to confirm.
-                if (result.user) {
-                     toast({ title: '登录成功', description: '您的账户已成功关联。' });
+            // If the user was anonymous before this, Firebase automatically handles the upgrade.
+            // We can add a toast to confirm.
+            if (result.user) {
+                const isNewUser = result.additionalUserInfo?.isNewUser;
+                if (isNewUser) {
+                    toast({ title: '注册成功', description: '欢迎！您的 Google 账户已成功创建并关联。' });
+                } else {
+                    toast({ title: '登录成功', description: '您的账户已成功关联。' });
                 }
             }
         } catch (error: any) {
@@ -114,8 +116,7 @@ const LoginScreen = () => {
                 toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
             } catch (error: any) {
                 // This catch block handles ALL failures from linkWithCredential
-                console.error("Link failed, attempting sign-out and sign-in:", error.code);
-
+                
                 // This is our robust fallback. If linking fails for ANY reason 
                 // (e.g., auth/network-request-failed, auth/credential-already-in-use),
                 // we sign out the anonymous user and sign in with the permanent account.
