@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -11,9 +12,11 @@ interface SwipeHandlers {
 interface UseSwipeProps {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
+  onSwipeUp?: () => void;
+  onSwipeDown?: () => void;
 }
 
-export const useSwipe = ({ onSwipeLeft, onSwipeRight }: UseSwipeProps): SwipeHandlers => {
+export const useSwipe = ({ onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown }: UseSwipeProps): SwipeHandlers => {
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchEndX, setTouchEndX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -33,7 +36,7 @@ export const useSwipe = ({ onSwipeLeft, onSwipeRight }: UseSwipeProps): SwipeHan
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return;
+    if (!touchStartX || !touchStartY || !touchEndX || !touchEndY) return;
 
     const distanceX = touchStartX - touchEndX;
     const distanceY = touchStartY - touchEndY;
@@ -48,10 +51,21 @@ export const useSwipe = ({ onSwipeLeft, onSwipeRight }: UseSwipeProps): SwipeHan
       } else if (isSwipeRight && onSwipeRight) {
         onSwipeRight();
       }
+    } else { // Vertical swipe
+      const isSwipeUp = distanceY > minSwipeDistance;
+      const isSwipeDown = distanceY < -minSwipeDistance;
+
+      if (isSwipeUp && onSwipeUp) {
+        onSwipeUp();
+      } else if (isSwipeDown && onSwipeDown) {
+        onSwipeDown();
+      }
     }
 
     setTouchStartX(0);
     setTouchStartY(0);
+    setTouchEndX(0);
+    setTouchEndY(0);
   };
 
   return {

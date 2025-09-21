@@ -27,7 +27,12 @@ const PatternPreviewScreen = ({
   isModelGenerating,
   onGoToModel,
 }: PatternPreviewScreenProps) => {
-  const swipeHandlers = useSwipe({ onSwipeLeft: () => onNavigateCreations(1), onSwipeRight: () => onNavigateCreations(-1) });
+  const swipeHandlers = useSwipe({ 
+    onSwipeLeft: () => onNavigateCreations(1), 
+    onSwipeRight: () => onNavigateCreations(-1),
+    onSwipeUp: () => onNavigateCreations(1),
+    onSwipeDown: () => onNavigateCreations(-1),
+  });
   const generatedPattern = creation?.patternUri;
   
   return (
