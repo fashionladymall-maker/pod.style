@@ -117,7 +117,7 @@ const App = () => {
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [activeModelIndex, setActiveModelIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
-    const [isDataLoading, setIsDataLoading] = useState(false); // For user data fetching
+    const [isDataLoading, setIsDataLoading] = useState(true); // For user data fetching, start as true
     const [isRecording, setIsRecording] = useState(false);
     const [loadingText, setLoadingText] = useState('');
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
@@ -150,6 +150,7 @@ const App = () => {
     }, []);
     
     const fetchCommunityCreations = useCallback(async () => {
+      setIsDataLoading(true);
       try {
         const [publicRes, trendingRes] = await Promise.all([
           getPublicCreationsAction(),
@@ -160,6 +161,8 @@ const App = () => {
       } catch (error) {
         console.error("Failed to fetch community creations:", error);
         toast({ variant: "destructive", title: "获取社区作品失败", description: String(error) });
+      } finally {
+        setIsDataLoading(false);
       }
     }, [toast]);
 
@@ -361,19 +364,24 @@ const App = () => {
         }
     };
     
-    const handleSelectPublicCreation = (creation: Creation) => {
+    const handleSelectPublicCreation = (creation: Creation, source: HomeTab) => {
         const existingIndex = creations.findIndex(c => c.id === creation.id);
-        if (existingIndex > -1) {
-             goToHistory(existingIndex);
-             return;
+        const targetIndex = existingIndex > -1 ? existingIndex : 0;
+    
+        if (existingIndex === -1) {
+            const newCreations = [creation, ...creations];
+            setCreations(newCreations);
         }
-
-        // Add the public creation to the user's session history and go to it
-        const newCreations = [creation, ...creations];
-        setCreations(newCreations);
-        setActiveCreationIndex(0);
-        setActiveModelIndex(-1);
-        setStep('patternPreview');
+    
+        setActiveCreationIndex(targetIndex);
+    
+        if (source === 'trending' && creation.models.length > 0) {
+            setActiveModelIndex(0);
+            setStep('mockup');
+        } else {
+            setActiveModelIndex(-1);
+            setStep('patternPreview');
+        }
     };
 
     const handleSignOut = async () => {
@@ -556,7 +564,7 @@ const App = () => {
     };
 
     const renderStep = () => {
-        if (authLoading) {
+        if (authLoading || (isDataLoading && step === 'home')) {
             return (
               <LoadingScreen>
                 <div className="text-center">
@@ -642,10 +650,8 @@ const App = () => {
                     user={user}
                     uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
                     onGenerate={handleGeneratePattern}
-                    creations={creations}
                     publicCreations={publicCreations}
                     trendingCreations={trendingCreations}
-                    onGoToHistory={goToHistory}
                     onSelectPublicCreation={handleSelectPublicCreation}
                     isLoading={isDataLoading}
                     isRecording={isRecording}

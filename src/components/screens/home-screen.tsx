@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation } from '@/lib/types';
-import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { HomeTab } from '@/app/page';
 
@@ -22,11 +21,9 @@ interface HomeScreenProps {
   uploadedImage: string | null;
   setUploadedImage: (value: string | null) => void;
   onGenerate: () => void;
-  creations: Creation[];
   publicCreations: Creation[];
   trendingCreations: Creation[];
-  onGoToHistory: (index: number) => void;
-  onSelectPublicCreation: (creation: Creation) => void;
+  onSelectPublicCreation: (creation: Creation, source: HomeTab) => void;
   isLoading: boolean;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
@@ -48,27 +45,35 @@ const creativePrompts = [
   "蒸汽朋克风格的飞行器"
 ];
 
-const CreationGrid = ({ creations, onSelectCreation }: { creations: Creation[], onSelectCreation: (creation: Creation) => void }) => {
-    if (creations.length === 0) {
+const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creations: Creation[], onSelect: (creation: Creation) => void, displayMode?: 'pattern' | 'model' }) => {
+    
+    const itemsToRender = displayMode === 'model'
+        ? creations.filter(c => c.models && c.models.length > 0)
+        : creations;
+
+    if (itemsToRender.length === 0) {
         return (
             <div className="text-center py-10 text-muted-foreground">
                 <p>还没有作品</p>
-                <p className="text-sm">快去创作你的第一个设计吧！</p>
+                <p className="text-sm">敬请期待！</p>
             </div>
         );
     }
 
     return (
         <div className="grid grid-cols-2 gap-4">
-            {creations.map((creation) => (
-                <button 
-                    key={creation.id} 
-                    onClick={() => onSelectCreation(creation)} 
-                    className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
-                >
-                    <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
-                </button>
-            ))}
+            {itemsToRender.map((creation) => {
+                const imageUrl = displayMode === 'model' ? creation.models[0].uri : creation.patternUri;
+                return (
+                    <button 
+                        key={creation.id + '-' + displayMode} 
+                        onClick={() => onSelect(creation)} 
+                        className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
+                    >
+                        <Image src={imageUrl} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
+                    </button>
+                )
+            })}
         </div>
     );
 };
@@ -76,7 +81,7 @@ const CreationGrid = ({ creations, onSelectCreation }: { creations: Creation[], 
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
-  creations, publicCreations, trendingCreations, onGoToHistory, onSelectPublicCreation,
+  publicCreations, trendingCreations, onSelectPublicCreation,
   isLoading, isRecording, setIsRecording, artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
@@ -182,14 +187,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={publicCreations} onSelectCreation={onSelectPublicCreation} />
+                        <CreationGrid creations={publicCreations} onSelect={(creation) => onSelectPublicCreation(creation, 'popular')} displayMode="pattern" />
                     )}
                 </TabsContent>
                 <TabsContent value="trending" className="mt-4">
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={trendingCreations} onSelectCreation={onSelectPublicCreation} />
+                        <CreationGrid creations={trendingCreations} onSelect={(creation) => onSelectPublicCreation(creation, 'trending')} displayMode="model" />
                     )}
                 </TabsContent>
             </Tabs>
