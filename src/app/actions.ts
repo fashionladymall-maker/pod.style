@@ -295,6 +295,9 @@ interface CreateOrderActionInput {
 export async function createOrderAction(input: CreateOrderActionInput): Promise<Order> {
     const { userId, creationId, model, orderDetails, shippingInfo, paymentInfo, price } = input;
     const creationRef = getCreationsCollection().doc(creationId);
+    const orderRef = getOrdersCollection().doc(); // Generate ID upfront
+    
+    const timestamp = admin.firestore.Timestamp.now();
 
     try {
         const orderData: OrderData = {
@@ -309,25 +312,26 @@ export async function createOrderAction(input: CreateOrderActionInput): Promise<
             shippingInfo,
             paymentInfo,
             status: 'Processing',
-            createdAt: admin.firestore.Timestamp.now(),
+            createdAt: timestamp,
         };
 
         // Use a transaction to ensure both operations succeed or fail together
-        const newOrder = await db.runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             // 1. Increment the order count on the creation
             transaction.update(creationRef, { 
                 orderCount: admin.firestore.FieldValue.increment(1) 
             });
 
             // 2. Add the new order document
-            const orderRef = getOrdersCollection().doc();
             transaction.set(orderRef, orderData);
-            
-            // Return the created order (or at least its ID) to be fetched outside
-            return docToOrder((await transaction.get(orderRef)));
         });
 
-        return newOrder;
+        // Construct and return the Order object without another DB read
+        return {
+            id: orderRef.id,
+            ...orderData,
+            createdAt: timestamp.toDate().toISOString(),
+        };
 
     } catch (error) {
         console.error('Error in createOrderAction transaction:', error);
