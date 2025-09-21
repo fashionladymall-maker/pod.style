@@ -27,27 +27,23 @@ const LoginScreen = () => {
                 toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
                 return { success: true };
             } catch (error: any) {
+                // This is a special case. The credential belongs to another user.
+                // We must sign out the anonymous user and sign in with the credential.
                 if (error.code === 'auth/credential-already-in-use') {
-                    toast({ 
-                        variant: 'destructive', 
-                        title: '关联失败', 
-                        description: '此账户已关联其他用户。请先退出，然后直接登录。' 
-                    });
-                     // This specific error means we should sign out the anonymous user
-                     // and then sign in with the credential directly.
                      await auth.signOut();
                      await signInWithEmailAndPassword(auth, email, password);
+                     toast({ title: "登录成功", description: "已切换到您的现有账户。" });
                      return { success: true, switched: true }; // Switched accounts instead of linking
                 } else {
-                    toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户: ${error.message}` });
+                    // For other errors (like network failure), re-throw to be caught by the caller.
                     console.error("Link error:", error);
+                    toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户: ${error.message}` });
                 }
-                // Re-throw other errors to be caught by the caller
                 throw error;
             }
         }
         // If not anonymous, just return indicating no action was taken
-        return { success: false };
+        return { success: false, switched: false };
     };
 
 
@@ -117,17 +113,19 @@ const LoginScreen = () => {
             } else {
                 // If not anonymous or no user, just sign in.
                 await signInWithEmailAndPassword(auth, email, password);
+                toast({ title: "登录成功" });
             }
         } catch (error: any) {
+            // This case happens if the email is already linked to another account
+            // and we tried to link it again. The best UX is to sign out anonymous
+            // and sign in with the permanent account.
             if (error.code === 'auth/credential-already-in-use') {
-                // This case happens if the email is already linked to another account
-                // and we tried to link it again. The best UX is to sign out anonymous
-                // and sign in with the permanent account.
                 try {
                     await auth.signOut();
                     await signInWithEmailAndPassword(auth, email, password);
                     toast({ title: "登录成功", description: "已切换到您的现有账户。" });
                 } catch (signInError) {
+                    // This can happen if password is wrong on the second attempt
                     toast({ variant: "destructive", title: "登录失败", description: "邮箱或密码错误。" });
                 }
 
@@ -138,11 +136,11 @@ const LoginScreen = () => {
                     description: "邮箱或密码错误，请重试。",
                 });
             } else {
-                // Handle other errors like network issues
+                // Handle other errors like network issues from linkWithCredential
                  toast({
                     variant: "destructive",
                     title: "登录时发生错误",
-                    description: error.message,
+                    description: "无法完成登录，请检查网络或稍后重试。",
                 });
                 console.error("Sign-in error:", error);
             }
