@@ -84,7 +84,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab 
     }
 
     // Default 'pattern' display mode
-    if (creations.length === 0) {
+    if (creations.length === 0 && !isLoading) {
         return (
             <div className="text-center py-10 text-muted-foreground">
                 <p>还没有作品</p>
@@ -209,9 +209,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       <ScrollArea className="flex-grow">
         <div className="p-4 space-y-4">
              <Tabs defaultValue="popular" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="popular"><Sparkles className="mr-2 h-4 w-4" />流行创意</TabsTrigger>
-                    <TabsTrigger value="trending"><TrendingUp className="mr-2 h-4 w-4" />定制排行</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 h-9 p-0.5">
+                    <TabsTrigger value="popular" className="py-1"><Sparkles className="mr-2 h-4 w-4" />流行创意</TabsTrigger>
+                    <TabsTrigger value="trending" className="py-1"><TrendingUp className="mr-2 h-4 w-4" />定制排行</TabsTrigger>
                 </TabsList>
                 <TabsContent value="popular" className="mt-4">
                     {isLoading ? (
