@@ -206,38 +206,6 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   };
 
 
-  const renderContent = () => {
-    if (!currentCreation) {
-      return null;
-    }
-    
-    if (isPatternView) {
-      return (
-        <PatternPreviewScreen
-          creation={currentCreation}
-          isModelGenerating={false}
-          onGoToModel={onGoToCategorySelection}
-        />
-      );
-    }
-    
-    return (
-      <MockupScreen
-        modelImage={currentModel?.uri}
-        models={currentCreation.models || []}
-        orderDetails={orderDetails}
-        setOrderDetails={setOrderDetails}
-        handleQuantityChange={handleQuantityChange}
-        onNext={onNext}
-        modelHistoryIndex={viewerState.modelIndex}
-        onNavigateModels={onSelectModel}
-        category={currentModel?.category || ''}
-        onRegenerate={onGoToCategorySelection}
-        price={price}
-      />
-    );
-  };
-
   const isLiked = user && currentCreation ? currentCreation.likedBy.includes(user.uid) : false;
   const isFavorited = user && currentCreation ? currentCreation.favoritedBy.includes(user.uid) : false;
 
@@ -250,6 +218,32 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       className="fixed inset-0 z-50 bg-black flex flex-col"
       style={{ touchAction: 'pan-y' }}
     >
+      
+      {/* Main Content Area: Use ternary to ensure only one view is ever rendered */}
+      {isPatternView ? (
+        <PatternPreviewScreen
+            creation={currentCreation}
+            isModelGenerating={false}
+            onGoToModel={onGoToCategorySelection}
+        />
+      ) : (
+        <MockupScreen
+            modelImage={currentModel?.uri}
+            models={currentCreation?.models || []}
+            orderDetails={orderDetails}
+            setOrderDetails={setOrderDetails}
+            handleQuantityChange={handleQuantityChange}
+            onNext={onNext}
+            modelHistoryIndex={viewerState.modelIndex}
+            onNavigateModels={onSelectModel}
+            category={currentModel?.category || ''}
+            onRegenerate={onGoToCategorySelection}
+            price={price}
+        />
+      )}
+
+
+      {/* Overlays: Header and Social Buttons */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
         <Button onClick={handleClose} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40">
           <ArrowLeft size={20} />
@@ -283,10 +277,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
         </button>
       </div>
 
-      <div className="flex-grow relative w-full h-full">
-        {renderContent()}
-      </div>
-
+      {/* Comment Sheet Portal */}
       {currentCreation && (
         <CommentsSheet
             isOpen={isCommentsOpen}
