@@ -64,7 +64,7 @@ const MockupScreen = ({
          <Button onClick={onRegenerate} variant="ghost" size="icon" className="absolute top-4 right-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><RefreshCw size={18} /></Button>
       </div>
       
-      <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-full px-4">
+      <div className="absolute bottom-32 left-1/2 -translate-x-1/2 w-full px-4">
         <HistoryNavigator 
           currentIndex={creationHistoryIndex} 
           total={totalCreations} 
@@ -74,8 +74,7 @@ const MockupScreen = ({
         />
       </div>
 
-
-      <div className="bg-background rounded-t-2xl shadow-lg p-6 pt-5 flex-shrink-0">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pt-12 text-white bg-gradient-to-t from-black/60 to-transparent">
           <div className="flex justify-between items-center mb-4">
             <div className="text-2xl font-bold">¥ {price}</div>
             
@@ -88,7 +87,10 @@ const MockupScreen = ({
                       variant={index === modelHistoryIndex ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => onSelectModel(index)}
-                      className="rounded-full shrink-0"
+                      className={cn(
+                        "rounded-full shrink-0",
+                        index !== modelHistoryIndex && "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      )}
                     >
                       {model.category.split(' ')[0]}
                     </Button>
@@ -109,7 +111,10 @@ const MockupScreen = ({
                               key={size} 
                               variant={orderDetails.size === size ? 'default' : 'outline'} 
                               onClick={() => setOrderDetails(prev => ({ ...prev, size }))} 
-                              className={cn("rounded-md h-9 w-12 text-base font-semibold", orderDetails.size !== size && "bg-secondary border-secondary hover:bg-muted")}
+                              className={cn(
+                                "rounded-md h-9 w-12 text-base font-semibold", 
+                                orderDetails.size !== size && "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                              )}
                           >
                               {size}
                           </Button>
@@ -118,18 +123,18 @@ const MockupScreen = ({
               </div>
           )}
 
-          <Separator className="my-4" />
+          <Separator className="my-4 bg-white/20" />
 
           <div className="flex justify-between items-center mb-6">
               <p className="text-sm font-medium">数量</p>
               <div className="flex items-center gap-3">
-                  <Button variant="secondary" size="icon" className="rounded-full w-8 h-8" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
+                  <Button variant="secondary" size="icon" className="rounded-full w-8 h-8 bg-white/10 text-white hover:bg-white/20" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
                   <span className="font-bold text-lg w-8 text-center">{orderDetails.quantity}</span>
-                  <Button variant="secondary" size="icon" className="rounded-full w-8 h-8" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+                  <Button variant="secondary" size="icon" className="rounded-full w-8 h-8 bg-white/10 text-white hover:bg-white/20" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
               </div>
           </div>
 
-          <Button onClick={onNext} size="lg" className="w-full h-12 text-base rounded-full">
+          <Button onClick={onNext} size="lg" className="w-full h-12 text-base rounded-full bg-blue-500 hover:bg-blue-600 text-white">
               下一步 <ShoppingCart className="ml-2" size={20} />
           </Button>
       </div>
