@@ -119,6 +119,7 @@ const App = () => {
     const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({ name: '', address: '', phone: '' });
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ cardNumber: '', expiry: '', cvv: '' });
     const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
+    const [lastOrderedCategory, setLastOrderedCategory] = useState('T恤');
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
@@ -352,7 +353,7 @@ const App = () => {
             });
 
             setOrders(prev => [newOrder, ...prev]);
-            
+            setLastOrderedCategory(activeModel.category);
             setStep('confirmation');
 
         } catch (error) {
@@ -529,7 +530,7 @@ const App = () => {
                 isLoading={isLoading} 
                 price={MOCK_PRICE}
             />;
-            case 'confirmation': return <ConfirmationScreen onReset={resetState} onGoHome={() => setStep('home')} />;
+            case 'confirmation': return <ConfirmationScreen onGoHome={() => setStep('home')} category={lastOrderedCategory} />;
             case 'profile': return <ProfileScreen
                 user={user}
                 creations={creations}
@@ -576,5 +577,7 @@ export default App;
     
 
       
+
+    
 
     

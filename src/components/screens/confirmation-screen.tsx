@@ -6,19 +6,19 @@ import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmationScreenProps {
-  onReset: () => void;
   onGoHome: () => void;
+  category: string;
 }
 
-const ConfirmationScreen = ({ onReset, onGoHome }: ConfirmationScreenProps) => {
+const ConfirmationScreen = ({ onGoHome, category }: ConfirmationScreenProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onReset();
+      onGoHome();
     }, 3000); 
 
     // Cleanup the timer if the component is unmounted
     return () => clearTimeout(timer);
-  }, [onReset]);
+  }, [onGoHome]);
 
 
   return (
@@ -27,7 +27,9 @@ const ConfirmationScreen = ({ onReset, onGoHome }: ConfirmationScreenProps) => {
         <CheckCircle className="text-blue-500" size={80} />
       </div>
       <h2 className="text-2xl font-medium mt-6 mb-2 animate-fade-in-up">支付成功!</h2>
-      <p className="text-muted-foreground mb-8 animate-fade-in-up" style={{ animationDelay: '300ms' }}>您的创意T恤正在制作中，请耐心等待发货。</p>
+      <p className="text-muted-foreground mb-8 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+        您的创意{category.split(' ')[0]}正在制作中，请耐心等待发货。
+      </p>
       <Button onClick={onGoHome} className="w-full animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         再创作一件
       </Button>
@@ -36,3 +38,5 @@ const ConfirmationScreen = ({ onReset, onGoHome }: ConfirmationScreenProps) => {
 };
 
 export default ConfirmationScreen;
+
+    
