@@ -160,81 +160,83 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         </AlertDialogContent>
                     </AlertDialog>
                     </div>
-                    {initialCreations.length === 0 && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
+                    {initialCreations.length === 0 && !user?.isAnonymous && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
                     {creations.length > 0 ? (
                         <div className="space-y-6">
                         {creations.map((creation, index) => (
-                            <div key={creation.id} className="relative group/creation break-inside-avoid border-b pb-6">
+                            <div key={creation.id} className="break-inside-avoid border-b pb-6">
                               <div className="flex justify-between items-start mb-2">
                                   <p className="text-sm text-muted-foreground line-clamp-2 pr-10">"{creation.prompt || '无标题'}"</p>
                               </div>
-
-                              <div className="absolute top-0 right-0 h-8 flex items-center gap-1 opacity-0 group-hover/creation:opacity-100 transition-opacity z-10">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white" onClick={() => handleTogglePublic(creation.id, creation.isPublic)}>
-                                            <Globe size={16} className={creation.isPublic ? 'text-blue-400' : ''}/>
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{creation.isPublic ? '设为私密' : '设为公开'}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white">
-                                        <Trash2 size={16} />
-                                    </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>确定要删除吗?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                        此操作无法撤销。这将从我们的服务器上永久删除您的作品。
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>取消</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => onDeleteCreation(creation.id)}>删除</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-
                               <div className="grid grid-cols-3 gap-2">
-                                  <button
-                                      onClick={() => onGoToHistory(index, -1)}
-                                      className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
-                                  >
-                                      <Image
-                                          src={creation.patternUri}
-                                          alt={`创意图案 ${creation.id}`}
-                                          width={150}
-                                          height={150}
-                                          className="w-full h-full object-cover"
-                                      />
-                                  </button>
+                                  <div className="relative group">
+                                    <button
+                                        onClick={() => onGoToHistory(index, -1)}
+                                        className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
+                                    >
+                                        <Image
+                                            src={creation.patternUri}
+                                            alt={`创意图案 ${creation.id}`}
+                                            width={150}
+                                            height={150}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </button>
+                                     <div className="absolute top-1 right-1 h-8 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white" onClick={() => handleTogglePublic(creation.id, creation.isPublic)}>
+                                                    <Globe size={16} className={creation.isPublic ? 'text-blue-400' : ''}/>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{creation.isPublic ? '设为私密' : '设为公开'}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white">
+                                                <Trash2 size={16} />
+                                            </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>确定要删除吗?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                此操作无法撤销。这将从我们的服务器上永久删除您的作品。
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>取消</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => onDeleteCreation(creation.id)}>删除</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                      </div>
+                                  </div>
                                   {creation.models.map((model, modelIndex) => (
-                                  <button
-                                      key={model.uri}
-                                      onClick={() => onGoToHistory(index, modelIndex)}
-                                      className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
-                                  >
-                                      <Image
-                                          src={model.uri}
-                                          alt={`商品效果图 ${model.category}`}
-                                          width={150}
-                                          height={150}
-                                          className="w-full h-full object-cover"
-                                      />
-                                  </button>
+                                    <div key={model.uri} className="relative group">
+                                      <button
+                                          onClick={() => onGoToHistory(index, modelIndex)}
+                                          className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
+                                      >
+                                          <Image
+                                              src={model.uri}
+                                              alt={`商品效果图 ${model.category}`}
+                                              width={150}
+                                              height={150}
+                                              className="w-full h-full object-cover"
+                                          />
+                                      </button>
+                                      {/* Add buttons for model here if needed in the future */}
+                                    </div>
                                   ))}
                               </div>
                             </div>
                         ))}
                         </div>
                     ) : (
-                        initialCreations.length > 0 && <div className="flex flex-col items-center justify-center text-center text-muted-foreground pt-12">
+                        (initialCreations.length > 0 || user?.isAnonymous) && <div className="flex flex-col items-center justify-center text-center text-muted-foreground pt-12">
                             <p className="text-lg">暂无创作历史</p>
                             <p className="text-sm mt-2">快去创作你的第一个设计吧！</p>
                         </div>
@@ -246,7 +248,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <TabsContent value="orders" className="flex-grow mt-4">
             <ScrollArea className="h-full">
                 <div className="px-1 pb-4">
-                    {initialOrders.length === 0 && <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>}
+                    {initialOrders.length === 0 && !user?.isAnonymous && <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>}
                     {orders.length > 0 ? (
                         <div className="space-y-4">
                             {orders.map(order => (
@@ -265,7 +267,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                             ))}
                         </div>
                     ) : (
-                        initialOrders.length > 0 && <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
+                        (initialOrders.length > 0 || user?.isAnonymous) && <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
                     )}
                 </div>
             </ScrollArea>
