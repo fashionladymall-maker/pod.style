@@ -123,7 +123,6 @@ const App = () => {
     const { toast } = useToast();
 
     const fetchCreations = useCallback(async (userId: string) => {
-        // Only fetch if creations are not already loaded
         if (creations.length > 0) return;
         setIsLoading(true);
         try {
@@ -138,7 +137,6 @@ const App = () => {
     }, [toast]);
     
     const fetchOrders = useCallback(async (userId: string) => {
-      // Only fetch if orders are not already loaded
       if (orders.length > 0) return;
       try {
         const userOrders = await getOrdersAction(userId);
@@ -239,7 +237,6 @@ const App = () => {
             );
 
             setCreations(newCreations);
-            // Set the active model to the newly created one
             setActiveModelIndex(updatedCreation.models.length - 1);
             setStep('mockup');
         } catch (err: any) {
@@ -292,6 +289,7 @@ const App = () => {
     const selectModel = (index: number) => {
       if (index >=0 && creations[activeCreationIndex]?.models[index]) {
         setActiveModelIndex(index);
+        setStep('mockup');
       }
     }
 
@@ -385,7 +383,7 @@ const App = () => {
     }
     
     const AppHeader = () => {
-        let title = 'AIPOD';
+        let title = 'AIPOD.STYLE';
         let showBack = false;
 
         switch(step) {
