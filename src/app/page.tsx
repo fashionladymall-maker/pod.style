@@ -558,21 +558,6 @@ const App = () => {
     };
 
     const renderStep = () => {
-        if (authLoading) {
-            return (
-              <LoadingScreen>
-                <div className="text-center">
-                    <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
-                    <p className="mt-4">
-                        放飞思想，随心定制
-                        <br />
-                        <span className="text-sm">Free Your Mind, Customize Your Way.</span>
-                    </p>
-                </div>
-              </LoadingScreen>
-            );
-        }
-        
         switch (step) {
             case 'login': return <LoginScreen />;
             case 'generating': return <LoadingScreen text={loadingText} />;
@@ -643,12 +628,25 @@ const App = () => {
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
-                <div className="h-full flex flex-col">
-                    <AppHeader/>
-                    <div className="flex-grow min-h-0">
-                        {renderStep()}
+                { authLoading ? (
+                     <LoadingScreen>
+                        <div className="text-center">
+                            <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
+                            <p className="mt-4">
+                                放飞思想，随心定制
+                                <br />
+                                <span className="text-sm">Free Your Mind, Customize Your Way.</span>
+                            </p>
+                        </div>
+                    </LoadingScreen>
+                ) : (
+                    <div className="h-full flex flex-col">
+                        <AppHeader/>
+                        <div className="flex-grow min-h-0">
+                            {renderStep()}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {viewerState.isOpen && (
