@@ -142,11 +142,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   return (
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-grow">
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-4">
             
             <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-12 text-sm"><Sparkles className="mr-2"/>流行创意</Button>
-                <Button variant="outline" className="h-12 text-sm"><TrendingUp className="mr-2"/>定制排行</Button>
+                <Button variant="outline" className="h-10 text-sm"><Sparkles className="mr-2"/>流行创意</Button>
+                <Button variant="outline" className="h-10 text-sm"><TrendingUp className="mr-2"/>定制排行</Button>
             </div>
 
             {publicCreations.length > 0 && <Separator />}
