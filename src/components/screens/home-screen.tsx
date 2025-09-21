@@ -28,6 +28,19 @@ interface HomeScreenProps {
   setSelectedStyle: (style: string) => void;
 }
 
+const creativePrompts = [
+  "一只戴着VR眼镜的太空猫",
+  "赛博朋克风格的上海夜景",
+  "水墨画风格的巨龙",
+  "一个宇航员在月球上冲浪",
+  "像素艺术风格的日落",
+  "一只正在打碟的柴犬DJ",
+  "梵高星空下的长城",
+  "一只章鱼在指挥交响乐",
+  "一个机器人正在种花",
+  "蒸汽朋克风格的飞行器"
+];
+
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
   creations, onGoToHistory, isRecording, setIsRecording,
@@ -37,6 +50,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef('');
   const [stylePopoverOpen, setStylePopoverOpen] = useState(false);
+  const [placeholder, setPlaceholder] = useState(creativePrompts[0]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * creativePrompts.length);
+      setPlaceholder(creativePrompts[randomIndex]);
+    }, 3000); // Change placeholder every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -143,8 +167,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       <div className="mt-auto p-4 bg-background">
         <div className="relative mb-3">
             <Input
-              className="w-full bg-secondary text-foreground p-3 pr-12 rounded-full h-12 border-none focus-visible:ring-1"
-              placeholder="说出你喜欢的创意"
+              className="w-full bg-secondary text-foreground p-3 pr-12 rounded-full h-12 border-none focus-visible:ring-1 transition-all duration-300"
+              placeholder={placeholder}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
