@@ -643,7 +643,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                   setViewerState(prev => ({...prev, isOpen: false}));
                   setStep('shipping');
                 }}
-                onRegenerate={() => {
+                onGoToCategorySelection={() => {
                    setViewerState(prev => ({...prev, isOpen: false}));
                    setStep('categorySelection');
                 }}

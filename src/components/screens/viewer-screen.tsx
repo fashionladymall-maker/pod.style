@@ -7,7 +7,7 @@ import { useDrag } from '@use-gesture/react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Creation, OrderDetails } from '@/lib/types';
-import type { ViewerState } from '@/app/page';
+import type { ViewerState } from '@/app/app-client';
 import PatternPreviewScreen from './pattern-preview-screen';
 import MockupScreen from './mockup-screen';
 
@@ -19,7 +19,7 @@ interface ViewerScreenProps {
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;
   onNext: () => void;
-  onRegenerate: () => void;
+  onGoToCategorySelection: () => void;
   price: number;
 }
 
@@ -31,7 +31,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   setOrderDetails,
   handleQuantityChange,
   onNext,
-  onRegenerate,
+  onGoToCategorySelection,
   price,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -143,7 +143,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             <PatternPreviewScreen
               creation={currentCreation}
               isModelGenerating={false}
-              onGoToModel={onRegenerate}
+              onGoToModel={onGoToCategorySelection}
             />
           ) : (
             <MockupScreen
@@ -156,7 +156,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
               modelHistoryIndex={viewerState.modelIndex}
               onNavigateModels={onSelectModel}
               category={currentModel?.category || ''}
-              onRegenerate={onRegenerate}
+              onRegenerate={onGoToCategorySelection}
               price={price}
             />
           )
