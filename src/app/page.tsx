@@ -8,7 +8,7 @@ import { generatePatternAction, generateModelAction, getCreationsAction, deleteC
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order } from '@/lib/types';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously } from "firebase/auth";
 
 
 import HomeScreen from '@/components/screens/home-screen';
@@ -103,7 +103,7 @@ const artStyles = [
 const MOCK_PRICE = 129;
 
 const App = () => {
-    const [step, setStep] = useState<AppStep>('login');
+    const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
     const [user, setUser] = useState<FirebaseUser | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -142,25 +142,28 @@ const App = () => {
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
-    }, [toast]);
+    }, []);
 
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            setUser(firebaseUser);
-            setAuthLoading(false);
-            if (!firebaseUser) {
-                setStep('login');
-                setCreations([]);
-                setOrders([]);
-            } else {
+            if (firebaseUser) {
+                setUser(firebaseUser);
+                setAuthLoading(false);
                 setStep('home');
                 fetchCreations(firebaseUser.uid);
                 fetchOrders(firebaseUser.uid);
+            } else {
+                // Not logged in, sign in anonymously
+                signInAnonymously(auth).catch(error => {
+                    console.error("Anonymous sign-in failed:", error);
+                    toast({ variant: 'destructive', title: '网络错误', description: '无法连接到服务，请刷新页面重试。'});
+                    setAuthLoading(false);
+                });
             }
         });
         return () => unsubscribe();
-    }, [fetchCreations, fetchOrders]);
+    }, [fetchCreations, fetchOrders, toast]);
 
     useEffect(() => {
         if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
@@ -309,9 +312,22 @@ const App = () => {
 
     const handleSignOut = async () => {
         try {
+            // Store anonymous UID before signing out
+            const anonymousUid = user?.isAnonymous ? user.uid : null;
+            
             await firebaseSignOut(auth);
+            
+            // If the user was anonymous, immediately sign in a new anonymous user
+            // to maintain a session. This prevents data loss if they just wanted
+            // to switch accounts but didn't.
+            if (anonymousUid) {
+                signInAnonymously(auth);
+            }
+            
+            // Reset local state regardless
             resetState();
             setStep('login');
+
         } catch (error) {
             console.error("Error signing out:", error);
             toast({ variant: "destructive", title: "退出登录失败", description: "退出时发生错误，请稍后重试。" });
@@ -320,6 +336,17 @@ const App = () => {
 
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (user?.isAnonymous && !shippingInfo.email) {
+          toast({
+            variant: "destructive",
+            title: "需要邮箱",
+            description: "匿名用户下单需要提供邮箱以追踪订单。",
+          });
+          setStep('shipping');
+          return;
+        }
+
         setIsLoading(true);
         setLoadingText("正在处理您的订单...");
         setStep('generating');
@@ -373,7 +400,7 @@ const App = () => {
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
         setOrders([]);
-        setStep('login');
+        setStep('home'); // Go to home after reset, auth listener will handle session
     };
 
     const handleGoHome = () => {
@@ -417,18 +444,17 @@ const App = () => {
                   <h1 className="text-lg font-medium">{title}</h1>
               </Button>
 
-              {step !== 'profile' ? (
-                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setStep('profile')}>
+              {step !== 'login' && user && (
+                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => user.isAnonymous ? setStep('login') : setStep('profile')}>
                   <Avatar className="w-8 h-8">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {(user?.displayName?.[0] || user?.email?.[0])?.toUpperCase() || <User size={20} />}
+                      {user.isAnonymous ? <User size={20} /> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
-              ) : (
-                 <div className="w-10"></div> // Placeholder for spacing
               )}
+              { (step === 'login' || !user) && <div className="w-10"></div>}
           </header>
         );
     };
@@ -552,6 +578,7 @@ const App = () => {
                 onGoToHistory={goToHistory}
                 onSignOut={handleSignOut}
                 onDeleteCreation={handleDeleteCreation}
+                onLoginRequest={() => setStep('login')}
             />;
             case 'home':
             default:
@@ -575,7 +602,7 @@ const App = () => {
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
                 <div key={`${step}-${activeCreationIndex}-${activeModelIndex}`} className="h-full flex flex-col">
-                    {step !== 'login' && <AppHeader/>}
+                    <AppHeader/>
                     <div className="flex-grow overflow-y-auto">
                         {renderStep()}
                     </div>

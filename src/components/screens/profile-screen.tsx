@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { LogOut, User, Trash2, ShoppingBag, Loader2, Edit } from 'lucide-react';
+import { LogOut, User, Trash2, ShoppingBag, Loader2, Edit, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation, Order } from '@/lib/types';
@@ -20,6 +20,7 @@ import {
 import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
 interface ProfileScreenProps {
@@ -30,6 +31,7 @@ interface ProfileScreenProps {
   onGoToHistory: (creationIndex: number, modelIndex?: number) => void;
   onSignOut: () => void;
   onDeleteCreation: (creationId: string) => void;
+  onLoginRequest: () => void;
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({
@@ -40,6 +42,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onGoToHistory,
   onSignOut,
   onDeleteCreation,
+  onLoginRequest
 }) => {
   const [creations, setCreations] = useState(initialCreations);
   const [orders, setOrders] = useState(initialOrders);
@@ -82,6 +85,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <LogOut className="h-5 w-5 text-muted-foreground" />
           </Button>
       </div>
+
+       {user?.isAnonymous && (
+        <div className="px-6 mb-4">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>提醒</AlertTitle>
+            <AlertDescription>
+              您的创作历史和订单仅保存在当前设备。
+              <Button variant="link" className="p-0 h-auto ml-1" onClick={onLoginRequest}>注册或登录</Button>
+              以永久保存。
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
 
       <Tabs defaultValue="creations" className="w-full px-4 flex-grow flex flex-col">
         <TabsList className="grid w-full grid-cols-2">

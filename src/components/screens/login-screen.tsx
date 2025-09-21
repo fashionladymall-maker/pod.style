@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, GoogleAuthProvider as GoogleCredProvider } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
@@ -18,13 +18,36 @@ const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    
+    const linkAnonymousAccount = async (credential: any) => {
+        const currentUser = auth.currentUser;
+        if (currentUser && currentUser.isAnonymous) {
+            try {
+                await linkWithCredential(currentUser, credential);
+                toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
+            } catch (error: any) {
+                if (error.code === 'auth/credential-already-in-use') {
+                    toast({ title: '关联失败', description: '此账户已存在，请直接登录。' });
+                    // Optionally, sign in with the credential and handle data merge manually
+                } else {
+                    toast({ variant: 'destructive', title: '账户关联失败', description: '无法关联您的匿名账户，请联系支持。' });
+                }
+            }
+        }
+    };
+
 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
-            // Auth state change will handle navigation
+            const result = await signInWithPopup(auth, provider);
+            // If the current user was anonymous, the onAuthStateChanged listener might handle it.
+            // Or we can explicitly try to link.
+            const credential = GoogleCredProvider.credentialFromResult(result);
+            if (credential) {
+                await linkAnonymousAccount(credential);
+            }
         } catch (error: any) {
             console.error("Google sign-in error:", error);
             toast({
@@ -41,7 +64,11 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
+            // This will sign out the anonymous user and sign in the new user.
+            // Data migration should be handled before or after.
+            // For simplicity, we assume onAuthStateChange handles the UI update.
             await createUserWithEmailAndPassword(auth, email, password);
+             toast({ title: "注册成功", description: "欢迎！" });
         } catch (error: any) {
             toast({
                 variant: "destructive",
@@ -57,6 +84,7 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
+            // This will sign out the anonymous user and sign in.
             await signInWithEmailAndPassword(auth, email, password);
         } catch (error: any) {
              toast({
@@ -79,7 +107,7 @@ const LoginScreen = () => {
             </p>
             <div className="space-y-4">
                 <Button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full rounded-full h-12 text-lg">
-                    <Chrome className="mr-3" /> 使用 Google 登录
+                    <Chrome className="mr-3" /> 使用 Google 登录/注册
                 </Button>
                 <Button onClick={() => setView('email-signin')} variant="secondary" disabled={isLoading} className="w-full rounded-full h-12 text-lg">
                     <Mail className="mr-3" /> 使用邮箱登录或注册
