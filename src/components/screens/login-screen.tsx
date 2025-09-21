@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, GoogleAuthProvider as GoogleCredProvider } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, typeAuthCredential } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
@@ -19,7 +19,7 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
-    const linkAnonymousAccount = async (credential: any) => {
+    const linkAnonymousAccount = async (credential: AuthCredential) => {
         const currentUser = auth.currentUser;
         if (currentUser && currentUser.isAnonymous) {
             try {
@@ -27,11 +27,22 @@ const LoginScreen = () => {
                 toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
             } catch (error: any) {
                 if (error.code === 'auth/credential-already-in-use') {
-                    toast({ title: '关联失败', description: '此账户已存在，请直接登录。' });
-                    // Optionally, sign in with the credential and handle data merge manually
+                    // This error means the credential (e.g., Google account) is already linked to another user.
+                    // The best practice is to sign in with the credential and offer to merge data, which is a more complex flow.
+                    // For now, we'll inform the user.
+                    toast({ 
+                        variant: 'destructive', 
+                        title: '关联失败', 
+                        description: '此 Google 账户已关联其他用户。请先退出，然后直接使用 Google 登录。' 
+                    });
+                     await auth.signOut(); // Sign out the anonymous user
+                     await signInWithPopup(auth, new GoogleAuthProvider()); // Sign in with the existing Google account
                 } else {
                     toast({ variant: 'destructive', title: '账户关联失败', description: '无法关联您的匿名账户，请联系支持。' });
+                    console.error("Link error:", error);
                 }
+                // Rethrow to stop the sign-in process if linking fails
+                throw error;
             }
         }
     };
@@ -42,19 +53,24 @@ const LoginScreen = () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            // If the current user was anonymous, the onAuthStateChanged listener might handle it.
-            // Or we can explicitly try to link.
-            const credential = GoogleCredProvider.credentialFromResult(result);
+            // This will only be called if the user was NOT anonymous,
+            // as linkWithCredential will upgrade the anonymous user and the auth state change will handle the rest.
+            // But if we want to be explicit, the linking should happen.
+            const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential) {
                 await linkAnonymousAccount(credential);
             }
         } catch (error: any) {
-            console.error("Google sign-in error:", error);
-            toast({
-                variant: "destructive",
-                title: "Google 登录失败",
-                description: error.code === 'auth/popup-closed-by-user' ? '您关闭了登录窗口' : '登录过程中发生错误，请稍后再试。',
-            });
+            if (error.code !== 'auth/cancelled-popup-request') { // Don't show error if user closes popup
+                console.error("Google sign-in error:", error);
+                if (error.code !== 'auth/credential-already-in-use') {
+                    toast({
+                        variant: "destructive",
+                        title: "Google 登录失败",
+                        description: error.code === 'auth/popup-closed-by-user' ? '您关闭了登录窗口' : '登录过程中发生错误，请稍后再试。',
+                    });
+                }
+            }
         } finally {
             setIsLoading(false);
         }
@@ -64,9 +80,9 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // This will sign out the anonymous user and sign in the new user.
-            // Data migration should be handled before or after.
-            // For simplicity, we assume onAuthStateChange handles the UI update.
+            // Note: createUserWithEmailAndPassword signs out the anonymous user.
+            // Linking email/password is more complex and often requires a different UX flow.
+            // We'll focus on the robust Google linking for now.
             await createUserWithEmailAndPassword(auth, email, password);
              toast({ title: "注册成功", description: "欢迎！" });
         } catch (error: any) {

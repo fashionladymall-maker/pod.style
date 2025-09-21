@@ -1,4 +1,5 @@
-import type { User as FirebaseUserType } from "firebase/auth";
+
+import type { User as FirebaseUserType, AuthCredential } from "firebase/auth";
 import type { Timestamp } from "firebase-admin/firestore";
 
 export interface OrderDetails {
@@ -22,6 +23,7 @@ export interface PaymentInfo {
 }
 
 export type FirebaseUser = FirebaseUserType;
+export type { AuthCredential };
 
 export interface Model {
     uri: string;

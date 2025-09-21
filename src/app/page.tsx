@@ -6,9 +6,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously } from "firebase/auth";
+import { onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously, linkWithCredential, GoogleAuthProvider } from "firebase/auth";
 
 
 import HomeScreen from '@/components/screens/home-screen';
@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import Script from 'next/script';
 
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'categorySelection' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
@@ -148,11 +149,20 @@ const App = () => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
+                const isAnonymousUser = firebaseUser.isAnonymous;
+                const isNewUser = user === null; // Check if this is the first auth state change
+
+                // If the user just signed in (from anonymous to permanent, or first load)
+                if (isNewUser || (user?.isAnonymous && !isAnonymousUser)) {
+                    fetchCreations(firebaseUser.uid);
+                    fetchOrders(firebaseUser.uid);
+                    if (step === 'login') {
+                        setStep('home');
+                    }
+                }
                 setUser(firebaseUser);
                 setAuthLoading(false);
-                setStep('home');
-                fetchCreations(firebaseUser.uid);
-                fetchOrders(firebaseUser.uid);
+
             } else {
                 // Not logged in, sign in anonymously
                 signInAnonymously(auth).catch(error => {
@@ -163,7 +173,7 @@ const App = () => {
             }
         });
         return () => unsubscribe();
-    }, [fetchCreations, fetchOrders, toast]);
+    }, [fetchCreations, fetchOrders, toast, user, step]);
 
     useEffect(() => {
         if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
@@ -312,22 +322,11 @@ const App = () => {
 
     const handleSignOut = async () => {
         try {
-            // Store anonymous UID before signing out
-            const anonymousUid = user?.isAnonymous ? user.uid : null;
-            
             await firebaseSignOut(auth);
-            
-            // If the user was anonymous, immediately sign in a new anonymous user
-            // to maintain a session. This prevents data loss if they just wanted
-            // to switch accounts but didn't.
-            if (anonymousUid) {
-                signInAnonymously(auth);
-            }
-            
-            // Reset local state regardless
+            // After sign out, onAuthStateChanged will trigger and sign in a new anonymous user.
+            // Reset local state to reflect the new empty session.
             resetState();
-            setStep('login');
-
+            toast({ title: "已退出登录" });
         } catch (error) {
             console.error("Error signing out:", error);
             toast({ variant: "destructive", title: "退出登录失败", description: "退出时发生错误，请稍后重试。" });
@@ -621,3 +620,4 @@ export default App;
     
 
     
+
