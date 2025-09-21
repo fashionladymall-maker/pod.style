@@ -33,17 +33,8 @@ const LoginScreen = () => {
         } catch (error: any) {
             // This is a special case: the credential belongs to another existing user.
             if (error.code === 'auth/credential-already-in-use') {
-                 // To handle this, we must sign out the anonymous user and then sign in with the permanent account.
+                 // To handle this, we can just sign in with the credential.
                  // This will NOT merge the data, but it will log the user in successfully.
-                 // The 'isSigningOut' flag in page.tsx will prevent onAuthStateChanged from creating a new anonymous user.
-                 if ((auth as any).customSignOut) {
-                    await (auth as any).customSignOut();
-                 } else {
-                    await signOut(auth);
-                 }
-                 
-                 // We need email/password from the credential, but credential object is opaque.
-                 // So we must rely on the component's state for email/password.
                  await signInWithEmailAndPassword(auth, email, password);
                  toast({ title: "登录成功", description: "已切换到您的现有账户。匿名会话未合并。" });
             } else {
