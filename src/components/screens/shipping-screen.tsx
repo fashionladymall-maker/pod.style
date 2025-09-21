@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { FirebaseUser, ShippingInfo } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ShippingScreenProps {
   user: FirebaseUser | null;
@@ -45,13 +46,11 @@ const ShippingScreen = ({ user, shippingInfo, setShippingInfo, onNext, onBack, i
 
   return (
     <div className="flex flex-col h-full animate-fade-in bg-background">
-      <div className="flex items-center mb-6 animate-fade-in-up p-6 pb-0">
-        <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full"><ArrowLeft size={20} /></Button>
-        <h2 className="text-xl font-medium mx-auto">收货信息</h2>
-        <div className="w-9 h-9"></div>
+      <div className="flex-shrink-0">
+        <h2 className="text-xl font-medium text-center py-4">收货信息</h2>
       </div>
       <ScrollArea className="flex-grow">
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-4 p-6">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-4 p-6 pt-0">
           <div className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             <Label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">收货人姓名</Label>
             <Input id="name" type="text" name="name" value={shippingInfo.name} onChange={handleChange} className="w-full bg-secondary p-3 rounded-lg border-none" placeholder="请输入姓名" />
@@ -72,7 +71,7 @@ const ShippingScreen = ({ user, shippingInfo, setShippingInfo, onNext, onBack, i
           </div>
         </form>
       </ScrollArea>
-      <div className="mt-auto p-6 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+      <div className="mt-auto p-6 flex-shrink-0">
         <Button type="button" onClick={handleNext} disabled={isLoading} className="w-full rounded-full h-12">
            {isLoading ? <Loader2 className="animate-spin" /> : <span>确认下单</span>}
         </Button>
