@@ -59,7 +59,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   }
   
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+    return new Date(dateString).toLocaleString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
   return (
