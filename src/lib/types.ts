@@ -41,13 +41,13 @@ export interface Creation {
     summary?: string;
     patternUri: string;
     models: Model[];
-    createdAt: string;
+    createdAt: string; // ISO String
     isPublic: boolean;
     orderCount: number;
 }
 
 // This is the object shape that is stored in Firestore.
-// It uses the AdminTimestamp from 'firebase-admin/firestore'.
+// It uses the Timestamp from 'firebase-admin/firestore'.
 export interface CreationData {
     userId: string;
     prompt: string;
@@ -55,7 +55,7 @@ export interface CreationData {
     summary?: string;
     patternUri: string;
     models: Model[];
-    createdAt: Timestamp | { _seconds: number; _nanoseconds: number }; // Allow for raw object from client
+    createdAt: Timestamp;
     isPublic: boolean;
     orderCount: number;
 }

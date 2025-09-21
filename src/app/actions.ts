@@ -20,10 +20,8 @@ const getOrdersCollection = () => db.collection("orders");
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
-  // Firestore Timestamps need to be converted to a serializable format (ISO string)
-  const createdAt = data.createdAt instanceof admin.firestore.Timestamp 
-    ? data.createdAt.toDate().toISOString() 
-    : new Date((data.createdAt as any)._seconds * 1000).toISOString();
+  // Firestore Timestamps must be converted to a serializable format (ISO string) for the client.
+  const createdAt = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
 
   return {
     id: doc.id,
@@ -77,7 +75,7 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
     isPublic: false,
     orderCount: 0,
   };
-  const docRef = await db.collection("creations").add(creationData);
+  const docRef = await getCreationsCollection().add(creationData);
   const newDoc = await docRef.get();
   return docToCreation(newDoc);
 };
@@ -104,22 +102,16 @@ const deleteCreation = async (creationId: string): Promise<void> => {
     const creation = docToCreation(doc);
     const bucket = storage.bucket();
 
-    // Collect all file URIs to be deleted from both patternUri and models array
     const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
 
     const deletePromises = fileUris.map(uri => {
         if (!uri) return Promise.resolve();
         try {
-            // Extract file path from the public URL
-            // e.g., https://storage.googleapis.com/your-bucket-name/creations/user-id/uuid
             const url = new URL(uri);
-            // Pathname is /bucket-name/file/path, so we split and slice
             const filePath = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
             if (filePath) {
                 console.log(`Attempting to delete: ${filePath}`);
                 return bucket.file(filePath).delete().catch(err => {
-                    // It's possible the file doesn't exist or permissions are wrong
-                    // We'll log a warning but not fail the whole operation
                     console.warn(`Failed to delete ${filePath}:`, err.message);
                 });
             }
@@ -155,7 +147,6 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
         metadata: { contentType: mimeType },
     });
     
-    // Make the file public and return the public URL
     await file.makePublic();
     return file.publicUrl();
 };
@@ -249,22 +240,21 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("userId", "==", userId)
+            .orderBy("createdAt", "desc") // Offload sorting to Firestore
             .get();
         
-        if (querySnapshot.empty) {
-            return [];
-        }
-
-        const creations = querySnapshot.docs.map(docToCreation);
-        
-        // Sort in-memory after fetching
-        creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-        return creations;
+        return querySnapshot.docs.map(docToCreation);
 
     } catch (error) {
         console.error('Error in getCreationsAction:', error);
-        if (error instanceof Error) throw error;
+        if (error instanceof Error) {
+           if ((error as any).code === 'FAILED_PRECONDITION') {
+              const errorMessage = `The 'getCreationsAction' query requires a composite index. Please create it in your Firebase console for the 'creations' collection.`;
+              console.error(errorMessage);
+              throw new Error(errorMessage);
+           }
+           throw error;
+        }
         throw new Error(String(error));
   }
 }
@@ -296,7 +286,7 @@ interface CreateOrderActionInput {
 export async function createOrderAction(input: CreateOrderActionInput): Promise<Order> {
     const { userId, creationId, model, orderDetails, shippingInfo, paymentInfo, price } = input;
     const creationRef = getCreationsCollection().doc(creationId);
-    const orderRef = getOrdersCollection().doc(); // Generate ID upfront
+    const orderRef = getOrdersCollection().doc();
     
     const timestamp = admin.firestore.Timestamp.now();
 
@@ -316,18 +306,13 @@ export async function createOrderAction(input: CreateOrderActionInput): Promise<
             createdAt: timestamp,
         };
 
-        // Use a transaction to ensure both operations succeed or fail together
         await db.runTransaction(async (transaction) => {
-            // 1. Increment the order count on the creation
             transaction.update(creationRef, { 
                 orderCount: admin.firestore.FieldValue.increment(1) 
             });
-
-            // 2. Add the new order document
             transaction.set(orderRef, orderData);
         });
 
-        // Construct and return the Order object without another DB read
         return {
             id: orderRef.id,
             ...orderData,
@@ -348,22 +333,21 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
     try {
         const querySnapshot = await getOrdersCollection()
             .where("userId", "==", userId)
+            .orderBy("createdAt", "desc") // Offload sorting to Firestore
             .get();
         
-        if (querySnapshot.empty) {
-            return [];
-        }
-
-        const orders = querySnapshot.docs.map(docToOrder);
-        
-        // Sort in-memory after fetching
-        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        
-        return orders;
+        return querySnapshot.docs.map(docToOrder);
 
     } catch (error) {
         console.error('Error in getOrdersAction:', error);
-        if (error instanceof Error) throw error;
+        if (error instanceof Error) {
+           if ((error as any).code === 'FAILED_PRECONDITION') {
+              const errorMessage = `The 'getOrdersAction' query requires a composite index. Please create it in your Firebase console for the 'orders' collection.`;
+              console.error(errorMessage);
+              throw new Error(errorMessage);
+           }
+           throw error;
+        }
         throw new Error(String(error));
     }
 }
@@ -379,33 +363,31 @@ export async function migrateAnonymousDataAction(anonymousUid: string, permanent
   console.log(`Starting data migration from anonymous user ${anonymousUid} to permanent user ${permanentUid}`);
 
   try {
+    const creationsSnapshot = await getCreationsCollection().where('userId', '==', anonymousUid).get();
+    const ordersSnapshot = await getOrdersCollection().where('userId', '==', anonymousUid).get();
+
+    if (creationsSnapshot.empty && ordersSnapshot.empty) {
+        console.log("No data to migrate.");
+        return { success: true };
+    }
+    
     const batch = db.batch();
 
-    // Migrate creations
-    const creationsSnapshot = await getCreationsCollection().where('userId', '==', anonymousUid).get();
-    if (!creationsSnapshot.empty) {
-      creationsSnapshot.docs.forEach(doc => {
-        console.log(`Migrating creation: ${doc.id}`);
-        batch.update(doc.ref, { userId: permanentUid });
-      });
-    }
+    creationsSnapshot.docs.forEach(doc => {
+      console.log(`Migrating creation: ${doc.id}`);
+      batch.update(doc.ref, { userId: permanentUid });
+    });
 
-    // Migrate orders
-    const ordersSnapshot = await getOrdersCollection().where('userId', '==', anonymousUid).get();
-    if (!ordersSnapshot.empty) {
-      ordersSnapshot.docs.forEach(doc => {
-        console.log(`Migrating order: ${doc.id}`);
-        batch.update(doc.ref, { userId: permanentUid });
-      });
-    }
+    ordersSnapshot.docs.forEach(doc => {
+      console.log(`Migrating order: ${doc.id}`);
+      batch.update(doc.ref, { userId: permanentUid });
+    });
 
     await batch.commit();
     console.log(`Data migration completed successfully for user ${permanentUid}.`);
     return { success: true };
   } catch (error) {
     console.error(`Error during data migration from ${anonymousUid} to ${permanentUid}:`, error);
-    // In case of error, we don't want to leave data in a partially migrated state.
-    // The batch commit is atomic, so it either all succeeds or all fails.
     if (error instanceof Error) throw error;
     throw new Error(String(error));
   }
@@ -427,22 +409,22 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
+            .orderBy("createdAt", "desc")
+            .limit(20) // Limit the number of public creations for performance
             .get();
         
-        if (querySnapshot.empty) {
-            return [];
-        }
-
-        const creations = querySnapshot.docs.map(docToCreation);
-
-        // Sort in-memory after fetching to avoid needing a composite index
-        creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-        return creations;
+        return querySnapshot.docs.map(docToCreation);
 
     } catch (error) {
         console.error('Error in getPublicCreationsAction:', error);
-        if (error instanceof Error) throw error;
+        if (error instanceof Error) {
+            if ((error as any).code === 'FAILED_PRECONDITION') {
+                const errorMessage = `The 'getPublicCreationsAction' query requires an index. Please create it in your Firebase console for the 'creations' collection.`;
+                console.error(errorMessage);
+                throw new Error(errorMessage);
+            }
+            throw error;
+        }
         throw new Error(String(error));
     }
 });
@@ -450,28 +432,19 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
 
 export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
-        // First, get all public creations.
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
+            .orderBy("orderCount", "desc")
+            .orderBy("createdAt", "desc") // Secondary sort for consistent ordering
+            .limit(20) // Limit results for performance
             .get();
 
-        if (querySnapshot.empty) {
-            return [];
-        }
-        
-        let creations = querySnapshot.docs.map(docToCreation);
-
-        // Then, sort them in memory by orderCount.
-        creations.sort((a, b) => b.orderCount - a.orderCount);
-        
-        // Finally, limit the results.
-        return creations.slice(0, 20);
+        return querySnapshot.docs.map(docToCreation);
 
     } catch (error) {
         console.error('Error in getTrendingCreationsAction:', error);
-        // This provides a helpful message if the simple `.where` query fails for some reason.
         if (error instanceof Error && (error as any).code === 'FAILED_PRECONDITION') {
-            const errorMessage = `The 'getTrendingCreationsAction' query requires an index on 'isPublic'. This should be created automatically, but if not, please create it in your Firebase console for the 'creations' collection.`;
+            const errorMessage = `The 'getTrendingCreationsAction' query requires a composite index. Please create it in your Firebase console for the 'creations' collection.`;
             console.error(errorMessage);
             throw new Error(errorMessage);
         }
