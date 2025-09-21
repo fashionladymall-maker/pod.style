@@ -43,6 +43,7 @@ export interface Creation {
     models: Model[];
     createdAt: string;
     isPublic: boolean;
+    orderCount: number;
 }
 
 // This is the object shape that is stored in Firestore.
@@ -56,6 +57,7 @@ export interface CreationData {
     models: Model[];
     createdAt: Timestamp | { _seconds: number; _nanoseconds: number }; // Allow for raw object from client
     isPublic: boolean;
+    orderCount: number;
 }
 
 

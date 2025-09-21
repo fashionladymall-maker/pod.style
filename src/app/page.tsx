@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction, getPublicCreationsAction } from '@/app/actions';
+import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction, getPublicCreationsAction, getTrendingCreationsAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
@@ -29,6 +29,7 @@ import Script from 'next/script';
 
 
 export type AppStep = 'home' | 'generating' | 'patternPreview' | 'categorySelection' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
+export type HomeTab = 'popular' | 'trending';
 
 const podCategories = [
     { name: "T恤 (T-shirts)" },
@@ -111,6 +112,7 @@ const App = () => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [creations, setCreations]  = useState<Creation[]>([]);
     const [publicCreations, setPublicCreations] = useState<Creation[]>([]);
+    const [trendingCreations, setTrendingCreations] = useState<Creation[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [activeModelIndex, setActiveModelIndex] = useState(-1);
@@ -147,19 +149,24 @@ const App = () => {
       }
     }, []);
     
-    const fetchPublicCreations = useCallback(async () => {
+    const fetchCommunityCreations = useCallback(async () => {
       try {
-        const creations = await getPublicCreationsAction();
-        setPublicCreations(creations);
+        const [publicRes, trendingRes] = await Promise.all([
+          getPublicCreationsAction(),
+          getTrendingCreationsAction()
+        ]);
+        setPublicCreations(publicRes);
+        setTrendingCreations(trendingRes);
       } catch (error) {
-        console.error("Failed to fetch public creations:", error);
+        console.error("Failed to fetch community creations:", error);
+        toast({ variant: "destructive", title: "获取社区作品失败", description: String(error) });
       }
-    }, []);
+    }, [toast]);
 
 
     useEffect(() => {
         let isSigningOut = false; // Flag to prevent race condition
-        fetchPublicCreations();
+        fetchCommunityCreations();
 
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (isSigningOut) {
@@ -207,7 +214,7 @@ const App = () => {
         (auth as any).customSignOut = customSignOut;
 
         return () => unsubscribe();
-    }, [fetchCreations, fetchOrders, fetchPublicCreations, toast, user, step]);
+    }, [fetchCreations, fetchOrders, fetchCommunityCreations, toast, user, step]);
 
     useEffect(() => {
         if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
@@ -637,6 +644,7 @@ const App = () => {
                     onGenerate={handleGeneratePattern}
                     creations={creations}
                     publicCreations={publicCreations}
+                    trendingCreations={trendingCreations}
                     onGoToHistory={goToHistory}
                     onSelectPublicCreation={handleSelectPublicCreation}
                     isLoading={isDataLoading}

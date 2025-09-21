@@ -12,6 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation } from '@/lib/types';
 import { Separator } from '../ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { HomeTab } from '@/app/page';
 
 interface HomeScreenProps {
   prompt: string;
@@ -22,6 +24,7 @@ interface HomeScreenProps {
   onGenerate: () => void;
   creations: Creation[];
   publicCreations: Creation[];
+  trendingCreations: Creation[];
   onGoToHistory: (index: number) => void;
   onSelectPublicCreation: (creation: Creation) => void;
   isLoading: boolean;
@@ -45,9 +48,35 @@ const creativePrompts = [
   "蒸汽朋克风格的飞行器"
 ];
 
+const CreationGrid = ({ creations, onSelectCreation }: { creations: Creation[], onSelectCreation: (creation: Creation) => void }) => {
+    if (creations.length === 0) {
+        return (
+            <div className="text-center py-10 text-muted-foreground">
+                <p>还没有作品</p>
+                <p className="text-sm">快去创作你的第一个设计吧！</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-2 gap-4">
+            {creations.map((creation) => (
+                <button 
+                    key={creation.id} 
+                    onClick={() => onSelectCreation(creation)} 
+                    className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
+                >
+                    <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
+                </button>
+            ))}
+        </div>
+    );
+};
+
+
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
-  creations, publicCreations, onGoToHistory, onSelectPublicCreation,
+  creations, publicCreations, trendingCreations, onGoToHistory, onSelectPublicCreation,
   isLoading, isRecording, setIsRecording, artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
@@ -144,32 +173,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-grow">
         <div className="p-6 space-y-4">
-            
-            <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-10 text-sm"><Sparkles className="mr-2"/>流行创意</Button>
-                <Button variant="outline" className="h-10 text-sm"><TrendingUp className="mr-2"/>定制排行</Button>
-            </div>
-
-            <Separator />
-
-            {isLoading ? (
-                <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
-            ) : publicCreations.length > 0 ? (
-                <div>
-                    <div className="grid grid-cols-2 gap-4">
-                        {publicCreations.filter(pc => !creations.some(c => c.id === pc.id)).map((creation) => (
-                            <button key={creation.id} onClick={() => onSelectPublicCreation(creation)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                                <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            ) : (
-                 <div className="text-center py-10 text-muted-foreground">
-                    <p>还没有公开的创意作品</p>
-                    <p className="text-sm">成为第一个分享你的杰作的人！</p>
-                </div>
-            )}
+             <Tabs defaultValue="popular" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="popular"><Sparkles className="mr-2 h-4 w-4" />流行创意</TabsTrigger>
+                    <TabsTrigger value="trending"><TrendingUp className="mr-2 h-4 w-4" />定制排行</TabsTrigger>
+                </TabsList>
+                <TabsContent value="popular" className="mt-4">
+                    {isLoading ? (
+                        <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
+                    ) : (
+                        <CreationGrid creations={publicCreations.filter(pc => !creations.some(c => c.id === pc.id))} onSelectCreation={onSelectPublicCreation} />
+                    )}
+                </TabsContent>
+                <TabsContent value="trending" className="mt-4">
+                    {isLoading ? (
+                        <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
+                    ) : (
+                        <CreationGrid creations={trendingCreations.filter(pc => !creations.some(c => c.id === pc.id))} onSelectCreation={onSelectPublicCreation} />
+                    )}
+                </TabsContent>
+            </Tabs>
         </div>
       </ScrollArea>
 

@@ -34,6 +34,7 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     models: data.models || [],
     createdAt: createdAt,
     isPublic: data.isPublic || false,
+    orderCount: data.orderCount || 0,
   };
 };
 
@@ -73,6 +74,7 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
     models: [],
     createdAt: admin.firestore.Timestamp.now(),
     isPublic: false,
+    orderCount: 0,
   };
   const docRef = await db.collection("creations").add(creationData);
   const newDoc = await docRef.get();
@@ -292,6 +294,8 @@ interface CreateOrderActionInput {
 
 export async function createOrderAction(input: CreateOrderActionInput): Promise<Order> {
     const { userId, creationId, model, orderDetails, shippingInfo, paymentInfo, price } = input;
+    const creationRef = getCreationsCollection().doc(creationId);
+
     try {
         const orderData: OrderData = {
             userId,
@@ -308,11 +312,25 @@ export async function createOrderAction(input: CreateOrderActionInput): Promise<
             createdAt: admin.firestore.Timestamp.now(),
         };
 
-        const docRef = await getOrdersCollection().add(orderData);
-        const newDoc = await docRef.get();
-        return docToOrder(newDoc);
+        // Use a transaction to ensure both operations succeed or fail together
+        const newOrder = await db.runTransaction(async (transaction) => {
+            // 1. Increment the order count on the creation
+            transaction.update(creationRef, { 
+                orderCount: admin.firestore.FieldValue.increment(1) 
+            });
+
+            // 2. Add the new order document
+            const orderRef = getOrdersCollection().doc();
+            transaction.set(orderRef, orderData);
+            
+            // Return the created order (or at least its ID) to be fetched outside
+            return docToOrder((await transaction.get(orderRef)));
+        });
+
+        return newOrder;
+
     } catch (error) {
-        console.error('Error in createOrderAction:', error);
+        console.error('Error in createOrderAction transaction:', error);
         if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
@@ -419,6 +437,33 @@ export async function getPublicCreationsAction(): Promise<Creation[]> {
 
     } catch (error) {
         console.error('Error in getPublicCreationsAction:', error);
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
+    }
+}
+
+
+export async function getTrendingCreationsAction(): Promise<Creation[]> {
+    try {
+        const querySnapshot = await getCreationsCollection()
+            .where("isPublic", "==", true)
+            .orderBy("orderCount", "desc")
+            .limit(20) // Let's limit to top 20 for performance
+            .get();
+        
+        if (querySnapshot.empty) {
+            return [];
+        }
+
+        return querySnapshot.docs.map(docToCreation);
+
+    } catch (error) {
+        console.error('Error in getTrendingCreationsAction:', error);
+        // This query requires a composite index on (isPublic, orderCount)
+        // If it fails, provide a helpful message.
+        if (error instanceof Error && (error as any).code === 'FAILED_PRECONDITION') {
+            throw new Error(`The 'getTrendingCreationsAction' query requires a composite index. Please create one in your Firebase console for the 'creations' collection on the fields 'isPublic' (ascending) and 'orderCount' (descending).`);
+        }
         if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
