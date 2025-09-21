@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
@@ -122,6 +122,7 @@ const LoginScreen = () => {
     return (
         <div className="flex flex-col items-center justify-center h-full text-left p-6 animate-fade-in bg-background relative">
            {view === 'options' ? renderOptions() : renderEmailForm()}
+           <p className="absolute bottom-4 text-xs text-muted-foreground">© AIPOD.STYLE. All rights reserved.</p>
         </div>
     );
 };
