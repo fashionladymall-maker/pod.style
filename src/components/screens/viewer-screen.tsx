@@ -194,7 +194,12 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             const updatedCreation = { ...currentCreation, shareCount: currentCreation.shareCount + 1 };
             onUpdateCreation(updatedCreation);
         })
-        .catch(console.error);
+        .catch((error) => {
+          // Silently ignore AbortError which is thrown when the user cancels the share dialog
+          if (error.name !== 'AbortError') {
+            console.error('Share failed:', error);
+          }
+        });
     } else {
         toast({ title: '分享功能需要支持的浏览器' });
     }
