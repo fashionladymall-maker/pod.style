@@ -143,14 +143,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-grow">
         <div className="p-6 space-y-8">
-            <div className="text-center">
-                <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
-                <p className="mt-4 text-muted-foreground">
-                    放飞思想，随心定制
-                    <br />
-                    <span className="text-sm">Free Your Mind, Customize Your Way.</span>
-                </p>
-            </div>
             
             <div className="grid grid-cols-2 gap-4">
                 <Button variant="outline" className="h-16 text-base"><Sparkles className="mr-2"/>流行创意</Button>
