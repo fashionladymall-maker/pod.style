@@ -294,7 +294,6 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
                 <div className={iconButtonClass}>
                     <RefreshCw size={26} />
                 </div>
-                <span>循环定制</span>
             </button>
         )}
       </div>
