@@ -43,8 +43,8 @@ const MockupScreen = ({
   };
   
   const swipeHandlers = useSwipe({ 
-      onSwipeLeft: () => onNavigateModels(1), 
-      onSwipeRight: () => onNavigateModels(-1),
+      onSwipeLeft: () => onNavigateCreations(1), 
+      onSwipeRight: () => onNavigateCreations(-1),
       onSwipeUp: () => onNavigateModels(1),
       onSwipeDown: () => onNavigateModels(-1),
   });
@@ -64,15 +64,6 @@ const MockupScreen = ({
          <Button onClick={onRegenerate} variant="ghost" size="icon" className="absolute top-4 right-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><RefreshCw size={18} /></Button>
       </div>
       
-      <div className="absolute bottom-32 left-1/2 -translate-x-1/2 w-full px-4">
-        <HistoryNavigator 
-          currentIndex={creationHistoryIndex} 
-          total={totalCreations} 
-          onNavigate={onNavigateCreations} 
-          variant="creation"
-          summary={creation?.summary}
-        />
-      </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-4 pt-6 text-white bg-gradient-to-t from-black/60 to-transparent">
           <div className="flex justify-between items-center mb-2">
