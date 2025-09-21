@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,7 +14,6 @@ import { onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously, link
 import HomeScreen from '@/components/screens/home-screen';
 import LoadingScreen from '@/components/screens/loading-screen';
 import ShippingScreen from '@/components/screens/shipping-screen';
-import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
 import ProfileScreen from '@/components/screens/profile-screen';
 import LoginScreen from '@/components/screens/login-screen';
@@ -23,10 +23,9 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import Script from 'next/script';
 
 
-export type AppStep = 'home' | 'generating' | 'categorySelection' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
+export type AppStep = 'home' | 'generating' | 'categorySelection' | 'shipping' | 'confirmation' | 'profile' | 'login';
 export type HomeTab = 'popular' | 'trending' | 'mine';
 export interface ViewerState {
   isOpen: boolean;
@@ -224,13 +223,10 @@ const App = () => {
     }, [fetchCreations, fetchOrders, fetchCommunityCreations, toast, user?.isAnonymous, user?.uid, step]);
 
     useEffect(() => {
-        if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
+        if (step === 'shipping' && orders.length > 0) {
             const lastOrder = orders[0];
             if (lastOrder.shippingInfo) {
                 setShippingInfo(lastOrder.shippingInfo);
-            }
-            if (lastOrder.paymentInfo) {
-                setPaymentInfo(lastOrder.paymentInfo);
             }
         }
     }, [step, orders]);
@@ -400,9 +396,7 @@ const App = () => {
         }
     };
 
-    const handlePayment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
+    const handlePlaceOrder = async () => {
         if (user?.isAnonymous && !shippingInfo.email) {
           toast({
             variant: "destructive",
@@ -437,7 +431,7 @@ const App = () => {
                 model: activeModel,
                 orderDetails,
                 shippingInfo,
-                paymentInfo,
+                paymentInfo, // This is now a mock object, but passed for type consistency
                 price: MOCK_PRICE,
             });
 
@@ -448,7 +442,7 @@ const App = () => {
         } catch (error) {
             console.error("Failed to create order:", error);
             toast({ variant: 'destructive', title: '下单失败', description: '创建订单时发生错误，请稍后重试。' });
-            setStep('payment');
+            setStep('shipping'); // Go back to shipping screen on failure
         } finally {
             setIsLoading(false);
         }
@@ -473,6 +467,7 @@ const App = () => {
 
         switch(step) {
             case 'profile':
+            case 'shipping':
             case 'categorySelection':
                 showBack = true;
                 break;
@@ -481,8 +476,8 @@ const App = () => {
         const handleBack = () => {
             if (step === 'profile') {
                 setStep('home');
-            } else if (step === 'categorySelection') {
-                setViewerState(prev => ({ ...prev, isOpen: true, modelIndex: -1 }));
+            } else if (step === 'categorySelection' || step === 'shipping') {
+                setViewerState(prev => ({ ...prev, isOpen: true }));
                 setStep('home');
             } else {
                 setStep('home');
@@ -566,20 +561,12 @@ const App = () => {
                 user={user}
                 shippingInfo={shippingInfo} 
                 setShippingInfo={setShippingInfo} 
-                onNext={() => setStep('payment')} 
+                onNext={handlePlaceOrder} 
                 onBack={() => {
                   setStep('home');
                   setViewerState(prev => ({...prev, isOpen: true}));
-                }} 
-            />;
-            case 'payment': return <PaymentScreen 
-                orderDetails={orderDetails} 
-                paymentInfo={paymentInfo}
-                setPaymentInfo={setPaymentInfo} 
-                onPay={handlePayment} 
-                onBack={() => setStep('shipping')} 
-                isLoading={isLoading} 
-                price={MOCK_PRICE}
+                }}
+                isLoading={isLoading}
             />;
             case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} onReset={resetOrderFlow} category={lastOrderedCategory} />;
             case 'profile': return <ProfileScreen
@@ -637,18 +624,22 @@ const App = () => {
     );
 
     return (
-        <main className="bg-background text-foreground font-sans h-full w-full">
+        <main className="h-full w-full bg-background text-foreground font-sans">
             { authLoading ? (
-                    <LoadingScreen>
-                        <div className="text-center">
-                            <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
-                            <p className="mt-4">
-                                放飞思想，随心定制
-                                <br />
-                                <span className="text-sm">Free Your Mind, Customize Your Way.</span>
-                            </p>
-                        </div>
-                    </LoadingScreen>
+                <div className="w-full h-full flex flex-col">
+                    <div className="flex-grow min-h-0">
+                        <LoadingScreen>
+                            <div className="text-center">
+                                <h1 className="text-2xl font-medium text-foreground">欢迎来到 POD.STYLE</h1>
+                                <p className="mt-4">
+                                    放飞思想，随心定制
+                                    <br />
+                                    <span className="text-sm">Free Your Mind, Customize Your Way.</span>
+                                </p>
+                            </div>
+                        </LoadingScreen>
+                    </div>
+                </div>
             ) : (
                 renderMainContent()
             )}
