@@ -10,6 +10,7 @@ import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup'
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
 import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentInfo, ShippingInfo } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
+import { cache } from 'react';
 
 
 // --- Firestore Helper Functions ---
@@ -422,7 +423,7 @@ export async function toggleCreationPublicStatusAction(creationId: string, isPub
     }
 }
 
-export async function getPublicCreationsAction(): Promise<Creation[]> {
+export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
@@ -444,10 +445,10 @@ export async function getPublicCreationsAction(): Promise<Creation[]> {
         if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
-}
+});
 
 
-export async function getTrendingCreationsAction(): Promise<Creation[]> {
+export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
         // First, get all public creations.
         const querySnapshot = await getCreationsCollection()
@@ -477,4 +478,4 @@ export async function getTrendingCreationsAction(): Promise<Creation[]> {
         if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
-}
+});
