@@ -42,7 +42,7 @@ const generateModelMockupFlow = ai.defineFlow(
     const categoryMatch = input.category.match(/\(([^)]+)\)/);
     const categoryName = categoryMatch ? categoryMatch[1] : input.category;
 
-    const prompt = `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model using a ${input.colorName} ${categoryName}. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details.
+    const prompt = `A high-quality, clean, and clear fashion photograph of a model using a ${input.colorName} ${categoryName}. The image should be sharp and detailed.
 
 The ${categoryName} must feature the provided design. You have creative freedom on how to apply the design. The print's shape, size, and placement should be aesthetically pleasing and ergonomic for real-world use. It should not be a simple square or rectangle unless that is the most visually appealing choice. The design should integrate seamlessly with the product's material, conforming to folds, textures, and lighting for a photorealistic effect.
 
