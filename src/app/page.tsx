@@ -134,7 +134,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, creations]);
+    }, [toast]);
     
     const fetchOrders = useCallback(async (userId: string) => {
       // Only fetch if orders are not already loaded
@@ -145,7 +145,7 @@ const App = () => {
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
-    }, [orders]);
+    }, []);
 
 
     useEffect(() => {
@@ -573,3 +573,5 @@ const App = () => {
 export default App;
 
     
+
+      
