@@ -44,6 +44,12 @@ export interface Creation {
     createdAt: string; // ISO String
     isPublic: boolean;
     orderCount: number;
+    likeCount: number;
+    likedBy: string[];
+    favoriteCount: number;
+    favoritedBy: string[];
+    commentCount: number;
+    shareCount: number;
 }
 
 // This is the object shape that is stored in Firestore.
@@ -58,6 +64,12 @@ export interface CreationData {
     createdAt: Timestamp;
     isPublic: boolean;
     orderCount: number;
+    likeCount: number;
+    likedBy: string[];
+    favoriteCount: number;
+    favoritedBy: string[];
+    commentCount: number;
+    shareCount: number;
 }
 
 
@@ -94,4 +106,23 @@ export interface OrderData {
     paymentInfo: PaymentInfo;
     createdAt: Timestamp;
     status: OrderStatus;
+}
+
+// Client-side Comment type
+export interface Comment {
+    id: string;
+    userId: string;
+    userName: string;
+    userPhotoURL: string;
+    text: string;
+    createdAt: string; // ISO string
+}
+
+// Firestore Comment data type
+export interface CommentData {
+    userId: string;
+    userName: string;
+    userPhotoURL: string;
+    text: string;
+    createdAt: Timestamp;
 }

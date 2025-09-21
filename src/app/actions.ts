@@ -8,7 +8,7 @@ import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
 import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
-import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentInfo, ShippingInfo } from '@/lib/types';
+import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentInfo, ShippingInfo, Comment, CommentData } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { cache } from 'react';
 
@@ -17,11 +17,11 @@ import { cache } from 'react';
 
 const getCreationsCollection = () => db.collection("creations");
 const getOrdersCollection = () => db.collection("orders");
+const getCommentsCollection = (creationId: string) => getCreationsCollection().doc(creationId).collection("comments");
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
-  // Firestore Timestamps must be converted to a serializable format (ISO string) for the client.
-  const createdAt = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
+  const createdAt = (data.createdAt as admin.firestore.Timestamp)?.toDate().toISOString();
 
   return {
     id: doc.id,
@@ -34,6 +34,12 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     createdAt: createdAt,
     isPublic: data.isPublic || false,
     orderCount: data.orderCount || 0,
+    likeCount: data.likeCount || 0,
+    likedBy: data.likedBy || [],
+    favoriteCount: data.favoriteCount || 0,
+    favoritedBy: data.favoritedBy || [],
+    commentCount: data.commentCount || 0,
+    shareCount: data.shareCount || 0,
   };
 };
 
@@ -58,6 +64,16 @@ const docToOrder = (doc: FirebaseFirestore.DocumentSnapshot): Order => {
   };
 };
 
+const docToComment = (doc: FirebaseFirestore.DocumentSnapshot): Comment => {
+    const data = doc.data() as CommentData;
+    const createdAt = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt,
+    };
+};
+
 
 interface AddCreationData {
     userId: string;
@@ -74,6 +90,12 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
     createdAt: admin.firestore.Timestamp.now(),
     isPublic: false,
     orderCount: 0,
+    likeCount: 0,
+    likedBy: [],
+    favoriteCount: 0,
+    favoritedBy: [],
+    commentCount: 0,
+    shareCount: 0,
   };
   const docRef = await getCreationsCollection().add(creationData);
   const newDoc = await docRef.get();
@@ -244,7 +266,6 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
         
         const creations = querySnapshot.docs.map(docToCreation);
         
-        // Sort in memory instead of in the query to avoid needing a composite index.
         creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         return creations;
@@ -334,7 +355,6 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
         
         const orders = querySnapshot.docs.map(docToOrder);
 
-        // Sort in memory to avoid needing a composite index
         orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         return orders;
@@ -403,12 +423,11 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .limit(20) // Limit the number of public creations for performance
+            .limit(20)
             .get();
         
         const creations = querySnapshot.docs.map(docToCreation);
 
-        // Sort in memory to avoid needing an index
         creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         return creations;
@@ -425,12 +444,11 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .limit(20) // Limit results for performance
+            .limit(20)
             .get();
 
         const creations = querySnapshot.docs.map(docToCreation);
 
-        // Sort in memory to avoid needing an index
         creations.sort((a, b) => {
             if (b.orderCount !== a.orderCount) {
                 return b.orderCount - a.orderCount;
@@ -446,3 +464,105 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
         throw new Error(String(error));
     }
 });
+
+
+// --- Social Actions ---
+
+export async function toggleLikeAction(creationId: string, userId: string, isLiked: boolean): Promise<{ success: boolean }> {
+    const creationRef = getCreationsCollection().doc(creationId);
+    try {
+        if (isLiked) {
+            await creationRef.update({
+                likeCount: admin.firestore.FieldValue.increment(-1),
+                likedBy: admin.firestore.FieldValue.arrayRemove(userId)
+            });
+        } else {
+            await creationRef.update({
+                likeCount: admin.firestore.FieldValue.increment(1),
+                likedBy: admin.firestore.FieldValue.arrayUnion(userId)
+            });
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error in toggleLikeAction:', error);
+        return { success: false };
+    }
+}
+
+export async function toggleFavoriteAction(creationId: string, userId: string, isFavorited: boolean): Promise<{ success: boolean }> {
+    const creationRef = getCreationsCollection().doc(creationId);
+    try {
+        if (isFavorited) {
+            await creationRef.update({
+                favoriteCount: admin.firestore.FieldValue.increment(-1),
+                favoritedBy: admin.firestore.FieldValue.arrayRemove(userId)
+            });
+        } else {
+            await creationRef.update({
+                favoriteCount: admin.firestore.FieldValue.increment(1),
+                favoritedBy: admin.firestore.FieldValue.arrayUnion(userId)
+            });
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error in toggleFavoriteAction:', error);
+        return { success: false };
+    }
+}
+
+export async function addCommentAction(creationId: string, commentData: Omit<CommentData, 'createdAt'>): Promise<Comment> {
+    const creationRef = getCreationsCollection().doc(creationId);
+    const commentsRef = getCommentsCollection(creationId);
+    const newCommentRef = commentsRef.doc();
+
+    const dataWithTimestamp: CommentData = {
+        ...commentData,
+        createdAt: admin.firestore.Timestamp.now()
+    };
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            transaction.set(newCommentRef, dataWithTimestamp);
+            transaction.update(creationRef, {
+                commentCount: admin.firestore.FieldValue.increment(1)
+            });
+        });
+        const newCommentDoc = await newCommentRef.get();
+        return docToComment(newCommentDoc);
+    } catch (error) {
+        console.error('Error in addCommentAction:', error);
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
+    }
+}
+
+export async function getCommentsAction(creationId: string): Promise<Comment[]> {
+    try {
+        const snapshot = await getCommentsCollection(creationId)
+            .orderBy('createdAt', 'desc')
+            .limit(50)
+            .get();
+        return snapshot.docs.map(docToComment);
+    } catch (error) {
+        console.error('Error in getCommentsAction:', error);
+        // Firestore will throw if the index doesn't exist. This is a common setup step.
+        if ((error as any).code === 'FAILED_PRECONDITION') {
+            console.error(`This query requires a Firestore index. Please create a composite index on the 'comments' subcollection with fields: 'createdAt' (descending).`);
+        }
+        return [];
+    }
+}
+
+
+export async function incrementShareCountAction(creationId: string): Promise<{ success: boolean }> {
+    const creationRef = getCreationsCollection().doc(creationId);
+    try {
+        await creationRef.update({
+            shareCount: admin.firestore.FieldValue.increment(1)
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error in incrementShareCountAction:', error);
+        return { success: false };
+    }
+}

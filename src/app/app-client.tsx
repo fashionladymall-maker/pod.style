@@ -2,7 +2,20 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction, toggleCreationPublicStatusAction, getPublicCreationsAction, getTrendingCreationsAction } from '@/app/actions';
+import { 
+    generatePatternAction, 
+    generateModelAction, 
+    getCreationsAction, 
+    deleteCreationAction, 
+    createOrderAction, 
+    getOrdersAction, 
+    toggleCreationPublicStatusAction, 
+    getPublicCreationsAction, 
+    getTrendingCreationsAction,
+    toggleLikeAction,
+    toggleFavoriteAction,
+    incrementShareCountAction
+} from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
@@ -221,6 +234,12 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         }
     }, [step, orders]);
 
+    const updateCreationsState = (updatedCreation: Creation) => {
+      const updateList = (list: Creation[]) => list.map(c => c.id === updatedCreation.id ? updatedCreation : c);
+      setCreations(updateList);
+      setPublicCreations(updateList);
+      setTrendingCreations(updateList);
+    };
 
     const handleGeneratePattern = useCallback(async () => {
         if (!user) {
@@ -633,6 +652,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
             {viewerState.isOpen && (
               <ViewerScreen
+                user={user}
                 viewerState={viewerState}
                 setViewerState={setViewerState}
                 sourceCreations={getSourceCreations()}
@@ -648,6 +668,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                    setStep('categorySelection');
                 }}
                 price={MOCK_PRICE}
+                onLikeToggle={toggleLikeAction}
+                onFavoriteToggle={toggleFavoriteAction}
+                onShare={incrementShareCountAction}
+                onUpdateCreation={updateCreationsState}
               />
             )}
         </main>
