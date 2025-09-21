@@ -43,8 +43,8 @@ const MockupScreen = ({
   };
   
   const swipeHandlers = useSwipe({ 
-      onSwipeLeft: () => models.length > 1 ? onNavigateModels(1) : onNavigateCreations(1), 
-      onSwipeRight: () => models.length > 1 ? onNavigateModels(-1) : onNavigateCreations(-1) 
+      onSwipeLeft: () => onNavigateModels(1), 
+      onSwipeRight: () => onNavigateModels(-1)
   });
   
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
