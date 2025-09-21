@@ -103,49 +103,57 @@ const LoginScreen = () => {
     const handleEmailSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        try {
-            const currentUser = auth.currentUser;
-            if (currentUser && currentUser.isAnonymous) {
-                // If user is anonymous, try to link first.
-                const credential = EmailAuthProvider.credential(email, password);
+        const currentUser = auth.currentUser;
+        
+        if (currentUser && currentUser.isAnonymous) {
+            // --- This is the ANONYMOUS user path ---
+            const credential = EmailAuthProvider.credential(email, password);
+            try {
+                // Try to link the anonymous account with the email/password credential
                 await linkWithCredential(currentUser, credential);
                 toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
-            } else {
-                // If not anonymous or no user, just sign in.
-                await signInWithEmailAndPassword(auth, email, password);
-                toast({ title: "登录成功" });
-            }
-        } catch (error: any) {
-            // This case happens if the email is already linked to another account
-            // and we tried to link it again. The best UX is to sign out anonymous
-            // and sign in with the permanent account.
-            if (error.code === 'auth/credential-already-in-use') {
+            } catch (error: any) {
+                // This catch block handles ALL failures from linkWithCredential
+                console.error("Link failed, attempting sign-out and sign-in:", error.code);
+
+                // This is our robust fallback. If linking fails for ANY reason 
+                // (e.g., auth/network-request-failed, auth/credential-already-in-use),
+                // we sign out the anonymous user and sign in with the permanent account.
+                // This prioritizes successful login over data migration if migration fails.
                 try {
                     await auth.signOut();
                     await signInWithEmailAndPassword(auth, email, password);
-                    toast({ title: "登录成功", description: "已切换到您的现有账户。" });
-                } catch (signInError) {
-                    // This can happen if password is wrong on the second attempt
-                    toast({ variant: "destructive", title: "登录失败", description: "邮箱或密码错误。" });
+                    
+                    if (error.code === 'auth/credential-already-in-use') {
+                        toast({ title: "登录成功", description: "已切换到您的现有账户。" });
+                    } else {
+                        toast({ title: "登录成功", description: "欢迎回来！由于网络问题，匿名会话未能合并。" });
+                    }
+                } catch (signInError: any) {
+                    // This inner catch handles the case where the fallback sign-in also fails (e.g., wrong password)
+                     toast({
+                        variant: "destructive",
+                        title: "登录失败",
+                        description: "邮箱或密码错误，请重试。",
+                    });
                 }
-
-            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                toast({
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            // --- This is the NORMAL (non-anonymous) user path ---
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                toast({ title: "登录成功" });
+            } catch (error: any) {
+                 toast({
                     variant: "destructive",
                     title: "登录失败",
                     description: "邮箱或密码错误，请重试。",
                 });
-            } else {
-                // Handle other errors like network issues from linkWithCredential
-                 toast({
-                    variant: "destructive",
-                    title: "登录时发生错误",
-                    description: "无法完成登录，请检查网络或稍后重试。",
-                });
-                console.error("Sign-in error:", error);
+            } finally {
+                setIsLoading(false);
             }
-        } finally {
-            setIsLoading(false);
         }
     }
 
