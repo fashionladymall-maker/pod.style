@@ -404,14 +404,18 @@ export async function getPublicCreationsAction(): Promise<Creation[]> {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .orderBy("createdAt", "desc")
             .get();
         
         if (querySnapshot.empty) {
             return [];
         }
 
-        return querySnapshot.docs.map(docToCreation);
+        const creations = querySnapshot.docs.map(docToCreation);
+
+        // Sort in-memory after fetching to avoid needing a composite index
+        creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        return creations;
 
     } catch (error) {
         console.error('Error in getPublicCreationsAction:', error);
