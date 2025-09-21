@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { FirebaseUser, Creation } from '@/lib/types';
+import { Separator } from '../ui/separator';
 
 interface HomeScreenProps {
   prompt: string;
@@ -20,7 +21,9 @@ interface HomeScreenProps {
   setUploadedImage: (value: string | null) => void;
   onGenerate: () => void;
   creations: Creation[];
+  publicCreations: Creation[];
   onGoToHistory: (index: number) => void;
+  onSelectPublicCreation: (creation: Creation) => void;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
   artStyles: string[];
@@ -43,8 +46,8 @@ const creativePrompts = [
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
-  creations, onGoToHistory, isRecording, setIsRecording,
-  artStyles, selectedStyle, setSelectedStyle
+  creations, publicCreations, onGoToHistory, onSelectPublicCreation,
+  isRecording, setIsRecording, artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
@@ -138,9 +141,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow flex flex-col">
-        {creations.length === 0 ? (
-          <div className="flex-grow flex justify-center items-center p-6">
+      <ScrollArea className="flex-grow">
+        {creations.length === 0 && publicCreations.length === 0 ? (
+          <div className="flex h-full justify-center items-center p-6">
               <div className="text-center">
                 <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
                 <p className="mt-4 text-muted-foreground">
@@ -151,20 +154,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               </div>
           </div>
         ) : (
-          <div className="p-6">
-            <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {creations.map((creation, index) => (
-                  <button key={creation.id} onClick={() => onGoToHistory(index)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                      <Image src={creation.patternUri} alt={`创意 ${creation.id}`} layout="fill" className="object-cover" />
-                  </button>
-              ))}
-            </div>
+          <div className="p-6 space-y-8">
+            {creations.length > 0 && (
+                <div>
+                    <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                    {creations.map((creation, index) => (
+                        <button key={creation.id} onClick={() => onGoToHistory(index)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
+                            <Image src={creation.patternUri} alt={`创意 ${creation.id}`} layout="fill" className="object-cover" />
+                        </button>
+                    ))}
+                    </div>
+                </div>
+            )}
+             {creations.length > 0 && publicCreations.length > 0 && <Separator />}
+             {publicCreations.length > 0 && (
+                <div>
+                     <h3 className="font-medium mb-3 text-muted-foreground text-sm">流行创意</h3>
+                     <div className="grid grid-cols-2 gap-4">
+                        {publicCreations.filter(pc => !creations.some(c => c.id === pc.id)).map((creation) => (
+                            <button key={creation.id} onClick={() => onSelectPublicCreation(creation)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
+                                <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+             )}
           </div>
         )}
-      </div>
+      </ScrollArea>
 
-      <div className="mt-auto p-4 bg-background">
+      <div className="mt-auto p-4 bg-background border-t">
         <div className="relative mb-3">
             <Input
               className="w-full bg-secondary text-foreground p-3 pr-12 rounded-full h-12 border-none focus-visible:ring-1 transition-all duration-300"

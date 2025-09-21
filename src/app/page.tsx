@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction } from '@/app/actions';
+import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction, getPublicCreationsAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
@@ -110,6 +110,7 @@ const App = () => {
     const [authLoading, setAuthLoading] = useState(true);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [creations, setCreations]  = useState<Creation[]>([]);
+    const [publicCreations, setPublicCreations] = useState<Creation[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
     const [activeModelIndex, setActiveModelIndex] = useState(-1);
@@ -144,10 +145,20 @@ const App = () => {
         console.error("Failed to fetch orders:", error);
       }
     }, []);
+    
+    const fetchPublicCreations = useCallback(async () => {
+      try {
+        const creations = await getPublicCreationsAction();
+        setPublicCreations(creations);
+      } catch (error) {
+        console.error("Failed to fetch public creations:", error);
+      }
+    }, []);
 
 
     useEffect(() => {
         let isSigningOut = false; // Flag to prevent race condition
+        fetchPublicCreations();
 
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (isSigningOut) {
@@ -195,7 +206,7 @@ const App = () => {
         (auth as any).customSignOut = customSignOut;
 
         return () => unsubscribe();
-    }, [fetchCreations, fetchOrders, toast, user, step]);
+    }, [fetchCreations, fetchOrders, fetchPublicCreations, toast, user, step]);
 
     useEffect(() => {
         if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
@@ -340,6 +351,21 @@ const App = () => {
             setActiveModelIndex(-1);
             setStep('patternPreview');
         }
+    };
+    
+    const handleSelectPublicCreation = (creation: Creation) => {
+        const existingIndex = creations.findIndex(c => c.id === creation.id);
+        if (existingIndex > -1) {
+             goToHistory(existingIndex);
+             return;
+        }
+
+        // Add the public creation to the user's session history and go to it
+        const newCreations = [creation, ...creations];
+        setCreations(newCreations);
+        setActiveCreationIndex(0);
+        setActiveModelIndex(-1);
+        setStep('patternPreview');
     };
 
     const handleSignOut = async () => {
@@ -609,7 +635,9 @@ const App = () => {
                     uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
                     onGenerate={handleGeneratePattern}
                     creations={creations}
+                    publicCreations={publicCreations}
                     onGoToHistory={goToHistory}
+                    onSelectPublicCreation={handleSelectPublicCreation}
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
                     artStyles={artStyles}
