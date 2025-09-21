@@ -240,21 +240,18 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("userId", "==", userId)
-            .orderBy("createdAt", "desc") // Offload sorting to Firestore
             .get();
         
-        return querySnapshot.docs.map(docToCreation);
+        const creations = querySnapshot.docs.map(docToCreation);
+        
+        // Sort in memory instead of in the query to avoid needing a composite index.
+        creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        return creations;
 
     } catch (error) {
         console.error('Error in getCreationsAction:', error);
-        if (error instanceof Error) {
-           if ((error as any).code === 'FAILED_PRECONDITION') {
-              const errorMessage = `The 'getCreationsAction' query requires a composite index. Please create it in your Firebase console for the 'creations' collection.`;
-              console.error(errorMessage);
-              throw new Error(errorMessage);
-           }
-           throw error;
-        }
+        if (error instanceof Error) throw error;
         throw new Error(String(error));
   }
 }
@@ -333,21 +330,18 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
     try {
         const querySnapshot = await getOrdersCollection()
             .where("userId", "==", userId)
-            .orderBy("createdAt", "desc") // Offload sorting to Firestore
             .get();
         
-        return querySnapshot.docs.map(docToOrder);
+        const orders = querySnapshot.docs.map(docToOrder);
+
+        // Sort in memory to avoid needing a composite index
+        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        return orders;
 
     } catch (error) {
         console.error('Error in getOrdersAction:', error);
-        if (error instanceof Error) {
-           if ((error as any).code === 'FAILED_PRECONDITION') {
-              const errorMessage = `The 'getOrdersAction' query requires a composite index. Please create it in your Firebase console for the 'orders' collection.`;
-              console.error(errorMessage);
-              throw new Error(errorMessage);
-           }
-           throw error;
-        }
+        if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
 }
@@ -452,5 +446,3 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
         throw new Error(String(error));
     }
 });
-
-    
