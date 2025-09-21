@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useDrag } from '@use-gesture/react';
 import { ArrowLeft } from 'lucide-react';
@@ -45,40 +45,56 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     };
   }, []);
 
+  const flatNavigationMap = useMemo(() => {
+    const map: { creationIndex: number, modelIndex: number }[] = [];
+    creations.forEach((creation, cIndex) => {
+      map.push({ creationIndex: cIndex, modelIndex: -1 }); // The pattern itself
+      creation.models.forEach((_, mIndex) => {
+        map.push({ creationIndex: cIndex, modelIndex: mIndex });
+      });
+    });
+    return map;
+  }, [creations]);
+  
   const handleClose = () => {
     setViewerState(prev => ({ ...prev, isOpen: false }));
   };
 
-  const handleNavigateCreation = (direction: 'prev' | 'next') => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    setViewerState(prev => {
-      const newIndex = prev.creationIndex + (direction === 'next' ? 1 : -1);
-      if (newIndex >= 0 && newIndex < creations.length) {
-        return { ...prev, creationIndex: newIndex, modelIndex: -1 };
-      }
-      return prev;
-    });
-    setTimeout(() => setIsNavigating(false), 500);
-  };
-
-  const handleNavigateModel = (direction: 'prev' | 'next') => {
-    const currentCreation = creations[viewerState.creationIndex];
-    if (!currentCreation || isNavigating) return;
-
-    setIsNavigating(true);
-    setViewerState(prev => {
-      const newIndex = prev.modelIndex + (direction === 'next' ? 1 : -1);
-      if (newIndex >= -1 && newIndex < currentCreation.models.length) {
-        return { ...prev, modelIndex: newIndex };
-      }
-      return prev;
-    });
-    setTimeout(() => setIsNavigating(false), 500);
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    if (isNavigating || flatNavigationMap.length <= 1) return;
+  
+    const currentIndex = flatNavigationMap.findIndex(
+      item => item.creationIndex === viewerState.creationIndex && item.modelIndex === viewerState.modelIndex
+    );
+  
+    if (currentIndex === -1) return;
+  
+    const newIndex = currentIndex + (direction === 'next' ? 1 : -1);
+  
+    if (newIndex >= 0 && newIndex < flatNavigationMap.length) {
+      setIsNavigating(true);
+      const nextItem = flatNavigationMap[newIndex];
+      setViewerState(prev => ({
+        ...prev,
+        creationIndex: nextItem.creationIndex,
+        modelIndex: nextItem.modelIndex,
+      }));
+      setTimeout(() => setIsNavigating(false), 500); // Cooldown
+    }
   };
   
   const onSelectModel = (index: number) => {
-    setViewerState(prev => ({ ...prev, modelIndex: index }));
+    const targetIndex = flatNavigationMap.findIndex(
+      item => item.creationIndex === viewerState.creationIndex && item.modelIndex === index
+    );
+    if(targetIndex !== -1) {
+        const targetItem = flatNavigationMap[targetIndex];
+        setViewerState(prev => ({ 
+            ...prev,
+            creationIndex: targetItem.creationIndex,
+            modelIndex: targetItem.modelIndex 
+        }));
+    }
   }
 
   const currentCreation = creations[viewerState.creationIndex];
@@ -88,12 +104,10 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   const bind = useDrag(
     ({ last, swipe: [, swipeY] }) => {
       if (last && !isNavigating) {
-        const targetHandler = isPatternView ? handleNavigateCreation : handleNavigateModel;
-        
         if (swipeY === -1) { // Swipe Up
-          targetHandler('next');
+          handleNavigate('next');
         } else if (swipeY === 1) { // Swipe Down
-          targetHandler('prev');
+          handleNavigate('prev');
         }
       }
     },
@@ -121,7 +135,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             <PatternPreviewScreen
               creation={currentCreation}
               isModelGenerating={false}
-              onGoToModel={() => handleNavigateModel('next')}
+              onGoToModel={() => handleNavigate('next')}
             />
           ) : (
             <MockupScreen
