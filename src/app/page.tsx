@@ -367,16 +367,17 @@ const App = () => {
     const handleSelectPublicCreation = (creation: Creation, source: HomeTab, modelIndex?: number) => {
         const existingIndex = creations.findIndex(c => c.id === creation.id);
         let targetIndex = existingIndex > -1 ? existingIndex : 0;
-    
+
         if (existingIndex === -1) {
             const newCreations = [creation, ...creations];
             setCreations(newCreations);
         } else {
-            // If creation already exists, we may need to update its position to the front
-            // For now, we just use its existing index to avoid complexity.
-            // A more sophisticated approach could move it to the front.
+            // Move to front
+            const item = creations[existingIndex];
+            const filtered = creations.filter(c => c.id !== creation.id);
+            setCreations([item, ...filtered]);
         }
-    
+
         setActiveCreationIndex(targetIndex);
     
         if (source === 'trending' && modelIndex !== undefined) {
@@ -500,28 +501,28 @@ const App = () => {
         }
 
         return (
-          <header className="flex items-center justify-between p-4 bg-background border-b">
+          <header className="flex items-center justify-between px-2 py-1 bg-background border-b">
               {showBack ? (
-                  <Button variant="ghost" size="icon" onClick={handleBack}><ArrowLeft /></Button>
+                  <Button variant="ghost" size="sm" className="w-9" onClick={handleBack}><ArrowLeft /></Button>
               ) : (
-                  <Button variant="ghost" size="icon"><Menu /></Button>
+                  <Button variant="ghost" size="sm" className="w-9"><Menu /></Button>
               )}
               
               <Button variant="ghost" onClick={() => setStep('home')} className="p-0 h-auto">
-                  <h1 className="text-lg font-medium">{title}</h1>
+                  <h1 className="text-base font-medium">{title}</h1>
               </Button>
 
               {step !== 'login' && user && (
-                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => user.isAnonymous ? setStep('login') : setStep('profile')}>
-                  <Avatar className="w-8 h-8">
+                <Button variant="ghost" size="icon" className="rounded-full w-9 h-9" onClick={() => user.isAnonymous ? setStep('login') : setStep('profile')}>
+                  <Avatar className="w-7 h-7">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user.isAnonymous ? <User size={20} /> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      {user.isAnonymous ? <User size={16} /> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               )}
-              { (step === 'login' || !user) && <div className="w-10"></div>}
+              { (step === 'login' || !user) && <div className="w-9"></div>}
           </header>
         );
     };
