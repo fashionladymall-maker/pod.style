@@ -74,9 +74,9 @@ const MockupScreen = ({
         />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pt-12 text-white bg-gradient-to-t from-black/60 to-transparent">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">¥ {price}</div>
+      <div className="absolute bottom-0 left-0 right-0 p-4 pt-6 text-white bg-gradient-to-t from-black/60 to-transparent">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-xl font-bold">¥ {price}</div>
             
             {models && models.length > 0 && (
               <ScrollArea className="max-w-[70%] whitespace-nowrap rounded-md">
@@ -103,8 +103,8 @@ const MockupScreen = ({
           
 
           {isApparel && (
-              <div className="my-4">
-                  <p className="text-sm font-medium mb-2">尺码</p>
+              <div className="my-2">
+                  <p className="text-xs font-medium mb-1">尺码</p>
                   <div className="flex gap-2">
                       {sizes.map(size => (
                           <Button 
@@ -112,7 +112,7 @@ const MockupScreen = ({
                               variant={orderDetails.size === size ? 'default' : 'outline'} 
                               onClick={() => setOrderDetails(prev => ({ ...prev, size }))} 
                               className={cn(
-                                "rounded-md h-9 w-12 text-base font-semibold", 
+                                "rounded-md h-8 w-10 text-sm font-semibold", 
                                 orderDetails.size !== size && "bg-white/10 border-white/20 text-white hover:bg-white/20"
                               )}
                           >
@@ -123,18 +123,18 @@ const MockupScreen = ({
               </div>
           )}
 
-          <Separator className="my-4 bg-white/20" />
+          <Separator className="my-2 bg-white/20" />
 
-          <div className="flex justify-between items-center mb-6">
-              <p className="text-sm font-medium">数量</p>
-              <div className="flex items-center gap-3">
-                  <Button variant="secondary" size="icon" className="rounded-full w-8 h-8 bg-white/10 text-white hover:bg-white/20" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
-                  <span className="font-bold text-lg w-8 text-center">{orderDetails.quantity}</span>
-                  <Button variant="secondary" size="icon" className="rounded-full w-8 h-8 bg-white/10 text-white hover:bg-white/20" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+          <div className="flex justify-between items-center mb-3">
+              <p className="text-xs font-medium">数量</p>
+              <div className="flex items-center gap-2">
+                  <Button variant="secondary" size="icon" className="rounded-full w-7 h-7 bg-white/10 text-white hover:bg-white/20" onClick={() => handleQuantityChange(-1)}><Minus size={14} /></Button>
+                  <span className="font-bold text-base w-6 text-center">{orderDetails.quantity}</span>
+                  <Button variant="secondary" size="icon" className="rounded-full w-7 h-7 bg-white/10 text-white hover:bg-white/20" onClick={() => handleQuantityChange(1)}><Plus size={14} /></Button>
               </div>
           </div>
 
-          <Button onClick={onNext} size="lg" className="w-full h-12 text-base rounded-full bg-blue-500 hover:bg-blue-600 text-white">
+          <Button onClick={onNext} size="lg" className="w-full h-11 text-base rounded-full bg-blue-500 hover:bg-blue-600 text-white">
               下一步 <ShoppingCart className="ml-2" size={20} />
           </Button>
       </div>
