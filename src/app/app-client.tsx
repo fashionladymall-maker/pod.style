@@ -223,7 +223,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
         return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run only once on mount
+    }, [step]); // Add step to dependency array to re-evaluate when it changes
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {

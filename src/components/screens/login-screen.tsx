@@ -77,13 +77,20 @@ const LoginScreen = () => {
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         const provider = new GoogleAuthProvider();
-        try {
-            // We use signInWithPopup which will either sign in or create a user.
-            // Firebase handles linking automatically if the user was anonymous and the Google account is new to the app.
-            const result = await signInWithPopup(auth, provider);
+        const currentUser = auth.currentUser;
+        const anonymousUid = currentUser?.isAnonymous ? currentUser.uid : null;
 
-            // We don't need to manually link here. onAuthStateChanged will handle the UI update.
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const permanentUid = result.user.uid;
+            
             toast({ title: '登录成功', description: `欢迎回来, ${result.user.displayName}!` });
+            
+            if (anonymousUid && permanentUid) {
+                toast({ title: '正在合并您的匿名创作历史...', description: '请稍候...' });
+                await migrateAnonymousDataAction(anonymousUid, permanentUid);
+                toast({ title: '数据合并成功！', description: '您所有的创作都已保留。' });
+            }
 
         } catch (error: any) {
              if (error.code === 'auth/account-exists-with-different-credential') {
@@ -129,10 +136,6 @@ const LoginScreen = () => {
         
         try {
             const credential = EmailAuthProvider.credential(email, password);
-            // The linkAnonymousAccount function will handle all cases:
-            // 1. Successful link
-            // 2. Already-in-use credential (signs in to existing account and migrates data)
-            // 3. Other errors
             await linkAnonymousAccount(credential);
         } catch (error: any) {
             // Errors are already toasted inside linkAnonymousAccount,

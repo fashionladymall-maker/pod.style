@@ -371,6 +371,7 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
 
 export async function migrateAnonymousDataAction(anonymousUid: string, permanentUid: string): Promise<{ success: boolean }> {
   if (!anonymousUid || !permanentUid || anonymousUid === permanentUid) {
+    console.warn(`Migration skipped: Invalid UIDs. anonymousUid: ${anonymousUid}, permanentUid: ${permanentUid}`);
     return { success: false };
   }
 
