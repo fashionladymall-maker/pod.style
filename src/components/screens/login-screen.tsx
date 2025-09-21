@@ -20,28 +20,32 @@ const LoginScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     
     // This helper function centralizes the logic for linking an anonymous account.
-    const linkAnonymousAccount = async (credential: AuthCredential): Promise<{ success: boolean, switched: boolean }> => {
+    const linkAnonymousAccount = async (credential: AuthCredential) => {
         const currentUser = auth.currentUser;
         if (!currentUser || !currentUser.isAnonymous) {
             // Not an anonymous user, so no linking is needed.
-            return { success: false, switched: false };
+            return;
         }
 
         try {
             await linkWithCredential(currentUser, credential);
             toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
-            return { success: true, switched: false };
         } catch (error: any) {
             // This is a special case: the credential belongs to another existing user.
-            if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
+            if (error.code === 'auth/credential-already-in-use') {
                  // To handle this, we must sign out the anonymous user and then sign in with the permanent account.
                  // This will NOT merge the data, but it will log the user in successfully.
-                 await signOut(auth);
+                 // The 'isSigningOut' flag in page.tsx will prevent onAuthStateChanged from creating a new anonymous user.
+                 if ((auth as any).customSignOut) {
+                    await (auth as any).customSignOut();
+                 } else {
+                    await signOut(auth);
+                 }
+                 
                  // We need email/password from the credential, but credential object is opaque.
                  // So we must rely on the component's state for email/password.
                  await signInWithEmailAndPassword(auth, email, password);
                  toast({ title: "登录成功", description: "已切换到您的现有账户。匿名会话未合并。" });
-                 return { success: true, switched: true };
             } else {
                 // For other errors (like network failure), re-throw to be caught by the caller.
                 console.error("Link error:", error);
@@ -56,16 +60,12 @@ const LoginScreen = () => {
         setIsLoading(true);
         const provider = new GoogleAuthProvider();
         try {
-            // The signInWithPopup will either sign in a new user or an existing user.
-            // If the user was anonymous before this, Firebase automatically handles the upgrade.
-            const result = await signInWithPopup(auth, provider);
-            const isNewUser = result.user.metadata.creationTime === result.user.metadata.lastSignInTime;
+            const credential = await signInWithPopup(auth, provider).then(result => GoogleAuthProvider.credentialFromResult(result));
 
-            if (isNewUser) {
-                toast({ title: '注册并登录成功', description: '欢迎！您的匿名创作已合并到新账户。' });
-            } else {
-                toast({ title: '登录成功', description: '欢迎回来！' });
+            if (credential) {
+                await linkAnonymousAccount(credential);
             }
+            // onAuthStateChanged will handle UI updates
         } catch (error: any) {
              if (error.code === 'auth/account-exists-with-different-credential') {
                 toast({
@@ -107,35 +107,15 @@ const LoginScreen = () => {
     const handleEmailSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        const currentUser = auth.currentUser;
         
-        if (currentUser && currentUser.isAnonymous) {
-            // --- Anonymous user path: try to link account first ---
+        try {
             const credential = EmailAuthProvider.credential(email, password);
-            try {
-                await linkAnonymousAccount(credential);
-                // If linkAnonymousAccount succeeds or switches account, it will show a toast.
-                // The onAuthStateChanged listener in page.tsx will handle the UI update.
-            } catch (error: any) {
-                // linkAnonymousAccount already shows a toast for failures.
-                // We catch the re-thrown error here just to stop execution.
-            } finally {
-                setIsLoading(false);
-            }
-        } else {
-            // --- Normal (non-anonymous) user path ---
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                toast({ title: "登录成功" });
-            } catch (error: any) {
-                 toast({
-                    variant: "destructive",
-                    title: "登录失败",
-                    description: "邮箱或密码错误，请重试。",
-                });
-            } finally {
-                setIsLoading(false);
-            }
+            await linkAnonymousAccount(credential);
+        } catch (error: any) {
+            // Errors are already handled and toasted inside linkAnonymousAccount
+            // We just need to catch to stop execution.
+        } finally {
+            setIsLoading(false);
         }
     }
 

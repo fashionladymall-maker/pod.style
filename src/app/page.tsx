@@ -147,7 +147,13 @@ const App = () => {
 
 
     useEffect(() => {
+        let isSigningOut = false; // Flag to prevent race condition
+
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (isSigningOut) {
+                return;
+            }
+
             if (firebaseUser) {
                 const wasAnonymous = user?.isAnonymous;
                 const isPermanent = !firebaseUser.isAnonymous;
@@ -176,6 +182,18 @@ const App = () => {
                 });
             }
         });
+
+        // Custom signOut function to manage the flag
+        const customSignOut = async () => {
+            isSigningOut = true;
+            await firebaseSignOut(auth);
+            isSigningOut = false;
+        };
+
+        // We can expose `customSignOut` via a context or other means if needed elsewhere
+        // For now, we handle it within this component
+        (auth as any).customSignOut = customSignOut;
+
         return () => unsubscribe();
     }, [fetchCreations, fetchOrders, toast, user, step]);
 
@@ -326,7 +344,7 @@ const App = () => {
 
     const handleSignOut = async () => {
         try {
-            await firebaseSignOut(auth);
+            await ((auth as any).customSignOut || firebaseSignOut)(auth);
             // After sign out, onAuthStateChanged will trigger and sign in a new anonymous user.
             // Reset local state to reflect the new empty session.
             resetState();
