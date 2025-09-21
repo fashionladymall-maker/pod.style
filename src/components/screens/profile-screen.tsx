@@ -60,11 +60,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   }, [initialOrders]);
 
 
-  const handleDeleteAllCreations = () => {
-    creations.forEach(c => onDeleteCreation(c.id));
-    setCreations([]);
-  }
-  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   }
@@ -138,28 +133,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <TooltipProvider>
             <ScrollArea className="h-full">
                 <div className="px-1 pb-4">
-                    <div className="flex justify-end items-center mb-4">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" disabled={creations.length === 0}>
-                            <Trash2 size={16} className="mr-2"/>
-                            全部删除
-                        </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>确定要删除全部创作吗?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                            此操作无法撤销。这将从我们的服务器上永久删除您的所有作品。
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>取消</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteAllCreations}>全部删除</AlertDialogAction>
-                        </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                    </div>
                     {initialCreations.length === 0 && !user?.isAnonymous && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
                     {creations.length > 0 ? (
                         <div className="space-y-6">
