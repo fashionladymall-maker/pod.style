@@ -23,7 +23,7 @@ interface HomeScreenProps {
   onGenerate: () => void;
   publicCreations: Creation[];
   trendingCreations: Creation[];
-  onSelectPublicCreation: (creation: Creation, source: HomeTab) => void;
+  onSelectPublicCreation: (creation: Creation, source: HomeTab, modelIndex?: number) => void;
   isLoading: boolean;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
@@ -45,13 +45,46 @@ const creativePrompts = [
   "蒸汽朋克风格的飞行器"
 ];
 
-const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creations: Creation[], onSelect: (creation: Creation) => void, displayMode?: 'pattern' | 'model' }) => {
+const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model' }) => {
     
-    const itemsToRender = displayMode === 'model'
-        ? creations.filter(c => c.models && c.models.length > 0)
-        : creations;
+    if (displayMode === 'model') {
+        const allModels = creations.flatMap(creation => 
+            creation.models.map((model, modelIndex) => ({
+                creation,
+                model,
+                modelIndex
+            }))
+        );
 
-    if (itemsToRender.length === 0) {
+        if (allModels.length === 0) {
+            return (
+                <div className="text-center py-10 text-muted-foreground">
+                    <p>还没有作品</p>
+                    <p className="text-sm">敬请期待！</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-2 gap-4">
+                {allModels.map(({ creation, model, modelIndex }) => (
+                    <button 
+                        key={`${creation.id}-${model.uri}`} 
+                        onClick={() => onSelect(creation, modelIndex)} 
+                        className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
+                    >
+                        <Image src={model.uri} alt={`商品: ${model.category}`} layout="fill" className="object-cover" />
+                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs">
+                            <p className="truncate">{creation.prompt}</p>
+                        </div>
+                    </button>
+                ))}
+            </div>
+        );
+    }
+
+    // Default 'pattern' display mode
+    if (creations.length === 0) {
         return (
             <div className="text-center py-10 text-muted-foreground">
                 <p>还没有作品</p>
@@ -62,18 +95,15 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creati
 
     return (
         <div className="grid grid-cols-2 gap-4">
-            {itemsToRender.map((creation) => {
-                const imageUrl = displayMode === 'model' ? creation.models[0].uri : creation.patternUri;
-                return (
-                    <button 
-                        key={creation.id + '-' + displayMode} 
-                        onClick={() => onSelect(creation)} 
-                        className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
-                    >
-                        <Image src={imageUrl} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
-                    </button>
-                )
-            })}
+            {creations.map((creation) => (
+                <button 
+                    key={creation.id + '-pattern'} 
+                    onClick={() => onSelect(creation)} 
+                    className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
+                >
+                    <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
+                </button>
+            ))}
         </div>
     );
 };
@@ -194,7 +224,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={trendingCreations} onSelect={(creation) => onSelectPublicCreation(creation, 'trending')} displayMode="model" />
+                        <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" />
                     )}
                 </TabsContent>
             </Tabs>

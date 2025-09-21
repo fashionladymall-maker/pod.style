@@ -364,19 +364,23 @@ const App = () => {
         }
     };
     
-    const handleSelectPublicCreation = (creation: Creation, source: HomeTab) => {
+    const handleSelectPublicCreation = (creation: Creation, source: HomeTab, modelIndex?: number) => {
         const existingIndex = creations.findIndex(c => c.id === creation.id);
-        const targetIndex = existingIndex > -1 ? existingIndex : 0;
+        let targetIndex = existingIndex > -1 ? existingIndex : 0;
     
         if (existingIndex === -1) {
             const newCreations = [creation, ...creations];
             setCreations(newCreations);
+        } else {
+            // If creation already exists, we may need to update its position to the front
+            // For now, we just use its existing index to avoid complexity.
+            // A more sophisticated approach could move it to the front.
         }
     
         setActiveCreationIndex(targetIndex);
     
-        if (source === 'trending' && creation.models.length > 0) {
-            setActiveModelIndex(0);
+        if (source === 'trending' && modelIndex !== undefined) {
+            setActiveModelIndex(modelIndex);
             setStep('mockup');
         } else {
             setActiveModelIndex(-1);
@@ -564,7 +568,7 @@ const App = () => {
     };
 
     const renderStep = () => {
-        if (authLoading || (isDataLoading && step === 'home')) {
+        if (authLoading) {
             return (
               <LoadingScreen>
                 <div className="text-center">
@@ -678,5 +682,3 @@ const App = () => {
 };
 
 export default App;
-
-  
