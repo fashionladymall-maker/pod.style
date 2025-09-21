@@ -45,7 +45,7 @@ const creativePrompts = [
   "蒸汽朋克风格的飞行器"
 ];
 
-const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model' }) => {
+const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model', sourceTab: HomeTab }) => {
     
     if (displayMode === 'model') {
         const allModels = creations.flatMap(creation => 
@@ -71,7 +71,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern' }: { creati
                     <button 
                         key={`${creation.id}-${model.uri}`} 
                         onClick={() => onSelect(creation, modelIndex)} 
-                        className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
+                        className="aspect-[9/16] bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                     >
                         <Image src={model.uri} alt={`商品: ${model.category}`} fill className="object-cover" />
                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs">
@@ -217,14 +217,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={publicCreations} onSelect={(creation) => onSelectPublicCreation(creation, 'popular')} displayMode="pattern" />
+                        <CreationGrid creations={publicCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)} displayMode="pattern" sourceTab="popular" />
                     )}
                 </TabsContent>
                 <TabsContent value="trending" className="mt-4">
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" />
+                        <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" sourceTab="trending" />
                     )}
                 </TabsContent>
             </Tabs>
@@ -232,46 +232,56 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       </ScrollArea>
 
       <div className="mt-auto p-3 bg-background border-t">
-        <div className="relative">
-            <Input
-              className="w-full bg-secondary text-foreground p-3 pr-10 rounded-full h-11 border-none focus-visible:ring-1 transition-all duration-300"
-              placeholder={placeholder}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  onGenerate();
-                }
-              }}
-            />
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center">
-                {prompt || uploadedImage ? (
-                    <Button onClick={onGenerate} variant="ghost" size="icon" className="rounded-full bg-blue-500 text-white hover:bg-blue-600 w-8 h-8">
-                        <ArrowUp size={18} />
+        <div className="flex items-center gap-2">
+            <div className="relative flex-grow">
+                <Input
+                    className="w-full bg-secondary text-foreground p-3 pl-10 pr-20 rounded-full h-11 border-none focus-visible:ring-1 transition-all duration-300"
+                    placeholder={placeholder}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        onGenerate();
+                        }
+                    }}
+                />
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center">
+                    <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                    <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 text-muted-foreground" asChild>
+                        <Label htmlFor="imageUpload" className="cursor-pointer flex items-center justify-center">
+                            {uploadedImage ? (
+                                <div className="relative w-6 h-6 border rounded-md">
+                                    <Image src={uploadedImage} alt="Uploaded preview" fill className="rounded-sm object-cover" />
+                                </div>
+                            ) : (
+                                <Plus size={20} />
+                            )}
+                        </Label>
                     </Button>
-                ) : (
-                    <div className="w-8 h-8" /> 
-                )}
+                </div>
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full w-8 h-8 ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        <Mic size={18} />
+                    </Button>
+                    {(prompt || uploadedImage) && (
+                        <Button onClick={onGenerate} variant="ghost" size="icon" className="rounded-full bg-blue-500 text-white hover:bg-blue-600 w-8 h-8">
+                            <ArrowUp size={18} />
+                        </Button>
+                    )}
+                </div>
             </div>
-        </div>
 
-        <div className="flex items-center space-x-2 mt-2">
-          <Input type="file" id="imageUpload" className="hidden" accept="image/*" onChange={handleImageUpload} />
-          <Button variant="ghost" size="icon" className="rounded-full bg-secondary w-8 h-8" asChild>
-            <Label htmlFor="imageUpload" className="cursor-pointer flex items-center justify-center"><Plus size={20} /></Label>
-          </Button>
-
-          <Popover open={stylePopoverOpen} onOpenChange={setStylePopoverOpen}>
+            <Popover open={stylePopoverOpen} onOpenChange={setStylePopoverOpen}>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={stylePopoverOpen}
-                    className="rounded-full bg-secondary hover:bg-muted h-8 px-3"
+                    className="rounded-full bg-secondary hover:bg-muted h-11 px-3 flex-shrink-0"
                 >
                     <Palette className="mr-2 h-4 w-4" />
-                    <span className="text-xs">风格: {selectedStyle.split(' ')[0]}</span>
+                    <span className="text-xs">{selectedStyle.split(' ')[0]}</span>
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[250px] p-0 mb-2">
@@ -293,18 +303,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     </div>
                 </ScrollArea>
             </PopoverContent>
-          </Popover>
-
-          <Button onClick={handleMicClick} variant="ghost" size="icon" className={`rounded-full bg-secondary w-8 h-8 ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}>
-            <Mic size={18} />
-          </Button>
-
-          {uploadedImage && (
-            <div className="relative w-8 h-8 border rounded-md ml-auto">
-              <Image src={uploadedImage} alt="Uploaded preview" fill className="rounded-sm object-cover" />
-              <Button onClick={() => setUploadedImage(null)} variant="destructive" size="sm" className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full p-0">X</Button>
-            </div>
-          )}
+            </Popover>
         </div>
       </div>
     </div>
