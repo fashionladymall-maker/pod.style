@@ -342,3 +342,46 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
         throw new Error(String(error));
     }
 }
+
+
+// --- Data Migration Action ---
+
+export async function migrateAnonymousDataAction(anonymousUid: string, permanentUid: string): Promise<{ success: boolean }> {
+  if (!anonymousUid || !permanentUid || anonymousUid === permanentUid) {
+    return { success: false };
+  }
+
+  console.log(`Starting data migration from anonymous user ${anonymousUid} to permanent user ${permanentUid}`);
+
+  try {
+    const batch = db.batch();
+
+    // Migrate creations
+    const creationsSnapshot = await getCreationsCollection().where('userId', '==', anonymousUid).get();
+    if (!creationsSnapshot.empty) {
+      creationsSnapshot.docs.forEach(doc => {
+        console.log(`Migrating creation: ${doc.id}`);
+        batch.update(doc.ref, { userId: permanentUid });
+      });
+    }
+
+    // Migrate orders
+    const ordersSnapshot = await getOrdersCollection().where('userId', '==', anonymousUid).get();
+    if (!ordersSnapshot.empty) {
+      ordersSnapshot.docs.forEach(doc => {
+        console.log(`Migrating order: ${doc.id}`);
+        batch.update(doc.ref, { userId: permanentUid });
+      });
+    }
+
+    await batch.commit();
+    console.log(`Data migration completed successfully for user ${permanentUid}.`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error during data migration from ${anonymousUid} to ${permanentUid}:`, error);
+    // In case of error, we don't want to leave data in a partially migrated state.
+    // The batch commit is atomic, so it either all succeeds or all fails.
+    if (error instanceof Error) throw error;
+    throw new Error(String(error));
+  }
+}

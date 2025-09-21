@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { migrateAnonymousDataAction } from '@/app/actions';
 
 type View = 'options' | 'email-signin' | 'email-signup';
 
@@ -28,6 +29,8 @@ const LoginScreen = () => {
             return;
         }
 
+        const anonymousUid = currentUser.uid;
+
         try {
             await linkWithCredential(currentUser, credential);
             toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
@@ -35,12 +38,25 @@ const LoginScreen = () => {
             if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
                  toast({
                     title: "邮箱已被注册",
-                    description: "此邮箱已绑定其他账户，正在为您登录已有账户。匿名创作历史无法合并。",
+                    description: "此邮箱已绑定其他账户，正在为您登录并合并数据...",
                  });
                  try {
-                    // Firebase's signInWith... automatically handles session switching.
-                    await signInWithEmailAndPassword(auth, email, password);
+                    // Attempt to sign in to the existing account
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    const permanentUid = userCredential.user.uid;
                     toast({ title: "登录成功", description: "已切换到您的现有账户。" });
+
+                    // Manually migrate data from anonymous user to permanent user
+                    if (anonymousUid && permanentUid) {
+                        toast({ title: '正在合并您的匿名创作历史...', description: '请稍候...' });
+                        const migrationResult = await migrateAnonymousDataAction(anonymousUid, permanentUid);
+                        if (migrationResult.success) {
+                            toast({ title: '数据合并成功！', description: '您所有的创作都已保留。' });
+                        } else {
+                            toast({ variant: 'destructive', title: '数据合并失败', description: '无法迁移您的匿名创作历史，但您已成功登录。' });
+                        }
+                    }
+
                  } catch (signInError: any) {
                     // This handles cases like wrong password for the existing account.
                     toast({
@@ -115,7 +131,7 @@ const LoginScreen = () => {
             const credential = EmailAuthProvider.credential(email, password);
             // The linkAnonymousAccount function will handle all cases:
             // 1. Successful link
-            // 2. Already-in-use credential (signs in to existing account)
+            // 2. Already-in-use credential (signs in to existing account and migrates data)
             // 3. Other errors
             await linkAnonymousAccount(credential);
         } catch (error: any) {
