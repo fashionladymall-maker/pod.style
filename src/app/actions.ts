@@ -403,22 +403,19 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .orderBy("createdAt", "desc")
             .limit(20) // Limit the number of public creations for performance
             .get();
         
-        return querySnapshot.docs.map(docToCreation);
+        const creations = querySnapshot.docs.map(docToCreation);
+
+        // Sort in memory to avoid needing an index
+        creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        return creations;
 
     } catch (error) {
         console.error('Error in getPublicCreationsAction:', error);
-        if (error instanceof Error) {
-            if ((error as any).code === 'FAILED_PRECONDITION') {
-                const errorMessage = `The 'getPublicCreationsAction' query requires an index. Please create it in your Firebase console for the 'creations' collection.`;
-                console.error(errorMessage);
-                throw new Error(errorMessage);
-            }
-            throw error;
-        }
+        if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
 });
@@ -428,20 +425,23 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .orderBy("orderCount", "desc")
-            .orderBy("createdAt", "desc") // Secondary sort for consistent ordering
             .limit(20) // Limit results for performance
             .get();
 
-        return querySnapshot.docs.map(docToCreation);
+        const creations = querySnapshot.docs.map(docToCreation);
+
+        // Sort in memory to avoid needing an index
+        creations.sort((a, b) => {
+            if (b.orderCount !== a.orderCount) {
+                return b.orderCount - a.orderCount;
+            }
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+        return creations;
 
     } catch (error) {
         console.error('Error in getTrendingCreationsAction:', error);
-        if (error instanceof Error && (error as any).code === 'FAILED_PRECONDITION') {
-            const errorMessage = `The 'getTrendingCreationsAction' query requires a composite index. Please create it in your Firebase console for the 'creations' collection.`;
-            console.error(errorMessage);
-            throw new Error(errorMessage);
-        }
         if (error instanceof Error) throw error;
         throw new Error(String(error));
     }
