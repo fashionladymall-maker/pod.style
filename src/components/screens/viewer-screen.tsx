@@ -125,6 +125,39 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     }
   );
 
+  const renderContent = () => {
+    if (!currentCreation) {
+      return null;
+    }
+
+    if (isPatternView) {
+      return (
+        <PatternPreviewScreen
+          creation={currentCreation}
+          isModelGenerating={false}
+          onGoToModel={onGoToCategorySelection}
+        />
+      );
+    }
+    
+    return (
+      <MockupScreen
+        modelImage={currentModel?.uri}
+        models={currentCreation.models || []}
+        orderDetails={orderDetails}
+        setOrderDetails={setOrderDetails}
+        handleQuantityChange={handleQuantityChange}
+        onNext={onNext}
+        modelHistoryIndex={viewerState.modelIndex}
+        onNavigateModels={onSelectModel}
+        category={currentModel?.category || ''}
+        onRegenerate={onGoToCategorySelection}
+        price={price}
+      />
+    );
+  };
+
+
   const content = (
     <div
       {...bind()}
@@ -137,30 +170,8 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
         </Button>
       </div>
 
-      <div className="flex-grow relative">
-        {currentCreation && (
-          isPatternView ? (
-            <PatternPreviewScreen
-              creation={currentCreation}
-              isModelGenerating={false}
-              onGoToModel={onGoToCategorySelection}
-            />
-          ) : (
-            <MockupScreen
-              modelImage={currentModel?.uri}
-              models={currentCreation.models || []}
-              orderDetails={orderDetails}
-              setOrderDetails={setOrderDetails}
-              handleQuantityChange={handleQuantityChange}
-              onNext={onNext}
-              modelHistoryIndex={viewerState.modelIndex}
-              onNavigateModels={onSelectModel}
-              category={currentModel?.category || ''}
-              onRegenerate={onGoToCategorySelection}
-              price={price}
-            />
-          )
-        )}
+      <div className="flex-grow relative w-full h-full">
+        {renderContent()}
       </div>
     </div>
   );
