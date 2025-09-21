@@ -24,6 +24,9 @@ const LoginScreen = () => {
         const currentUser = auth.currentUser;
         if (!currentUser || !currentUser.isAnonymous) {
             // Not an anonymous user, so no linking is needed.
+            // This could happen if the auth state changes unexpectedly.
+            // Just proceed with a normal sign-in.
+            await signInWithEmailAndPassword(auth, email, password);
             return;
         }
 
@@ -33,10 +36,22 @@ const LoginScreen = () => {
         } catch (error: any) {
             // This is a special case: the credential belongs to another existing user.
             if (error.code === 'auth/credential-already-in-use') {
-                 // To handle this, we can just sign in with the credential.
-                 // This will NOT merge the data, but it will log the user in successfully.
-                 await signInWithEmailAndPassword(auth, email, password);
-                 toast({ title: "登录成功", description: "已切换到您的现有账户。匿名会话未合并。" });
+                 toast({
+                    title: "邮箱已被注册",
+                    description: "此邮箱已绑定其他账户，正在为您登录已有账户。匿名创作历史无法合并。",
+                 });
+                 try {
+                    // signInWith... automatically handles the session switch from anonymous to permanent.
+                    await signInWithEmailAndPassword(auth, email, password);
+                    toast({ title: "登录成功", description: "已切换到您的现有账户。" });
+                 } catch (signInError: any) {
+                    // This handles cases like wrong password for the existing account.
+                    toast({
+                        variant: "destructive",
+                        title: "登录失败",
+                        description: "密码不正确，请重试。",
+                    });
+                 }
             } else {
                 // For other errors (like network failure), re-throw to be caught by the caller.
                 console.error("Link error:", error);
@@ -51,12 +66,13 @@ const LoginScreen = () => {
         setIsLoading(true);
         const provider = new GoogleAuthProvider();
         try {
-            const credential = await signInWithPopup(auth, provider).then(result => GoogleAuthProvider.credentialFromResult(result));
+            // We use signInWithPopup which will either sign in or create a user.
+            // Firebase handles linking automatically if the user was anonymous and the Google account is new to the app.
+            const result = await signInWithPopup(auth, provider);
+            
+            // We don't need to manually link here. onAuthStateChanged will handle the UI update.
+            toast({ title: '登录成功', description: `欢迎回来, ${result.user.displayName}!` });
 
-            if (credential) {
-                await linkAnonymousAccount(credential);
-            }
-            // onAuthStateChanged will handle UI updates
         } catch (error: any) {
              if (error.code === 'auth/account-exists-with-different-credential') {
                 toast({
@@ -101,10 +117,15 @@ const LoginScreen = () => {
         
         try {
             const credential = EmailAuthProvider.credential(email, password);
+            // The linkAnonymousAccount function will handle all cases:
+            // 1. Successful link
+            // 2. Already-in-use credential (signs in to existing account)
+            // 3. Other errors
             await linkAnonymousAccount(credential);
         } catch (error: any) {
-            // Errors are already handled and toasted inside linkAnonymousAccount
-            // We just need to catch to stop execution.
+            // Errors are already toasted inside linkAnonymousAccount,
+            // but we catch here to stop execution and prevent the loading spinner from hanging.
+            console.error("Sign-in process failed:", error);
         } finally {
             setIsLoading(false);
         }
