@@ -182,14 +182,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={publicCreations.filter(pc => !creations.some(c => c.id === pc.id))} onSelectCreation={onSelectPublicCreation} />
+                        <CreationGrid creations={publicCreations} onSelectCreation={onSelectPublicCreation} />
                     )}
                 </TabsContent>
                 <TabsContent value="trending" className="mt-4">
                     {isLoading ? (
                         <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
                     ) : (
-                        <CreationGrid creations={trendingCreations.filter(pc => !creations.some(c => c.id === pc.id))} onSelectCreation={onSelectPublicCreation} />
+                        <CreationGrid creations={trendingCreations} onSelectCreation={onSelectPublicCreation} />
                     )}
                 </TabsContent>
             </Tabs>
@@ -277,5 +277,3 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 };
 
 export default HomeScreen;
-
-  
