@@ -445,26 +445,29 @@ export async function getPublicCreationsAction(): Promise<Creation[]> {
 
 export async function getTrendingCreationsAction(): Promise<Creation[]> {
     try {
+        // First, get all public creations.
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
-            .orderBy("orderCount", "desc")
-            .limit(20) // Let's limit to top 20 for performance
             .get();
-        
+
         if (querySnapshot.empty) {
             return [];
         }
+        
+        let creations = querySnapshot.docs.map(docToCreation);
 
-        return querySnapshot.docs.map(docToCreation);
+        // Then, sort them in memory by orderCount.
+        creations.sort((a, b) => b.orderCount - a.orderCount);
+        
+        // Finally, limit the results.
+        return creations.slice(0, 20);
 
     } catch (error) {
         console.error('Error in getTrendingCreationsAction:', error);
-        // This query requires a composite index on (isPublic, orderCount)
-        // If it fails, provide a helpful message.
+        // This provides a helpful message if the simple `.where` query fails for some reason.
         if (error instanceof Error && (error as any).code === 'FAILED_PRECONDITION') {
-            const errorMessage = `The 'getTrendingCreationsAction' query requires a composite index. Please create one in your Firebase console for the 'creations' collection on the fields 'isPublic' (ascending) and 'orderCount' (descending). The error includes a direct link to create it.`;
+            const errorMessage = `The 'getTrendingCreationsAction' query requires an index on 'isPublic'. This should be created automatically, but if not, please create it in your Firebase console for the 'creations' collection.`;
             console.error(errorMessage);
-            // Re-throw a more user-friendly error to be caught by the client
             throw new Error(errorMessage);
         }
         if (error instanceof Error) throw error;
