@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,13 +12,12 @@ import { onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously, link
 
 import HomeScreen from '@/components/screens/home-screen';
 import LoadingScreen from '@/components/screens/loading-screen';
-import PatternPreviewScreen from '@/components/screens/pattern-preview-screen';
-import MockupScreen from '@/components/screens/mockup-screen';
 import ShippingScreen from '@/components/screens/shipping-screen';
 import PaymentScreen from '@/components/screens/payment-screen';
 import ConfirmationScreen from '@/components/screens/confirmation-screen';
 import ProfileScreen from '@/components/screens/profile-screen';
 import LoginScreen from '@/components/screens/login-screen';
+import ViewerScreen from '@/components/screens/viewer-screen';
 import { Menu, ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -28,8 +26,13 @@ import { cn } from '@/lib/utils';
 import Script from 'next/script';
 
 
-export type AppStep = 'home' | 'generating' | 'patternPreview' | 'categorySelection' | 'mockup' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
+export type AppStep = 'home' | 'generating' | 'categorySelection' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
 export type HomeTab = 'popular' | 'trending';
+export interface ViewerState {
+  isOpen: boolean;
+  creationIndex: number;
+  modelIndex: number; // -1 for pattern, >=0 for model
+}
 
 const podCategories = [
     { name: "T恤 (T-shirts)" },
@@ -114,8 +117,6 @@ const App = () => {
     const [publicCreations, setPublicCreations] = useState<Creation[]>([]);
     const [trendingCreations, setTrendingCreations] = useState<Creation[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
-    const [activeCreationIndex, setActiveCreationIndex] = useState(-1);
-    const [activeModelIndex, setActiveModelIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
     const [isDataLoading, setIsDataLoading] = useState(true); // For user data fetching, start as true
     const [isRecording, setIsRecording] = useState(false);
@@ -126,6 +127,12 @@ const App = () => {
     const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
     const [lastOrderedCategory, setLastOrderedCategory] = useState('T恤');
     const { toast } = useToast();
+
+    const [viewerState, setViewerState] = useState<ViewerState>({
+      isOpen: false,
+      creationIndex: -1,
+      modelIndex: -1,
+    });
 
     const fetchCreations = useCallback(async (userId: string) => {
         setIsDataLoading(true);
@@ -180,8 +187,6 @@ const App = () => {
                 const wasAnonymous = user?.isAnonymous;
                 const isPermanent = !firebaseUser.isAnonymous;
 
-                // If user transitions from anonymous to permanent, or if it's a new login,
-                // force a refresh of their data.
                 if ((wasAnonymous && isPermanent) || user?.uid !== firebaseUser.uid) {
                     fetchCreations(firebaseUser.uid);
                     fetchOrders(firebaseUser.uid);
@@ -190,13 +195,11 @@ const App = () => {
                 setUser(firebaseUser);
                 setAuthLoading(false);
                 
-                // If user is now logged in, navigate away from login screen
                 if (isPermanent && step === 'login') {
                     setStep('home');
                 }
 
             } else {
-                // Not logged in, clear data and sign in anonymously
                 setCreations([]);
                 setOrders([]);
                 signInAnonymously(auth).catch(error => {
@@ -207,7 +210,6 @@ const App = () => {
             }
         });
 
-        // Custom signOut function to manage the flag
         const customSignOut = async () => {
             isSigningOut = true;
             await firebaseSignOut(auth);
@@ -254,10 +256,10 @@ const App = () => {
                 style: styleValue !== '无' ? styleValue : undefined,
             });
 
-            setCreations(prev => [newCreation, ...prev]);
-            setActiveCreationIndex(0);
-            setActiveModelIndex(-1);
-            setStep('patternPreview');
+            const updatedCreations = [newCreation, ...creations];
+            setCreations(updatedCreations);
+            setViewerState({ isOpen: true, creationIndex: 0, modelIndex: -1 });
+            setStep('home');
         } catch (err: any) {
             console.error(err);
             toast({ variant: 'destructive', title: '图案生成失败', description: err.message || '图案生成过程中发生网络错误。' });
@@ -265,17 +267,18 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, uploadedImage, selectedStyle, user, toast]);
+    }, [prompt, uploadedImage, selectedStyle, user, toast, creations]);
 
     const handleGenerateModel = useCallback(async (category: string) => {
-        const activeCreation = creations[activeCreationIndex];
+        const activeCreation = creations[viewerState.creationIndex];
         if (!user || !activeCreation) {
             toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
-            setStep('home');
+            setViewerState(prev => ({ ...prev, isOpen: false }));
             return;
         }
         setIsLoading(true);
         setLoadingText('正在为您生成商品效果图...');
+        setViewerState(prev => ({ ...prev, isOpen: false })); // Close viewer while generating
         setStep('generating');
 
         try {
@@ -288,105 +291,69 @@ const App = () => {
             });
             
             const newCreations = creations.map((c, index) => 
-                index === activeCreationIndex ? updatedCreation : c
+                index === viewerState.creationIndex ? updatedCreation : c
             );
 
             setCreations(newCreations);
-            setActiveModelIndex(updatedCreation.models.length - 1);
-            setStep('mockup');
+            setViewerState({ 
+              isOpen: true, 
+              creationIndex: viewerState.creationIndex,
+              modelIndex: updatedCreation.models.length - 1
+            });
+            setStep('home');
         } catch (err: any) {
             console.error(err);
             toast({ variant: 'destructive', title: '效果图生成失败', description: err.message || '效果图生成过程中发生网络错误。' });
-            setStep('categorySelection');
+            // Re-open viewer to the pattern
+            setViewerState(prev => ({ ...prev, isOpen: true, modelIndex: -1 }));
+            setStep('home');
         } finally {
             setIsLoading(false);
         }
-    }, [activeCreationIndex, creations, orderDetails.colorName, user, toast]);
+    }, [viewerState.creationIndex, creations, orderDetails.colorName, user, toast]);
 
     const handleDeleteCreation = useCallback(async (creationId: string) => {
         const originalCreations = creations;
         const newCreations = creations.filter(c => c.id !== creationId);
-        setCreations(newCreations); // Optimistic update
+        setCreations(newCreations); 
 
         try {
             await deleteCreationAction(creationId);
             toast({ title: "删除成功", description: "您的作品已被删除。" });
-            if (activeCreationIndex >= newCreations.length) {
-                setActiveCreationIndex(Math.max(0, newCreations.length - 1));
+            if (viewerState.creationIndex >= newCreations.length) {
+                setViewerState(prev => ({...prev, creationIndex: Math.max(0, newCreations.length - 1)}));
             }
             if (newCreations.length === 0) {
-                setStep('home');
+                 setViewerState({ isOpen: false, creationIndex: -1, modelIndex: -1 });
+                 setStep('home');
             }
         } catch (error) {
             console.error("Failed to delete creation:", error);
             toast({ variant: "destructive", title: "删除失败", description: "无法删除您的作品，请重试。" });
-            setCreations(originalCreations); // Revert on failure
+            setCreations(originalCreations); 
         }
-    }, [creations, toast, activeCreationIndex]);
-
-    const navigateCreationHistory = (direction: number) => {
-        const newIndex = activeCreationIndex + direction;
-        if (newIndex >= 0 && newIndex < creations.length) {
-            setActiveCreationIndex(newIndex);
-            setActiveModelIndex(-1); // Reset model index when changing creation
-            const newCreation = creations[newIndex];
-             if (step === 'mockup' && newCreation.models.length === 0) {
-                setStep('categorySelection');
-            } else if (newCreation.models.length > 0) {
-                 setActiveModelIndex(0);
-                 setStep('mockup');
-            } else {
-                setStep('patternPreview');
-            }
-        }
-    };
+    }, [creations, toast, viewerState.creationIndex]);
     
-    const onSelectModel = (index: number) => {
-      if (index >=0 && creations[activeCreationIndex]?.models[index]) {
-        setActiveModelIndex(index);
-        setStep('mockup');
-      }
-    }
-
-
     const goToHistory = (creationIndex: number, modelIndex: number = -1) => {
-        setActiveCreationIndex(creationIndex);
-        const creation = creations[creationIndex];
-        if (modelIndex > -1 && creation.models[modelIndex]) {
-            setActiveModelIndex(modelIndex);
-            setStep('mockup');
-        } else if (creation.models.length > 0) {
-            setActiveModelIndex(0);
-            setStep('mockup');
-        } else {
-            setActiveModelIndex(-1);
-            setStep('patternPreview');
-        }
+        setViewerState({ isOpen: true, creationIndex, modelIndex });
     };
     
     const handleSelectPublicCreation = (creation: Creation, source: HomeTab, modelIndex?: number) => {
         const existingIndex = creations.findIndex(c => c.id === creation.id);
-        let targetIndex = existingIndex > -1 ? existingIndex : 0;
+        let targetIndex = 0;
 
         if (existingIndex === -1) {
             const newCreations = [creation, ...creations];
             setCreations(newCreations);
         } else {
-            // Move to front
-            const item = creations[existingIndex];
-            const filtered = creations.filter(c => c.id !== creation.id);
-            setCreations([item, ...filtered]);
+            targetIndex = existingIndex;
         }
 
-        setActiveCreationIndex(targetIndex);
-    
-        if (source === 'trending' && modelIndex !== undefined && creation.models[modelIndex]) {
-            setActiveModelIndex(modelIndex);
-            setStep('mockup');
-        } else {
-            setActiveModelIndex(-1);
-            setStep('patternPreview');
-        }
+        setViewerState({
+            isOpen: true,
+            creationIndex: targetIndex,
+            modelIndex: modelIndex ?? -1
+        });
     };
 
     const handleSignOut = async () => {
@@ -417,18 +384,18 @@ const App = () => {
         setLoadingText("正在处理您的订单...");
         setStep('generating');
         
-        const activeCreation = creations[activeCreationIndex];
-        const activeModel = activeCreation?.models[activeModelIndex];
+        const activeCreation = creations[viewerState.creationIndex];
+        const activeModel = activeCreation?.models[viewerState.modelIndex];
 
         if (!user || !activeCreation || !activeModel) {
             toast({ variant: 'destructive', title: '订单错误', description: '无法找到订单信息，请重试。' });
             setIsLoading(false);
-            setStep('mockup');
+            setStep('home');
+            setViewerState(prev => ({...prev, isOpen: true}));
             return;
         }
 
         try {
-            // Simulate payment processing
             await new Promise(resolve => setTimeout(resolve, 1500));
             
             const newOrder = await createOrderAction({
@@ -473,19 +440,16 @@ const App = () => {
 
         switch(step) {
             case 'profile':
-                showBack = true;
-                break;
             case 'categorySelection':
-                title = '选择商品类型';
                 showBack = true;
                 break;
-            // Add other cases if needed
         }
 
         const handleBack = () => {
-            if (step === 'categorySelection') {
-                setStep('patternPreview');
-            } else if (step === 'profile') {
+            if (step === 'profile') {
+                setStep('home');
+            } else if (step === 'categorySelection') {
+                setViewerState(prev => ({ ...prev, isOpen: true, modelIndex: -1 }));
                 setStep('home');
             } else {
                 setStep('home');
@@ -576,44 +540,19 @@ const App = () => {
             );
         }
         
-        const activeCreation = creations[activeCreationIndex];
-        const activeModel = activeCreation?.models[activeModelIndex];
-
         switch (step) {
             case 'login': return <LoginScreen />;
             case 'generating': return <LoadingScreen text={loadingText} />;
-            case 'patternPreview': return <PatternPreviewScreen 
-                creation={activeCreation}
-                onBack={() => setStep('home')} 
-                onNavigateCreations={navigateCreationHistory} 
-                isModelGenerating={isLoading}
-                onGoToModel={() => setStep('categorySelection')} 
-            />;
             case 'categorySelection': return <CategorySelectionScreen />;
-            case 'mockup': return <MockupScreen 
-                modelImage={activeModel?.uri}
-                models={activeCreation?.models || []}
-                creation={activeCreation}
-                orderDetails={orderDetails} 
-                setOrderDetails={setOrderDetails} 
-                handleQuantityChange={handleQuantityChange} 
-                onNext={() => setStep('shipping')} 
-                onBack={() => {
-                  setActiveModelIndex(-1);
-                  setStep('patternPreview');
-                }} 
-                modelHistoryIndex={activeModelIndex}
-                onNavigateModels={onSelectModel}
-                category={activeModel?.category || ''}
-                onRegenerate={() => setStep('categorySelection')}
-                price={MOCK_PRICE}
-            />;
             case 'shipping': return <ShippingScreen 
                 user={user}
                 shippingInfo={shippingInfo} 
                 setShippingInfo={setShippingInfo} 
                 onNext={() => setStep('payment')} 
-                onBack={() => setStep('mockup')} 
+                onBack={() => {
+                  setStep('home');
+                  setViewerState(prev => ({...prev, isOpen: true}));
+                }} 
             />;
             case 'payment': return <PaymentScreen 
                 orderDetails={orderDetails} 
@@ -658,17 +597,35 @@ const App = () => {
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
-                <div key={`${step}-${activeCreationIndex}-${activeModelIndex}`} className="h-full flex flex-col">
+                <div className="h-full flex flex-col">
                     <AppHeader/>
                     <div className="flex-grow min-h-0">
                         {renderStep()}
                     </div>
                 </div>
             </div>
+
+            {viewerState.isOpen && (
+              <ViewerScreen
+                viewerState={viewerState}
+                setViewerState={setViewerState}
+                creations={creations}
+                orderDetails={orderDetails}
+                setOrderDetails={setOrderDetails}
+                handleQuantityChange={handleQuantityChange}
+                onNext={() => {
+                  setViewerState(prev => ({...prev, isOpen: false}));
+                  setStep('shipping');
+                }}
+                onRegenerate={() => {
+                   setViewerState(prev => ({...prev, isOpen: false}));
+                   setStep('categorySelection');
+                }}
+                price={MOCK_PRICE}
+              />
+            )}
         </main>
     );
 };
 
 export default App;
-
-    

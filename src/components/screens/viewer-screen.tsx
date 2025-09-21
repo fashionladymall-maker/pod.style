@@ -1,0 +1,155 @@
+
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { useDrag } from '@use-gesture/react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type { Creation, OrderDetails } from '@/lib/types';
+import type { ViewerState } from '@/app/page';
+import PatternPreviewScreen from './pattern-preview-screen';
+import MockupScreen from './mockup-screen';
+
+interface ViewerScreenProps {
+  viewerState: ViewerState;
+  setViewerState: React.Dispatch<React.SetStateAction<ViewerState>>;
+  creations: Creation[];
+  orderDetails: OrderDetails;
+  setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
+  handleQuantityChange: (amount: number) => void;
+  onNext: () => void;
+  onRegenerate: () => void;
+  price: number;
+}
+
+const ViewerScreen: React.FC<ViewerScreenProps> = ({
+  viewerState,
+  setViewerState,
+  creations,
+  orderDetails,
+  setOrderDetails,
+  handleQuantityChange,
+  onNext,
+  onRegenerate,
+  price,
+}) => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    // Prevent body scroll when viewer is open
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  const handleClose = () => {
+    setViewerState(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const handleNavigateCreation = (direction: 'prev' | 'next') => {
+    setViewerState(prev => {
+      const newIndex = prev.creationIndex + (direction === 'next' ? 1 : -1);
+      if (newIndex >= 0 && newIndex < creations.length) {
+        return { ...prev, creationIndex: newIndex, modelIndex: -1 };
+      }
+      return prev;
+    });
+  };
+
+  const handleNavigateModel = (direction: 'prev' | 'next') => {
+    const currentCreation = creations[viewerState.creationIndex];
+    if (!currentCreation) return;
+
+    setViewerState(prev => {
+      const newIndex = prev.modelIndex + (direction === 'next' ? 1 : -1);
+      if (newIndex >= -1 && newIndex < currentCreation.models.length) {
+        return { ...prev, modelIndex: newIndex };
+      }
+      return prev;
+    });
+  };
+  
+  const onSelectModel = (index: number) => {
+    setViewerState(prev => ({ ...prev, modelIndex: index }));
+  }
+
+  const bind = useDrag(
+    ({ last, swipe: [, swipeY], velocity: [, vy] }) => {
+      if (last && !isNavigating) {
+        const currentCreation = creations[viewerState.creationIndex];
+        const isPatternView = viewerState.modelIndex === -1;
+        const targetHandler = isPatternView ? handleNavigateCreation : handleNavigateModel;
+
+        if (swipeY === -1 && vy > 0.2) { // Swipe Up
+          setIsNavigating(true);
+          targetHandler('next');
+          setTimeout(() => setIsNavigating(false), 500);
+        } else if (swipeY === 1 && vy > 0.2) { // Swipe Down
+          setIsNavigating(true);
+          targetHandler('prev');
+          setTimeout(() => setIsNavigating(false), 500);
+        }
+      }
+    },
+    {
+      axis: 'y',
+      swipe: { distance: 50, velocity: 0.3 },
+    }
+  );
+
+  const currentCreation = creations[viewerState.creationIndex];
+  const currentModel = currentCreation?.models[viewerState.modelIndex];
+  const isPatternView = viewerState.modelIndex === -1;
+
+  const content = (
+    <div
+      {...bind()}
+      className="fixed inset-0 z-50 bg-black flex flex-col"
+      style={{ touchAction: 'pan-y' }}
+    >
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
+        <Button onClick={handleClose} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40">
+          <ArrowLeft size={20} />
+        </Button>
+      </div>
+
+      <div className="flex-grow relative">
+        {currentCreation && (
+          isPatternView ? (
+            <PatternPreviewScreen
+              creation={currentCreation}
+              isModelGenerating={false}
+              onGoToModel={() => handleNavigateModel('next')}
+            />
+          ) : (
+            <MockupScreen
+              modelImage={currentModel?.uri}
+              models={currentCreation.models || []}
+              orderDetails={orderDetails}
+              setOrderDetails={setOrderDetails}
+              handleQuantityChange={handleQuantityChange}
+              onNext={onNext}
+              modelHistoryIndex={viewerState.modelIndex}
+              onNavigateModels={onSelectModel}
+              category={currentModel?.category || ''}
+              onRegenerate={onRegenerate}
+              price={price}
+            />
+          )
+        )}
+      </div>
+    </div>
+  );
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return ReactDOM.createPortal(content, document.body);
+};
+
+export default ViewerScreen;

@@ -1,12 +1,11 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { ArrowLeft, ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Model, OrderDetails, Creation } from '@/lib/types';
-import { useDrag } from '@use-gesture/react';
+import type { Model, OrderDetails } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -14,56 +13,28 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 interface MockupScreenProps {
   modelImage: string | null | undefined;
   models: Model[];
-  creation: Creation | undefined;
   orderDetails: OrderDetails;
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;
   onNext: () => void;
-  onBack: () => void;
   modelHistoryIndex: number;
-  onNavigateModels: (direction: number) => void;
+  onNavigateModels: (index: number) => void;
   category: string;
   onRegenerate: () => void;
   price: number;
 }
 
 const MockupScreen = ({
-  modelImage, models, creation, orderDetails, setOrderDetails, handleQuantityChange,
-  onNext, onBack, modelHistoryIndex, onNavigateModels, category, onRegenerate, price
+  modelImage, models, orderDetails, setOrderDetails, handleQuantityChange,
+  onNext, modelHistoryIndex, onNavigateModels, category, onRegenerate, price
 }: MockupScreenProps) => {
-  const [isNavigating, setIsNavigating] = useState(false);
-  
-  const handleNavigateModels = (direction: number) => {
-    const newIndex = modelHistoryIndex + direction;
-    if (newIndex >= 0 && newIndex < models.length) {
-      onNavigateModels(newIndex);
-    }
-  };
-  
-  const bind = useDrag(
-    ({ last, swipe: [, swipeY] }) => {
-      if (last && !isNavigating) {
-        if (swipeY !== 0) {
-            setIsNavigating(true);
-            handleNavigateModels(swipeY);
-            setTimeout(() => setIsNavigating(false), 500);
-        }
-      }
-    },
-    {
-      axis: 'y',
-      swipe: { distance: 40, velocity: 0.4 },
-    }
-  );
   
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
   const isApparel = category.includes("T-shirts") || category.includes("Hoodies") || category.includes("Sweatshirts") || category.includes("T恤") || category.includes("连帽衫") || category.includes("运动卫衣");
 
   return (
     <div 
-      {...bind()} 
       className="relative flex flex-col h-full bg-muted"
-      style={{ touchAction: 'pan-y' }}
     >
       <div className="flex-grow relative">
         {modelImage ? (
@@ -71,11 +42,9 @@ const MockupScreen = ({
         ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">正在生成商品效果图...</div>
         )}
-         <Button onClick={onBack} variant="ghost" size="icon" className="absolute top-4 left-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
          <Button onClick={onRegenerate} variant="ghost" size="icon" className="absolute top-4 right-4 z-10 rounded-full text-white bg-black/20 hover:bg-black/40"><RefreshCw size={18} /></Button>
       </div>
       
-
       <div className="absolute bottom-0 left-0 right-0 p-4 pt-6 text-white bg-gradient-to-t from-black/60 to-transparent">
           <div className="flex justify-between items-center mb-2">
             <div className="text-xl font-bold">¥ {price}</div>

@@ -129,8 +129,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <TabsTrigger value="creations">我的创作 ({creations.length})</TabsTrigger>
             <TabsTrigger value="orders">我的订单 ({orders.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="creations" className="flex-grow mt-4 overflow-y-auto">
-            <TooltipProvider>
+        <TabsContent value="creations" className="flex-grow mt-4">
+            <ScrollArea className="h-full">
                 <div className="px-1 pb-4">
                     {initialCreations.length === 0 && !user?.isAnonymous && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
                     {creations.length > 0 ? (
@@ -155,16 +155,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                         />
                                     </button>
                                      <div className="absolute top-1 right-1 h-8 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white" onClick={() => handleTogglePublic(creation.id, creation.isPublic)}>
-                                                    <Globe size={16} className={creation.isPublic ? 'text-blue-400' : ''}/>
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{creation.isPublic ? '设为私密' : '设为公开'}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white" onClick={() => handleTogglePublic(creation.id, creation.isPublic)}>
+                                                      <Globe size={16} className={creation.isPublic ? 'text-blue-400' : ''}/>
+                                                  </Button>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                  <p>{creation.isPublic ? '设为私密' : '设为公开'}</p>
+                                              </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white">
@@ -214,10 +216,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         </div>
                     )}
                 </div>
-            </TooltipProvider>
+            </ScrollArea>
         </TabsContent>
-        <TabsContent value="orders" className="flex-grow mt-4 overflow-y-auto">
-            
+        <TabsContent value="orders" className="flex-grow mt-4">
+            <ScrollArea className="h-full">
                 <div className="px-1 pb-4">
                     {initialOrders.length === 0 && !user?.isAnonymous && <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>}
                     {orders.length > 0 ? (
@@ -241,7 +243,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         (initialOrders.length > 0 || user?.isAnonymous) && <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
                     )}
                 </div>
-            
+            </ScrollArea>
         </TabsContent>
       </Tabs>
     </div>

@@ -1,52 +1,28 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useDrag } from '@use-gesture/react';
 import type { Creation } from '@/lib/types';
 
 interface PatternPreviewScreenProps {
   creation: Creation | undefined;
-  onBack: () => void;
-  onNavigateCreations: (direction: number) => void;
   isModelGenerating: boolean;
   onGoToModel: () => void;
 }
 
 const PatternPreviewScreen = ({
   creation,
-  onBack,
-  onNavigateCreations,
   isModelGenerating,
   onGoToModel,
 }: PatternPreviewScreenProps) => {
-  const [isNavigating, setIsNavigating] = useState(false);
   const generatedPattern = creation?.patternUri;
-
-  const bind = useDrag(
-    ({ last, swipe: [, swipeY] }) => {
-      if (last && !isNavigating) {
-        if (swipeY !== 0) {
-            setIsNavigating(true);
-            onNavigateCreations(swipeY); // swipeY is -1 for up, 1 for down
-            setTimeout(() => setIsNavigating(false), 500); // Cooldown
-        }
-      }
-    },
-    {
-      axis: 'y',
-      swipe: { distance: 40, velocity: 0.4 },
-    }
-  );
 
   return (
     <div 
-      {...bind()} 
       className="relative h-full w-full bg-secondary flex flex-col animate-fade-in"
-      style={{ touchAction: 'pan-y' }}
     >
       {generatedPattern ? (
           <div className="absolute inset-0 w-full h-full animate-scale-in">
@@ -57,10 +33,6 @@ const PatternPreviewScreen = ({
             <Loader2 className="animate-spin text-blue-500" size={48} />
         </div>
       )}
-
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
-        <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
-      </div>
 
       <div className="absolute bottom-6 left-0 right-0 z-10 px-6 text-center">
         <Button onClick={onGoToModel} disabled={isModelGenerating || !generatedPattern} className="w-full rounded-full h-12">
