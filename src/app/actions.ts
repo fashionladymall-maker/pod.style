@@ -33,6 +33,7 @@ const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
     patternUri: data.patternUri,
     models: data.models || [],
     createdAt: createdAt,
+    isPublic: data.isPublic || false,
   };
 };
 
@@ -71,6 +72,7 @@ const addCreation = async (data: AddCreationData): Promise<Creation> => {
     ...data,
     models: [],
     createdAt: admin.firestore.Timestamp.now(),
+    isPublic: false,
   };
   const docRef = await db.collection("creations").add(creationData);
   const newDoc = await docRef.get();
@@ -276,7 +278,7 @@ export async function deleteCreationAction(creationId: string): Promise<{ succes
 }
 
 
-// ---- Order Actions ----
+// --- Order Actions ----
 
 interface CreateOrderActionInput {
     userId: string;
@@ -384,4 +386,36 @@ export async function migrateAnonymousDataAction(anonymousUid: string, permanent
     if (error instanceof Error) throw error;
     throw new Error(String(error));
   }
+}
+
+export async function toggleCreationPublicStatusAction(creationId: string, isPublic: boolean): Promise<{ success: boolean }> {
+    try {
+        const creationRef = getCreationsCollection().doc(creationId);
+        await creationRef.update({ isPublic: isPublic });
+        return { success: true };
+    } catch (error) {
+        console.error('Error in toggleCreationPublicStatusAction:', error);
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
+    }
+}
+
+export async function getPublicCreationsAction(): Promise<Creation[]> {
+    try {
+        const querySnapshot = await getCreationsCollection()
+            .where("isPublic", "==", true)
+            .orderBy("createdAt", "desc")
+            .get();
+        
+        if (querySnapshot.empty) {
+            return [];
+        }
+
+        return querySnapshot.docs.map(docToCreation);
+
+    } catch (error) {
+        console.error('Error in getPublicCreationsAction:', error);
+        if (error instanceof Error) throw error;
+        throw new Error(String(error));
+    }
 }
