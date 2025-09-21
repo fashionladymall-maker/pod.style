@@ -457,7 +457,7 @@ const App = () => {
         }
 
         return (
-          <header className="flex items-center justify-between px-2 py-1 bg-background border-b">
+          <header className="flex items-center justify-between px-2 py-1 bg-background border-b flex-shrink-0">
               {showBack ? (
                   <Button variant="ghost" size="sm" className="w-9" onClick={handleBack}><ArrowLeft /></Button>
               ) : (

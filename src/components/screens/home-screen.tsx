@@ -232,7 +232,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </ScrollArea>
 
-      <div className="mt-auto p-3 bg-background border-t">
+      <div className="mt-auto p-3 bg-background border-t flex-shrink-0">
         <div className="flex items-center gap-2">
             <div className="relative flex-grow">
                 <Input
