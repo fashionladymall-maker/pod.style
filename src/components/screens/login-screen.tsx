@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, type AuthCredential } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, type AuthCredential, EmailAuthProvider } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
@@ -27,21 +27,20 @@ const LoginScreen = () => {
                 toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
             } catch (error: any) {
                 if (error.code === 'auth/credential-already-in-use') {
-                    // This error means the credential (e.g., Google account) is already linked to another user.
-                    // The best practice is to sign in with the credential and offer to merge data, which is a more complex flow.
-                    // For now, we'll inform the user.
                     toast({ 
                         variant: 'destructive', 
                         title: '关联失败', 
-                        description: '此 Google 账户已关联其他用户。请先退出，然后直接使用 Google 登录。' 
+                        description: '此账户已关联其他用户。请先退出，然后直接登录。' 
                     });
-                     await auth.signOut(); // Sign out the anonymous user
-                     await signInWithPopup(auth, new GoogleAuthProvider()); // Sign in with the existing Google account
+                     await auth.signOut();
+                     // For Google, we can try to sign in directly. For email, this is more complex.
+                     if (credential.providerId === GoogleAuthProvider.PROVIDER_ID) {
+                        await signInWithPopup(auth, new GoogleAuthProvider());
+                     }
                 } else {
-                    toast({ variant: 'destructive', title: '账户关联失败', description: '无法关联您的匿名账户，请联系支持。' });
+                    toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户: ${error.message}` });
                     console.error("Link error:", error);
                 }
-                // Rethrow to stop the sign-in process if linking fails
                 throw error;
             }
         }
@@ -53,21 +52,20 @@ const LoginScreen = () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            // This will only be called if the user was NOT anonymous,
-            // as linkWithCredential will upgrade the anonymous user and the auth state change will handle the rest.
-            // But if we want to be explicit, the linking should happen.
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential) {
+                // linkAnonymousAccount will check if the current user is anonymous
                 await linkAnonymousAccount(credential);
             }
         } catch (error: any) {
-            if (error.code !== 'auth/cancelled-popup-request') { // Don't show error if user closes popup
+            if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
                 console.error("Google sign-in error:", error);
+                // Avoid showing toast if linking logic already showed one
                 if (error.code !== 'auth/credential-already-in-use') {
                     toast({
                         variant: "destructive",
                         title: "Google 登录失败",
-                        description: error.code === 'auth/popup-closed-by-user' ? '您关闭了登录窗口' : '登录过程中发生错误，请稍后再试。',
+                        description: '登录过程中发生错误，请稍后再试。',
                     });
                 }
             }
@@ -80,10 +78,9 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // Note: createUserWithEmailAndPassword signs out the anonymous user.
-            // Linking email/password is more complex and often requires a different UX flow.
-            // We'll focus on the robust Google linking for now.
-            await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const credential = EmailAuthProvider.credential(email, password);
+             // After creation, the new user is signed in. We don't need to link.
              toast({ title: "注册成功", description: "欢迎！" });
         } catch (error: any) {
             toast({
@@ -100,14 +97,24 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // This will sign out the anonymous user and sign in.
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error: any) {
-             toast({
-                variant: "destructive",
-                title: "登录失败",
-                description: "邮箱或密码错误，请重试。",
-            });
+            const credential = EmailAuthProvider.credential(email, password);
+            // First, try to link with an existing anonymous account.
+            // This will throw an error if the user is not anonymous, which we'll catch.
+            await linkAnonymousAccount(credential);
+        } catch (linkError: any) {
+            // If linking fails (e.g., user is not anonymous, or credential in use error handled in linkAnonymousAccount)
+            // try a normal sign-in. We only proceed if it's not a "credential-in-use" error.
+            if (linkError.code !== 'auth/credential-already-in-use') {
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (signInError: any) {
+                     toast({
+                        variant: "destructive",
+                        title: "登录失败",
+                        description: "邮箱或密码错误，请重试。",
+                    });
+                }
+            }
         } finally {
             setIsLoading(false);
         }
