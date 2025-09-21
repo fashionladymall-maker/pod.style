@@ -121,12 +121,13 @@ const LoginScreen = () => {
                 // we sign out the anonymous user and sign in with the permanent account.
                 // This prioritizes successful login over data migration if migration fails.
                 try {
-                    await auth.signOut();
+                    await auth.signOut(); // Ensure anonymous user is signed out
                     await signInWithEmailAndPassword(auth, email, password);
                     
                     if (error.code === 'auth/credential-already-in-use') {
                         toast({ title: "登录成功", description: "已切换到您的现有账户。" });
                     } else {
+                        // This case handles network errors during linking.
                         toast({ title: "登录成功", description: "欢迎回来！由于网络问题，匿名会话未能合并。" });
                     }
                 } catch (signInError: any) {
