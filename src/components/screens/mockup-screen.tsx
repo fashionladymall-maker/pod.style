@@ -1,11 +1,12 @@
 
 "use client";
 
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { ArrowLeft, ShoppingCart, Minus, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Model, OrderDetails, Creation } from '@/lib/types';
-import { useSwipe } from '@/hooks/use-swipe';
+import { useDrag } from '@use-gesture/react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -34,6 +35,8 @@ const MockupScreen = ({
   onNext, onBack, creationHistoryIndex, totalCreations, onNavigateCreations,
   modelHistoryIndex, onSelectModel, category, onRegenerate, price
 }: MockupScreenProps) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+  
   const onNavigateModels = (direction: number) => {
     const newIndex = modelHistoryIndex + direction;
     if (newIndex >= 0 && newIndex < models.length) {
@@ -41,18 +44,39 @@ const MockupScreen = ({
     }
   };
   
-  const swipeHandlers = useSwipe({ 
-      onSwipeLeft: () => onNavigateCreations(1), 
-      onSwipeRight: () => onNavigateCreations(-1),
-      onSwipeUp: () => onNavigateModels(1),
-      onSwipeDown: () => onNavigateModels(-1),
-  });
+  const bind = useDrag(
+    ({ last, swipe: [, swipeY], axis }) => {
+      if (last && !isNavigating) {
+        const isVerticalSwipe = Math.abs(swipeY) > 0;
+        
+        if (isVerticalSwipe && models.length > 1) { // Vertical swipe for models
+          if (swipeY === -1) { // Swipe Up
+            setIsNavigating(true);
+            onNavigateModels(1);
+            setTimeout(() => setIsNavigating(false), 500);
+          } else if (swipeY === 1) { // Swipe Down
+            setIsNavigating(true);
+            onNavigateModels(-1);
+            setTimeout(() => setIsNavigating(false), 500);
+          }
+        }
+      }
+    },
+    {
+      axis: 'y',
+      swipe: { distance: 40, velocity: 0.4 },
+    }
+  );
   
   const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
   const isApparel = category.includes("T-shirts") || category.includes("Hoodies") || category.includes("Sweatshirts") || category.includes("T恤") || category.includes("连帽衫") || category.includes("运动卫衣");
 
   return (
-    <div className="relative flex flex-col h-full bg-muted" {...swipeHandlers}>
+    <div 
+      {...bind()} 
+      className="relative flex flex-col h-full bg-muted"
+      style={{ touchAction: 'none' }}
+    >
       <div className="flex-grow relative">
         {modelImage ? (
             <Image src={modelImage} alt="商品效果图" layout="fill" className="object-cover animate-fade-in" />

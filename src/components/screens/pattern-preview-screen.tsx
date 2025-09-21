@@ -1,10 +1,11 @@
 
 "use client";
 
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSwipe } from '@/hooks/use-swipe';
+import { useDrag } from '@use-gesture/react';
 import type { Creation } from '@/lib/types';
 
 interface PatternPreviewScreenProps {
@@ -26,16 +27,35 @@ const PatternPreviewScreen = ({
   isModelGenerating,
   onGoToModel,
 }: PatternPreviewScreenProps) => {
-  const swipeHandlers = useSwipe({ 
-    onSwipeLeft: () => onNavigateCreations(1), 
-    onSwipeRight: () => onNavigateCreations(-1),
-    onSwipeUp: () => onNavigateCreations(1),
-    onSwipeDown: () => onNavigateCreations(-1),
-  });
+  const [isNavigating, setIsNavigating] = useState(false);
   const generatedPattern = creation?.patternUri;
-  
+
+  const bind = useDrag(
+    ({ last, swipe: [, swipeY] }) => {
+      if (last && !isNavigating && totalCreations > 1) {
+        if (swipeY === -1) { // Swipe Up
+          setIsNavigating(true);
+          onNavigateCreations(1);
+          setTimeout(() => setIsNavigating(false), 500); // Cooldown
+        } else if (swipeY === 1) { // Swipe Down
+          setIsNavigating(true);
+          onNavigateCreations(-1);
+          setTimeout(() => setIsNavigating(false), 500); // Cooldown
+        }
+      }
+    },
+    {
+      axis: 'y',
+      swipe: { distance: 40, velocity: 0.4 },
+    }
+  );
+
   return (
-    <div className="relative h-full w-full bg-secondary flex flex-col animate-fade-in" {...swipeHandlers}>
+    <div 
+      {...bind()} 
+      className="relative h-full w-full bg-secondary flex flex-col animate-fade-in"
+      style={{ touchAction: 'none' }}
+    >
       {generatedPattern ? (
           <div className="absolute inset-0 w-full h-full animate-scale-in">
             <Image src={generatedPattern} alt="生成的创意图案" layout="fill" className="object-cover" />
@@ -48,7 +68,6 @@ const PatternPreviewScreen = ({
 
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
         <Button onClick={onBack} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40"><ArrowLeft size={20} /></Button>
-        <div className="w-10 h-10"></div>
       </div>
 
       <div className="absolute bottom-6 left-0 right-0 z-10 px-6 text-center">
