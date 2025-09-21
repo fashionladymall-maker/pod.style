@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Mic, Palette, ArrowUp } from 'lucide-react';
+import { Plus, Mic, Palette, ArrowUp, TrendingUp, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -142,46 +142,35 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   return (
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-grow">
-        {creations.length === 0 && publicCreations.length === 0 ? (
-          <div className="flex h-full justify-center items-center p-6">
-              <div className="text-center">
+        <div className="p-6 space-y-8">
+            <div className="text-center">
                 <h1 className="text-4xl font-medium text-blue-600">{user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || '你好'}, <span className="text-muted-foreground">你好</span></h1>
                 <p className="mt-4 text-muted-foreground">
-                  放飞思想，随心定制
-                  <br />
-                  <span className="text-sm">Free Your Mind, Customize Your Way.</span>
+                    放飞思想，随心定制
+                    <br />
+                    <span className="text-sm">Free Your Mind, Customize Your Way.</span>
                 </p>
-              </div>
-          </div>
-        ) : (
-          <div className="p-6 space-y-8">
-            {creations.length > 0 && (
-                <div>
-                    <h3 className="font-medium mb-3 text-muted-foreground text-sm">最近</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                    {creations.map((creation, index) => (
-                        <button key={creation.id} onClick={() => onGoToHistory(index)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                            <Image src={creation.patternUri} alt={`创意 ${creation.id}`} layout="fill" className="object-cover" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+                <Button variant="outline" className="h-16 text-base"><Sparkles className="mr-2"/>流行创意</Button>
+                <Button variant="outline" className="h-16 text-base"><TrendingUp className="mr-2"/>畅销排行</Button>
+            </div>
+
+            {publicCreations.length > 0 && <Separator />}
+
+            {publicCreations.length > 0 && (
+            <div>
+                <div className="grid grid-cols-2 gap-4">
+                    {publicCreations.filter(pc => !creations.some(c => c.id === pc.id)).map((creation) => (
+                        <button key={creation.id} onClick={() => onSelectPublicCreation(creation)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
+                            <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
                         </button>
                     ))}
-                    </div>
                 </div>
+            </div>
             )}
-             {creations.length > 0 && publicCreations.length > 0 && <Separator />}
-             {publicCreations.length > 0 && (
-                <div>
-                     <h3 className="font-medium mb-3 text-muted-foreground text-sm">流行创意</h3>
-                     <div className="grid grid-cols-2 gap-4">
-                        {publicCreations.filter(pc => !creations.some(c => c.id === pc.id)).map((creation) => (
-                            <button key={creation.id} onClick={() => onSelectPublicCreation(creation)} className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500">
-                                <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} layout="fill" className="object-cover" />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-             )}
-          </div>
-        )}
+        </div>
       </ScrollArea>
 
       <div className="mt-auto p-4 bg-background border-t">
