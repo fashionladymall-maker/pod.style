@@ -18,15 +18,19 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize App Check
 if (typeof window !== 'undefined') {
-  // Set to true to get a debug token in the console.
-  // This can be used to test App Check without a real reCAPTCHA provider.
-  // Make sure to remove this in production.
-  (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  // IMPORTANT: DO NOT COMMIT THIS TO VERSION CONTROL WITH TRUE IN A PRODUCTION APP
+  (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NODE_ENV !== 'production';
 
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!),
-    isTokenAutoRefreshEnabled: true
-  });
+  // Pass your reCAPTCHA v3 site key (public key) to activate.
+  // This key is safe to expose publicly.
+  const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  if (reCaptchaKey) {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(reCaptchaKey),
+        isTokenAutoRefreshEnabled: true
+      });
+  }
 }
 
 
