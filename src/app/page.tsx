@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction, getPublicCreationsAction, getTrendingCreationsAction } from '@/app/actions';
+import { generatePatternAction, generateModelAction, getCreationsAction, deleteCreationAction, createOrderAction, getOrdersAction, getPublicCreationsAction, getTrendingCreationsAction, toggleCreationPublicStatusAction } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
@@ -27,11 +27,12 @@ import Script from 'next/script';
 
 
 export type AppStep = 'home' | 'generating' | 'categorySelection' | 'shipping' | 'payment' | 'confirmation' | 'profile' | 'login';
-export type HomeTab = 'popular' | 'trending';
+export type HomeTab = 'popular' | 'trending' | 'mine';
 export interface ViewerState {
   isOpen: boolean;
-  creationIndex: number;
+  creationId: string | null;
   modelIndex: number; // -1 for pattern, >=0 for model
+  sourceTab: HomeTab;
 }
 
 const podCategories = [
@@ -130,8 +131,9 @@ const App = () => {
 
     const [viewerState, setViewerState] = useState<ViewerState>({
       isOpen: false,
-      creationIndex: -1,
+      creationId: null,
       modelIndex: -1,
+      sourceTab: 'popular',
     });
 
     const fetchCreations = useCallback(async (userId: string) => {
@@ -258,7 +260,7 @@ const App = () => {
 
             const updatedCreations = [newCreation, ...creations];
             setCreations(updatedCreations);
-            setViewerState({ isOpen: true, creationIndex: 0, modelIndex: -1 });
+            setViewerState({ isOpen: true, creationId: newCreation.id, modelIndex: -1, sourceTab: 'mine' });
             setStep('home');
         } catch (err: any) {
             console.error(err);
@@ -270,7 +272,7 @@ const App = () => {
     }, [prompt, uploadedImage, selectedStyle, user, toast, creations]);
 
     const handleGenerateModel = useCallback(async (category: string) => {
-        const activeCreation = creations[viewerState.creationIndex];
+        const activeCreation = creations.find(c => c.id === viewerState.creationId);
         if (!user || !activeCreation) {
             toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
             setViewerState(prev => ({ ...prev, isOpen: false }));
@@ -290,15 +292,16 @@ const App = () => {
                 category: category,
             });
             
-            const newCreations = creations.map((c, index) => 
-                index === viewerState.creationIndex ? updatedCreation : c
+            const newCreations = creations.map((c) => 
+                c.id === updatedCreation.id ? updatedCreation : c
             );
 
             setCreations(newCreations);
             setViewerState({ 
               isOpen: true, 
-              creationIndex: viewerState.creationIndex,
-              modelIndex: updatedCreation.models.length - 1
+              creationId: updatedCreation.id,
+              modelIndex: updatedCreation.models.length - 1,
+              sourceTab: viewerState.sourceTab
             });
             setStep('home');
         } catch (err: any) {
@@ -310,7 +313,7 @@ const App = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [viewerState.creationIndex, creations, orderDetails.colorName, user, toast]);
+    }, [viewerState.creationId, viewerState.sourceTab, creations, orderDetails.colorName, user, toast]);
 
     const handleDeleteCreation = useCallback(async (creationId: string) => {
         const originalCreations = creations;
@@ -320,11 +323,13 @@ const App = () => {
         try {
             await deleteCreationAction(creationId);
             toast({ title: "删除成功", description: "您的作品已被删除。" });
-            if (viewerState.creationIndex >= newCreations.length) {
-                setViewerState(prev => ({...prev, creationIndex: Math.max(0, newCreations.length - 1)}));
+            
+            // If the deleted creation was being viewed, close the viewer.
+            if(viewerState.creationId === creationId) {
+                setViewerState({ isOpen: false, creationId: null, modelIndex: -1, sourceTab: 'mine' });
             }
-            if (newCreations.length === 0) {
-                 setViewerState({ isOpen: false, creationIndex: -1, modelIndex: -1 });
+
+            if (newCreations.length === 0 && step === 'profile') {
                  setStep('home');
             }
         } catch (error) {
@@ -332,29 +337,57 @@ const App = () => {
             toast({ variant: "destructive", title: "删除失败", description: "无法删除您的作品，请重试。" });
             setCreations(originalCreations); 
         }
-    }, [creations, toast, viewerState.creationIndex]);
+    }, [creations, toast, viewerState.creationId, step]);
     
-    const goToHistory = (creationIndex: number, modelIndex: number = -1) => {
-        setViewerState({ isOpen: true, creationIndex, modelIndex });
+    const goToHistory = (creation: Creation, modelIndex: number = -1) => {
+        setViewerState({ isOpen: true, creationId: creation.id, modelIndex, sourceTab: 'mine' });
     };
     
     const handleSelectPublicCreation = (creation: Creation, source: HomeTab, modelIndex?: number) => {
         const existingIndex = creations.findIndex(c => c.id === creation.id);
-        let targetIndex = 0;
 
         if (existingIndex === -1) {
-            const newCreations = [creation, ...creations];
-            setCreations(newCreations);
-        } else {
-            targetIndex = existingIndex;
+            setCreations(prev => [creation, ...prev]);
         }
 
         setViewerState({
             isOpen: true,
-            creationIndex: targetIndex,
-            modelIndex: modelIndex ?? -1
+            creationId: creation.id,
+            modelIndex: modelIndex ?? -1,
+            sourceTab: source
         });
     };
+    
+    const handleTogglePublic = async (creationId: string, currentStatus: boolean) => {
+      const optimisticUpdate = (list: Creation[]) => list.map(c => 
+        c.id === creationId ? { ...c, isPublic: !currentStatus } : c
+      );
+      setCreations(optimisticUpdate);
+      setPublicCreations(optimisticUpdate);
+      setTrendingCreations(optimisticUpdate);
+
+      try {
+        await toggleCreationPublicStatusAction(creationId, !currentStatus);
+        toast({
+          title: "更新成功",
+          description: `您的作品已${!currentStatus ? '公开' : '设为私密'}。`,
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "更新失败",
+          description: "无法更新作品状态，请重试。",
+        });
+        // Revert UI on failure
+        const pesimisticUpdate = (list: Creation[]) => list.map(c => 
+          c.id === creationId ? { ...c, isPublic: currentStatus } : c
+        );
+        setCreations(pesimisticUpdate);
+        setPublicCreations(pesimisticUpdate);
+        setTrendingCreations(pesimisticUpdate);
+      }
+    };
+
 
     const handleSignOut = async () => {
         try {
@@ -384,7 +417,7 @@ const App = () => {
         setLoadingText("正在处理您的订单...");
         setStep('generating');
         
-        const activeCreation = creations[viewerState.creationIndex];
+        const activeCreation = creations.find(c => c.id === viewerState.creationId);
         const activeModel = activeCreation?.models[viewerState.modelIndex];
 
         if (!user || !activeCreation || !activeModel) {
@@ -573,6 +606,7 @@ const App = () => {
                 onSignOut={handleSignOut}
                 onDeleteCreation={handleDeleteCreation}
                 onLoginRequest={() => setStep('login')}
+                onTogglePublic={handleTogglePublic}
             />;
             case 'home':
             default:
@@ -593,6 +627,18 @@ const App = () => {
                 />;
         }
     };
+    
+    const getSourceCreations = () => {
+        switch(viewerState.sourceTab) {
+            case 'popular':
+                return publicCreations;
+            case 'trending':
+                return trendingCreations;
+            case 'mine':
+            default:
+                return creations;
+        }
+    };
 
     return (
         <main className="bg-background text-foreground min-h-screen font-sans flex flex-col items-center justify-center">
@@ -609,7 +655,7 @@ const App = () => {
               <ViewerScreen
                 viewerState={viewerState}
                 setViewerState={setViewerState}
-                creations={creations}
+                sourceCreations={getSourceCreations()}
                 orderDetails={orderDetails}
                 setOrderDetails={setOrderDetails}
                 handleQuantityChange={handleQuantityChange}

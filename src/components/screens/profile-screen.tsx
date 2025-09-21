@@ -22,7 +22,6 @@ import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from '@/hooks/use-toast';
-import { toggleCreationPublicStatusAction } from '@/app/actions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 
@@ -31,10 +30,11 @@ interface ProfileScreenProps {
   creations: Creation[];
   orders: Order[];
   onBack: () => void;
-  onGoToHistory: (creationIndex: number, modelIndex?: number) => void;
+  onGoToHistory: (creation: Creation, modelIndex?: number) => void;
   onSignOut: () => void;
   onDeleteCreation: (creationId: string) => void;
   onLoginRequest: () => void;
+  onTogglePublic: (creationId: string, currentStatus: boolean) => void;
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({
@@ -45,11 +45,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onGoToHistory,
   onSignOut,
   onDeleteCreation,
-  onLoginRequest
+  onLoginRequest,
+  onTogglePublic,
 }) => {
   const [creations, setCreations] = useState(initialCreations);
   const [orders, setOrders] = useState(initialOrders);
-  const { toast } = useToast();
   
   useEffect(() => {
     setCreations(initialCreations);
@@ -63,30 +63,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   }
-
-  const handleTogglePublic = async (creationId: string, currentStatus: boolean) => {
-    // Optimistic UI update
-    const updatedCreations = creations.map(c => 
-      c.id === creationId ? { ...c, isPublic: !currentStatus } : c
-    );
-    setCreations(updatedCreations);
-
-    try {
-      await toggleCreationPublicStatusAction(creationId, !currentStatus);
-      toast({
-        title: "更新成功",
-        description: `您的作品已${!currentStatus ? '公开' : '设为私密'}。`,
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "更新失败",
-        description: "无法更新作品状态，请重试。",
-      });
-      // Revert UI on failure
-      setCreations(creations);
-    }
-  };
 
   return (
     <div className="flex flex-col h-full bg-background animate-fade-in">
@@ -138,7 +114,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   {initialCreations.length === 0 && !user?.isAnonymous && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
                   {creations.length > 0 ? (
                       <div className="space-y-6">
-                      {creations.map((creation, index) => (
+                      {creations.map((creation) => (
                           <div key={creation.id} className="break-inside-avoid border-b pb-6">
                             <div className="flex justify-between items-start mb-2">
                                 <p className="text-sm text-muted-foreground line-clamp-2 pr-10">"{creation.prompt || '无标题'}"</p>
@@ -146,7 +122,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="relative group">
                                   <button
-                                      onClick={() => onGoToHistory(index, -1)}
+                                      onClick={() => onGoToHistory(creation, -1)}
                                       className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
                                   >
                                       <Image
@@ -161,7 +137,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                       <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white" onClick={() => handleTogglePublic(creation.id, creation.isPublic)}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white" onClick={() => onTogglePublic(creation.id, creation.isPublic)}>
                                                     <Globe size={16} className={creation.isPublic ? 'text-blue-400' : ''}/>
                                                 </Button>
                                             </TooltipTrigger>
@@ -194,7 +170,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                 {creation.models.map((model, modelIndex) => (
                                   <div key={model.uri} className="relative group">
                                     <button
-                                        onClick={() => onGoToHistory(index, modelIndex)}
+                                        onClick={() => onGoToHistory(creation, modelIndex)}
                                         className="aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary"
                                     >
                                         <Image

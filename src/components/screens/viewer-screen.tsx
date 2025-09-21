@@ -14,7 +14,7 @@ import MockupScreen from './mockup-screen';
 interface ViewerScreenProps {
   viewerState: ViewerState;
   setViewerState: React.Dispatch<React.SetStateAction<ViewerState>>;
-  creations: Creation[];
+  sourceCreations: Creation[];
   orderDetails: OrderDetails;
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;
@@ -26,7 +26,7 @@ interface ViewerScreenProps {
 const ViewerScreen: React.FC<ViewerScreenProps> = ({
   viewerState,
   setViewerState,
-  creations,
+  sourceCreations,
   orderDetails,
   setOrderDetails,
   handleQuantityChange,
@@ -46,15 +46,15 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   }, []);
 
   const flatNavigationMap = useMemo(() => {
-    const map: { creationIndex: number, modelIndex: number }[] = [];
-    creations.forEach((creation, cIndex) => {
-      map.push({ creationIndex: cIndex, modelIndex: -1 }); // The pattern itself
+    const map: { creationId: string, modelIndex: number }[] = [];
+    sourceCreations.forEach((creation) => {
+      map.push({ creationId: creation.id, modelIndex: -1 }); // The pattern itself
       creation.models.forEach((_, mIndex) => {
-        map.push({ creationIndex: cIndex, modelIndex: mIndex });
+        map.push({ creationId: creation.id, modelIndex: mIndex });
       });
     });
     return map;
-  }, [creations]);
+  }, [sourceCreations]);
   
   const handleClose = () => {
     setViewerState(prev => ({ ...prev, isOpen: false }));
@@ -64,19 +64,26 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     if (isNavigating || flatNavigationMap.length <= 1) return;
   
     const currentIndex = flatNavigationMap.findIndex(
-      item => item.creationIndex === viewerState.creationIndex && item.modelIndex === viewerState.modelIndex
+      item => item.creationId === viewerState.creationId && item.modelIndex === viewerState.modelIndex
     );
   
     if (currentIndex === -1) return;
   
-    const newIndex = currentIndex + (direction === 'next' ? 1 : -1);
+    let newIndex = currentIndex + (direction === 'next' ? 1 : -1);
+
+    // Loop navigation
+    if (newIndex < 0) {
+        newIndex = flatNavigationMap.length - 1;
+    } else if (newIndex >= flatNavigationMap.length) {
+        newIndex = 0;
+    }
   
     if (newIndex >= 0 && newIndex < flatNavigationMap.length) {
       setIsNavigating(true);
       const nextItem = flatNavigationMap[newIndex];
       setViewerState(prev => ({
         ...prev,
-        creationIndex: nextItem.creationIndex,
+        creationId: nextItem.creationId,
         modelIndex: nextItem.modelIndex,
       }));
       setTimeout(() => setIsNavigating(false), 500); // Cooldown
@@ -85,19 +92,19 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   
   const onSelectModel = (index: number) => {
     const targetIndex = flatNavigationMap.findIndex(
-      item => item.creationIndex === viewerState.creationIndex && item.modelIndex === index
+      item => item.creationId === viewerState.creationId && item.modelIndex === index
     );
     if(targetIndex !== -1) {
         const targetItem = flatNavigationMap[targetIndex];
         setViewerState(prev => ({ 
             ...prev,
-            creationIndex: targetItem.creationIndex,
+            creationId: targetItem.creationId,
             modelIndex: targetItem.modelIndex 
         }));
     }
   }
 
-  const currentCreation = creations[viewerState.creationIndex];
+  const currentCreation = sourceCreations.find(c => c.id === viewerState.creationId);
   const currentModel = currentCreation?.models[viewerState.modelIndex];
   const isPatternView = viewerState.modelIndex === -1;
 
@@ -134,7 +141,6 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
           isPatternView ? (
             <PatternPreviewScreen
               creation={currentCreation}
-              isModelGenerating={false}
               onGoToModel={() => handleNavigate('next')}
             />
           ) : (
