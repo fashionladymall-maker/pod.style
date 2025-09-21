@@ -11,8 +11,6 @@ import type { Creation } from '@/lib/types';
 interface PatternPreviewScreenProps {
   creation: Creation | undefined;
   onBack: () => void;
-  creationHistoryIndex: number;
-  totalCreations: number;
   onNavigateCreations: (direction: number) => void;
   isModelGenerating: boolean;
   onGoToModel: () => void;
@@ -21,8 +19,6 @@ interface PatternPreviewScreenProps {
 const PatternPreviewScreen = ({
   creation,
   onBack,
-  creationHistoryIndex,
-  totalCreations,
   onNavigateCreations,
   isModelGenerating,
   onGoToModel,
@@ -32,7 +28,7 @@ const PatternPreviewScreen = ({
 
   const bind = useDrag(
     ({ last, swipe: [, swipeY] }) => {
-      if (last && !isNavigating && totalCreations > 1) {
+      if (last && !isNavigating) {
         if (swipeY !== 0) {
             setIsNavigating(true);
             onNavigateCreations(swipeY); // swipeY is -1 for up, 1 for down

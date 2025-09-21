@@ -124,14 +124,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       )}
 
 
-      <Tabs defaultValue="creations" className="w-full px-4 flex-grow flex flex-col">
+      <Tabs defaultValue="creations" className="w-full px-4 flex-grow flex flex-col min-h-0">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="creations">我的创作 ({creations.length})</TabsTrigger>
             <TabsTrigger value="orders">我的订单 ({orders.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="creations" className="flex-grow mt-4">
+        <TabsContent value="creations" className="flex-grow mt-4 overflow-y-auto">
             <TooltipProvider>
-            <ScrollArea className="h-full">
                 <div className="px-1 pb-4">
                     {initialCreations.length === 0 && !user?.isAnonymous && <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载作品...</div>}
                     {creations.length > 0 ? (
@@ -215,11 +214,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         </div>
                     )}
                 </div>
-            </ScrollArea>
             </TooltipProvider>
         </TabsContent>
-        <TabsContent value="orders" className="flex-grow mt-4">
-            <ScrollArea className="h-full">
+        <TabsContent value="orders" className="flex-grow mt-4 overflow-y-auto">
+            
                 <div className="px-1 pb-4">
                     {initialOrders.length === 0 && !user?.isAnonymous && <div className="text-center p-8 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载订单...</div>}
                     {orders.length > 0 ? (
@@ -243,7 +241,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         (initialOrders.length > 0 || user?.isAnonymous) && <div className="text-center p-8 text-muted-foreground">暂无订单记录</div>
                     )}
                 </div>
-            </ScrollArea>
+            
         </TabsContent>
       </Tabs>
     </div>

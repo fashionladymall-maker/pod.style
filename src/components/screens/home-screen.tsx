@@ -45,7 +45,16 @@ const creativePrompts = [
   "蒸汽朋克风格的飞行器"
 ];
 
-const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model', sourceTab: HomeTab }) => {
+const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab, isLoading }: { creations: Creation[], onSelect: (creation: Creation, modelIndex?: number) => void, displayMode?: 'pattern' | 'model', sourceTab: HomeTab, isLoading: boolean }) => {
+    
+    if (isLoading) {
+      return (
+          <div className="text-center py-10 text-muted-foreground">
+              <Loader2 className="animate-spin inline-block mr-2" />
+              正在加载...
+          </div>
+      );
+    }
     
     if (displayMode === 'model') {
         const allModels = creations.flatMap(creation => 
@@ -84,7 +93,7 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', sourceTab 
     }
 
     // Default 'pattern' display mode
-    if (creations.length === 0 && !isLoading) {
+    if (creations.length === 0) {
         return (
             <div className="text-center py-10 text-muted-foreground">
                 <p>还没有作品</p>
@@ -214,18 +223,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     <TabsTrigger value="trending" className="py-1"><TrendingUp className="mr-2 h-4 w-4" />定制排行</TabsTrigger>
                 </TabsList>
                 <TabsContent value="popular" className="mt-4">
-                    {isLoading ? (
-                        <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
-                    ) : (
-                        <CreationGrid creations={publicCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)} displayMode="pattern" sourceTab="popular" />
-                    )}
+                  <CreationGrid creations={publicCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)} displayMode="pattern" sourceTab="popular" isLoading={isLoading} />
                 </TabsContent>
                 <TabsContent value="trending" className="mt-4">
-                    {isLoading ? (
-                        <div className="text-center p-12 text-muted-foreground"><Loader2 className="animate-spin inline-block mr-2" />正在加载...</div>
-                    ) : (
-                        <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" sourceTab="trending" />
-                    )}
+                  <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" sourceTab="trending" isLoading={isLoading} />
                 </TabsContent>
             </Tabs>
         </div>

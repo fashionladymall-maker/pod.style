@@ -196,7 +196,9 @@ const App = () => {
                 }
 
             } else {
-                // Not logged in, sign in anonymously
+                // Not logged in, clear data and sign in anonymously
+                setCreations([]);
+                setOrders([]);
                 signInAnonymously(auth).catch(error => {
                     console.error("Anonymous sign-in failed:", error);
                     toast({ variant: 'destructive', title: '网络错误', description: '无法连接到服务，请刷新页面重试。'});
@@ -212,12 +214,10 @@ const App = () => {
             isSigningOut = false;
         };
 
-        // We can expose `customSignOut` via a context or other means if needed elsewhere
-        // For now, we handle it within this component
         (auth as any).customSignOut = customSignOut;
 
         return () => unsubscribe();
-    }, [fetchCreations, fetchOrders, fetchCommunityCreations, toast, user, step]);
+    }, [fetchCreations, fetchOrders, fetchCommunityCreations, toast, user?.isAnonymous, user?.uid, step]);
 
     useEffect(() => {
         if ((step === 'shipping' || step === 'payment') && orders.length > 0) {
@@ -341,7 +341,7 @@ const App = () => {
         }
     };
     
-    const selectModel = (index: number) => {
+    const onSelectModel = (index: number) => {
       if (index >=0 && creations[activeCreationIndex]?.models[index]) {
         setActiveModelIndex(index);
         setStep('mockup');
@@ -380,7 +380,7 @@ const App = () => {
 
         setActiveCreationIndex(targetIndex);
     
-        if (source === 'trending' && modelIndex !== undefined) {
+        if (source === 'trending' && modelIndex !== undefined && creation.models[modelIndex]) {
             setActiveModelIndex(modelIndex);
             setStep('mockup');
         } else {
@@ -392,10 +392,8 @@ const App = () => {
     const handleSignOut = async () => {
         try {
             await ((auth as any).customSignOut || firebaseSignOut)(auth);
-            // After sign out, onAuthStateChanged will trigger and sign in a new anonymous user.
-            // Reset local state to reflect the new empty session.
-            resetState();
             toast({ title: "已退出登录" });
+            setStep('home');
         } catch (error) {
             console.error("Error signing out:", error);
             toast({ variant: "destructive", title: "退出登录失败", description: "退出时发生错误，请稍后重试。" });
@@ -458,17 +456,11 @@ const App = () => {
     
     const handleQuantityChange = (amount: number) => { setOrderDetails(prev => ({ ...prev, quantity: Math.max(1, prev.quantity + amount) })); };
     
-    const resetState = () => {
-        setPrompt('');
-        setUploadedImage(null);
-        setCreations([]);
-        setActiveCreationIndex(-1);
-        setActiveModelIndex(-1);
+    const resetOrderFlow = () => {
         setOrderDetails({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
         setShippingInfo({ name: '', address: '', phone: '' });
         setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
-        setOrders([]);
-        setStep('home'); // Go to home after reset, auth listener will handle session
+        setStep('home');
     };
 
     const handleGoHome = () => {
@@ -593,8 +585,6 @@ const App = () => {
             case 'patternPreview': return <PatternPreviewScreen 
                 creation={activeCreation}
                 onBack={() => setStep('home')} 
-                creationHistoryIndex={activeCreationIndex} 
-                totalCreations={creations.length} 
                 onNavigateCreations={navigateCreationHistory} 
                 isModelGenerating={isLoading}
                 onGoToModel={() => setStep('categorySelection')} 
@@ -612,11 +602,8 @@ const App = () => {
                   setActiveModelIndex(-1);
                   setStep('patternPreview');
                 }} 
-                creationHistoryIndex={activeCreationIndex} 
-                totalCreations={creations.length} 
-                onNavigateCreations={navigateCreationHistory}
                 modelHistoryIndex={activeModelIndex}
-                onSelectModel={selectModel}
+                onNavigateModels={onSelectModel}
                 category={activeModel?.category || ''}
                 onRegenerate={() => setStep('categorySelection')}
                 price={MOCK_PRICE}
@@ -637,7 +624,7 @@ const App = () => {
                 isLoading={isLoading} 
                 price={MOCK_PRICE}
             />;
-            case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} onReset={resetState} category={lastOrderedCategory} />;
+            case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} onReset={resetOrderFlow} category={lastOrderedCategory} />;
             case 'profile': return <ProfileScreen
                 user={user}
                 creations={creations}
@@ -673,7 +660,7 @@ const App = () => {
             <div className="w-full max-w-md bg-card overflow-hidden shadow-2xl rounded-2xl border" style={{ height: '100dvh' }}>
                 <div key={`${step}-${activeCreationIndex}-${activeModelIndex}`} className="h-full flex flex-col">
                     <AppHeader/>
-                    <div className="flex-grow overflow-y-auto">
+                    <div className="flex-grow min-h-0">
                         {renderStep()}
                     </div>
                 </div>
@@ -683,3 +670,5 @@ const App = () => {
 };
 
 export default App;
+
+    

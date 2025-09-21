@@ -20,11 +20,8 @@ interface MockupScreenProps {
   handleQuantityChange: (amount: number) => void;
   onNext: () => void;
   onBack: () => void;
-  creationHistoryIndex: number;
-  totalCreations: number;
-  onNavigateCreations: (direction: number) => void;
   modelHistoryIndex: number;
-  onSelectModel: (index: number) => void;
+  onNavigateModels: (direction: number) => void;
   category: string;
   onRegenerate: () => void;
   price: number;
@@ -32,30 +29,23 @@ interface MockupScreenProps {
 
 const MockupScreen = ({
   modelImage, models, creation, orderDetails, setOrderDetails, handleQuantityChange,
-  onNext, onBack, creationHistoryIndex, totalCreations, onNavigateCreations,
-  modelHistoryIndex, onSelectModel, category, onRegenerate, price
+  onNext, onBack, modelHistoryIndex, onNavigateModels, category, onRegenerate, price
 }: MockupScreenProps) => {
   const [isNavigating, setIsNavigating] = useState(false);
   
-  const onNavigateModels = (direction: number) => {
+  const handleNavigateModels = (direction: number) => {
     const newIndex = modelHistoryIndex + direction;
     if (newIndex >= 0 && newIndex < models.length) {
-      onSelectModel(newIndex);
+      onNavigateModels(newIndex);
     }
   };
   
   const bind = useDrag(
-    ({ last, swipe: [, swipeY], axis }) => {
+    ({ last, swipe: [, swipeY] }) => {
       if (last && !isNavigating) {
-        if (axis === 'y' && swipeY !== 0) { // It's a vertical swipe
+        if (swipeY !== 0) {
             setIsNavigating(true);
-            onNavigateModels(swipeY);
-            setTimeout(() => setIsNavigating(false), 500);
-        } else if (axis === 'x' && totalCreations > 1) { // Horizontal swipe for creations
-            const swipeX = swipeY; // In useDrag with axis:'y', swipeX is not available, we use swipeY for direction
-            const direction = swipeX === -1 ? 1 : -1;
-            setIsNavigating(true);
-            onNavigateCreations(direction);
+            handleNavigateModels(swipeY);
             setTimeout(() => setIsNavigating(false), 500);
         }
       }
@@ -98,7 +88,7 @@ const MockupScreen = ({
                       key={index}
                       variant={index === modelHistoryIndex ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => onSelectModel(index)}
+                      onClick={() => onNavigateModels(index)}
                       className={cn(
                         "rounded-full shrink-0",
                         index !== modelHistoryIndex && "bg-white/10 border-white/20 text-white hover:bg-white/20"
