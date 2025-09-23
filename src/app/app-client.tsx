@@ -181,7 +181,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
           fetchCreations(user.uid),
           fetchOrders(user.uid)
         ]).then(() => {
-           if (step === 'login') {
+           // Only navigate away from login screen if user is no longer anonymous
+           if (step === 'login' && user && !user.isAnonymous) {
              setStep('home');
            }
         });
@@ -649,3 +650,5 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 };
 
 export default AppClient;
+
+    
