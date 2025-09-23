@@ -13,7 +13,8 @@ import {
     signInWithEmailAndPassword,
     linkWithCredential,
     EmailAuthProvider,
-    signInWithCredential
+    signInWithCredential,
+    AuthCredential as FirebaseAuthCredential
 } from "firebase/auth";
 import type { FirebaseUser, AuthCredential } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -82,40 +83,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         await firebaseSignOut(auth);
     };
 
-    const linkAndMigrate = async (credential: any) => {
-        if (!auth || !auth.currentUser || !auth.currentUser.isAnonymous) {
-            // Not an anonymous user, just sign in
-            await signInWithCredential(auth, credential);
-            return;
+    const signInAndMigrate = async (credential: FirebaseAuthCredential) => {
+        if (!auth || !auth.currentUser) {
+            throw new Error("Auth not ready.");
         }
 
-        const anonymousUid = auth.currentUser.uid;
-        
-        try {
-            const result = await linkWithCredential(auth.currentUser, credential);
-            const permanentUid = result.user.uid;
-            
-            toast({ title: '账户已关联', description: '正在合并您的匿名创作历史...' });
-            
-            await migrateAndHandleResult(anonymousUid, permanentUid);
-            
-            toast({ title: `登录成功，${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
+        const isUpgrading = auth.currentUser.isAnonymous;
+        const anonymousUid = isUpgrading ? auth.currentUser.uid : null;
 
-        } catch (error: any) {
-            if (error.code === 'auth/credential-already-in-use') {
-                 toast({ title: "账户已存在", description: "此凭证已关联其他账户，正在为您登录并合并数据..." });
-                // If the credential is in use, sign in with it and then migrate data.
-                const existingUser = await signInWithCredential(auth, credential);
-                const permanentUid = existingUser.user.uid;
+        try {
+            const result = await signInWithCredential(auth, credential);
+            const permanentUid = result.user.uid;
+
+            if (isUpgrading && anonymousUid && anonymousUid !== permanentUid) {
+                toast({ title: '登录成功', description: '正在合并您的匿名创作历史...' });
                 await migrateAndHandleResult(anonymousUid, permanentUid);
+                toast({ title: `欢迎回来, ${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
             } else {
-                // For other errors (like network), re-throw to be caught by the caller.
-                console.error("Link error:", error);
-                throw error;
+                 toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });
             }
+        } catch (error: any) {
+            console.error("Sign-in or migration error:", error);
+            if (error.code === 'auth/network-request-failed') {
+                throw new Error("网络请求失败。请检查您的网络连接，并确保您的应用域已在Firebase认证设置中列入白名单。");
+            }
+            throw error; // Re-throw other errors to be handled by the UI
         }
     };
-
+    
     const migrateAndHandleResult = async (anonymousUid: string, permanentUid: string) => {
         if (anonymousUid === permanentUid) return;
         const migrationResult = await migrateAnonymousDataAction(anonymousUid, permanentUid);
@@ -126,19 +121,51 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     const googleSignIn = async () => {
         const provider = new GoogleAuthProvider();
-        await linkAndMigrate(provider);
+        // With signInWithPopup, Firebase handles linking automatically if a user is already signed in (even anonymously).
+        // But our custom flow gives us more control over data migration toasts.
+        const result = await signInWithPopup(auth, provider);
+        const permanentUid = result.user.uid;
+
+        // Since we can't get the anonymous UID after this finishes, we rely on a slightly different flow.
+        // The onAuthStateChanged listener will handle the user update. We might need a different approach
+        // if we need to show a "migrating" toast. A simple "Logged in" is fine for now.
+        toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });
     };
 
     const emailSignUp = async (email: string, password: string) => {
         if (!auth) throw new Error("Auth not initialized");
-        // Firebase automatically handles linking on createUserWithEmailAndPassword if a user is already signed in.
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: "注册成功", description: "欢迎！您的匿名创作历史已保留。" });
+        if (!auth.currentUser || !auth.currentUser.isAnonymous) {
+            // If there's no user or a signed-in user, just create a new account
+            await createUserWithEmailAndPassword(auth, email, password);
+            toast({ title: "注册成功", description: "欢迎！" });
+            return;
+        }
+
+        // Upgrade anonymous user
+        const anonymousUid = auth.currentUser.uid;
+        const credential = EmailAuthProvider.credential(email, password);
+
+        try {
+            const result = await linkWithCredential(auth.currentUser, credential);
+            const permanentUid = result.user.uid;
+            
+            if (anonymousUid !== permanentUid) {
+                await migrateAndHandleResult(anonymousUid, permanentUid);
+            }
+            toast({ title: "注册成功", description: "欢迎！您的匿名创作历史已保留。" });
+
+        } catch (error: any) {
+             if (error.code === 'auth/credential-already-in-use') {
+                // This case means the email is taken. We should ask them to sign in.
+                throw new Error("该邮箱已被注册。请尝试登录。");
+             }
+             throw error;
+        }
     };
 
     const emailSignIn = async (email: string, password: string) => {
         const credential = EmailAuthProvider.credential(email, password);
-        await linkAndMigrate(credential);
+        await signInAndMigrate(credential);
     };
 
     const value = {

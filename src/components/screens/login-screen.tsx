@@ -23,7 +23,7 @@ const LoginScreen = () => {
         setIsLoading(true);
         try {
             await googleSignIn();
-            // No need to toast success here, AuthContext and AppClient will handle state change
+            // No need to toast success here, AuthContext will handle state change and toast
         } catch (error: any) {
              if (error.code === 'auth/network-request-failed') {
                 toast({
@@ -50,7 +50,7 @@ const LoginScreen = () => {
         try {
             await emailSignUp(email, password);
         } catch (error: any) {
-             let description = '注册失败，请检查您的邮箱和密码。';
+             let description = error.message || '注册失败，请检查您的邮箱和密码。';
             if (error.code === 'auth/email-already-in-use') {
                 description = '该邮箱已被注册。请尝试登录或使用其他邮箱。';
             } else if (error.code === 'auth/network-request-failed') {
@@ -72,7 +72,7 @@ const LoginScreen = () => {
         try {
             await emailSignIn(email, password);
         } catch (error: any) {
-            let description = `登录失败: ${error.message}`;
+            let description = error.message || `登录失败: ${error.message}`;
             if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                 description = '邮箱或密码不正确。';
             } else if (error.code === 'auth/network-request-failed') {
