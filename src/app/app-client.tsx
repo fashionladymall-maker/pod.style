@@ -10,7 +10,7 @@ import {
     createOrderAction, 
     getOrdersAction, 
     toggleCreationPublicStatusAction, 
-    getPublicCreationsAction, 
+    getPublicCreationsAction,
     getTrendingCreationsAction,
     toggleLikeAction,
     toggleFavoriteAction,
