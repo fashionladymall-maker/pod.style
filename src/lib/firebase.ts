@@ -14,45 +14,47 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth | null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
 let db: Firestore | null = null;
 
-
-// Initialize Firebase
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
     console.warn("Firebase configuration is incomplete. Firebase services will be disabled. Please set up your .env.local file with all the required NEXT_PUBLIC_FIREBASE_... variables.");
-    app = null!;
-    auth = null;
-    db = null;
 } else {
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    db = getFirestore(app);
+    if (getApps().length === 0) {
+        app = initializeApp(firebaseConfig);
+    } else {
+        app = getApp();
+    }
 
-    // Initialize Auth client-side only to avoid SSR issues
-    auth = typeof window !== 'undefined' ? initializeAuth(app, {
-        persistence: [indexedDBLocalPersistence, inMemoryPersistence]
-    }) : null;
+    if (app) {
+        db = getFirestore(app);
 
-    // Initialize App Check on the client side only
-    if (typeof window !== 'undefined') {
-        if (process.env.NODE_ENV === 'development') {
-          (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-        }
-        
-        const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-        if (reCaptchaKey) {
-            try {
-                initializeAppCheck(app, {
-                    provider: new ReCaptchaV3Provider(reCaptchaKey),
-                    isTokenAutoRefreshEnabled: true
-                });
-                console.log("Firebase App Check initialized.");
-            } catch (e) {
-                console.error("Failed to initialize Firebase App Check", e);
+        if (typeof window !== 'undefined') {
+            // Initialize Auth only on the client
+            auth = initializeAuth(app, {
+                persistence: [indexedDBLocalPersistence, inMemoryPersistence]
+            });
+
+            // Initialize App Check and handle errors gracefully
+            if (process.env.NODE_ENV === 'development') {
+              (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
             }
-        } else {
-            console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.");
+            
+            const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+            if (reCaptchaKey) {
+                try {
+                    initializeAppCheck(app, {
+                        provider: new ReCaptchaV3Provider(reCaptchaKey),
+                        isTokenAutoRefreshEnabled: true
+                    });
+                    console.log("Firebase App Check initialized successfully.");
+                } catch (e) {
+                    console.error("Failed to initialize Firebase App Check. This will not stop other Firebase services.", e);
+                }
+            } else {
+                console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.");
+            }
         }
     }
 }
