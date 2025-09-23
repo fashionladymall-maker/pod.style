@@ -184,13 +184,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             return;
         }
 
-        let isSigningOut = false;
-
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            if (isSigningOut) {
-                return;
-            }
-
             if (firebaseUser) {
                 const needsDataFetch = !user || user.uid !== firebaseUser.uid;
                 
@@ -208,6 +202,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 }
 
             } else {
+                setUser(null);
                 setCreations([]);
                 setOrders([]);
                 signInAnonymously(auth).catch(error => {
@@ -227,20 +222,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             }
         });
 
-        const customSignOut = async () => {
-            isSigningOut = true;
-            await firebaseSignOut(auth);
-            setUser(null);
-            setCreations([]);
-            setOrders([]);
-            isSigningOut = false;
-        };
-
-        (auth as any).customSignOut = customSignOut;
-
         return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [step]); 
+    });
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {
@@ -411,7 +394,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const handleSignOut = async () => {
         if (!auth) return;
         try {
-            await ((auth as any).customSignOut || firebaseSignOut)(auth);
+            await firebaseSignOut(auth);
             toast({ title: "已退出登录" });
             setStep('home');
         } catch (error) {
