@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
@@ -13,36 +13,35 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+if (firebaseConfig.apiKey) {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
 
-// Initialize App Check
-if (typeof window !== 'undefined') {
-  // IMPORTANT: Set this to true only for local development debugging.
-  // In production, this should be false or undefined.
-  (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NODE_ENV === 'development';
-
-  const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-  if (reCaptchaKey) {
-      try {
-        initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider(reCaptchaKey),
-            isTokenAutoRefreshEnabled: true
-        });
-      } catch (e) {
-        console.error("Failed to initialize App Check", e);
-      }
-  } else {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.");
+    if (typeof window !== 'undefined') {
+        (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NODE_ENV === 'development';
+        const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+        if (reCaptchaKey) {
+            try {
+                initializeAppCheck(app, {
+                    provider: new ReCaptchaV3Provider(reCaptchaKey),
+                    isTokenAutoRefreshEnabled: true
+                });
+            } catch (e) {
+                console.error("Failed to initialize App Check", e);
+            }
+        } else {
+            console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.");
+        }
     }
-  }
+} else {
+    console.warn("Firebase configuration is missing. Firebase services will be disabled. Please set up your .env file.");
 }
 
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 export { app, auth, db };
+
+    

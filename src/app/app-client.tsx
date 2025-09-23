@@ -177,6 +177,11 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, []);
 
     useEffect(() => {
+        if (!auth) {
+            setAuthLoading(false);
+            return;
+        }
+
         let isSigningOut = false; // Flag to prevent race condition
 
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -393,6 +398,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
 
     const handleSignOut = async () => {
+        if (!auth) return;
         try {
             await ((auth as any).customSignOut || firebaseSignOut)(auth);
             toast({ title: "已退出登录" });
@@ -681,3 +687,5 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 };
 
 export default AppClient;
+
+    
