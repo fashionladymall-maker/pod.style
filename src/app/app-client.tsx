@@ -649,5 +649,3 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 };
 
 export default AppClient;
-
-    
