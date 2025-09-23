@@ -151,6 +151,19 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
       modelIndex: -1,
       sourceTab: 'popular',
     });
+    
+    const getSourceCreations = useCallback(() => {
+        switch(viewerState.sourceTab) {
+            case 'popular':
+                return publicCreations;
+            case 'trending':
+                return trendingCreations;
+            case 'mine':
+            default:
+                return creations;
+        }
+    }, [viewerState.sourceTab, publicCreations, trendingCreations, creations]);
+
 
     const fetchCreations = useCallback(async (userId: string) => {
         setIsDataLoading(true);
@@ -246,7 +259,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, [prompt, uploadedImage, selectedStyle, user, toast]);
 
     const handleGenerateModel = useCallback(async (category: string) => {
-        const activeCreation = creations.find(c => c.id === viewerState.creationId);
+        const sourceCreations = getSourceCreations();
+        const activeCreation = sourceCreations.find(c => c.id === viewerState.creationId);
+
         if (!user || !activeCreation) {
             toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
             setViewerState(prev => ({ ...prev, isOpen: false }));
@@ -287,7 +302,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         } finally {
             setIsLoading(false);
         }
-    }, [viewerState.creationId, viewerState.sourceTab, creations, orderDetails.colorName, user, toast]);
+    }, [viewerState.creationId, viewerState.sourceTab, creations, orderDetails.colorName, user, toast, getSourceCreations]);
 
     const handleDeleteCreation = useCallback(async (creationId: string) => {
         const originalCreations = creations;
@@ -576,17 +591,6 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         }
     };
     
-    const getSourceCreations = () => {
-        switch(viewerState.sourceTab) {
-            case 'popular':
-                return publicCreations;
-            case 'trending':
-                return trendingCreations;
-            case 'mine':
-            default:
-                return creations;
-        }
-    };
 
     const renderMainContent = () => (
         <div className="w-full bg-card overflow-hidden" style={{ height: '100%' }}>
