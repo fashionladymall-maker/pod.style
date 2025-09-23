@@ -186,19 +186,19 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
-                const needsDataFetch = !user || user.uid !== firebaseUser.uid;
+                const isNewUser = !user || user.uid !== firebaseUser.uid;
                 
                 setUser(firebaseUser);
                 setAuthLoading(false);
                 
-                if (needsDataFetch) {
+                if (isNewUser) {
                     setIsDataLoading(true);
                     fetchCreations(firebaseUser.uid);
                     fetchOrders(firebaseUser.uid);
                 }
 
-                if (!firebaseUser.isAnonymous && step === 'login') {
-                    setStep('home');
+                if (!firebaseUser.isAnonymous) {
+                    setStep(prevStep => prevStep === 'login' ? 'home' : prevStep);
                 }
 
             } else {
@@ -223,7 +223,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         });
 
         return () => unsubscribe();
-    }, [user, step, fetchCreations, fetchOrders, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {
