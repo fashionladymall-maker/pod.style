@@ -15,7 +15,7 @@ import {
     EmailAuthProvider,
     signInWithCredential
 } from "firebase/auth";
-import type { FirebaseUser } from '@/lib/types';
+import type { FirebaseUser, AuthCredential } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { migrateAnonymousDataAction } from '@/app/actions';
 
@@ -102,12 +102,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             toast({ title: `登录成功，${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
 
         } catch (error: any) {
-            if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
-                toast({ title: "账户已存在", description: "此凭证已关联其他账户，正在为您登录并合并数据..." });
+            if (error.code === 'auth/credential-already-in-use') {
+                 toast({ title: "账户已存在", description: "此凭证已关联其他账户，正在为您登录并合并数据..." });
+                // If the credential is in use, sign in with it and then migrate data.
                 const existingUser = await signInWithCredential(auth, credential);
                 const permanentUid = existingUser.user.uid;
                 await migrateAndHandleResult(anonymousUid, permanentUid);
             } else {
+                // For other errors (like network), re-throw to be caught by the caller.
                 console.error("Link error:", error);
                 throw error;
             }

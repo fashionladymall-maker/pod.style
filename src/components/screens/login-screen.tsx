@@ -25,7 +25,13 @@ const LoginScreen = () => {
             await googleSignIn();
             // No need to toast success here, AuthContext and AppClient will handle state change
         } catch (error: any) {
-             if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+             if (error.code === 'auth/network-request-failed') {
+                toast({
+                    variant: "destructive",
+                    title: "网络请求失败",
+                    description: "请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。",
+                });
+             } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
                 console.error("Google sign-in error:", error);
                 toast({
                     variant: "destructive",
@@ -44,10 +50,16 @@ const LoginScreen = () => {
         try {
             await emailSignUp(email, password);
         } catch (error: any) {
+             let description = '注册失败，请检查您的邮箱和密码。';
+            if (error.code === 'auth/email-already-in-use') {
+                description = '该邮箱已被注册。请尝试登录或使用其他邮箱。';
+            } else if (error.code === 'auth/network-request-failed') {
+                description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
+            }
             toast({
                 variant: "destructive",
                 title: "注册失败",
-                description: error.code === 'auth/email-already-in-use' ? '该邮箱已被注册' : '注册失败，请检查您的邮箱和密码。',
+                description: description,
             });
         } finally {
             setIsLoading(false);
@@ -60,12 +72,16 @@ const LoginScreen = () => {
         try {
             await emailSignIn(email, password);
         } catch (error: any) {
+            let description = `登录失败: ${error.message}`;
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                description = '邮箱或密码不正确。';
+            } else if (error.code === 'auth/network-request-failed') {
+                description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
+            }
              toast({
                 variant: "destructive",
                 title: "登录失败",
-                description: error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' 
-                    ? '邮箱或密码不正确' 
-                    : `登录失败: ${error.message}`,
+                description: description,
             });
         } finally {
             setIsLoading(false);
