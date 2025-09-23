@@ -93,7 +93,13 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
                         onClick={() => onSelect(creation, modelIndex)} 
                         className="aspect-[9/16] bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                     >
-                        <Image src={imageUrl} alt={altText} fill className="object-cover" />
+                        <Image 
+                            src={imageUrl} 
+                            alt={altText} 
+                            fill 
+                            className="object-cover" 
+                            sizes="(max-width: 768px) 50vw, 33vw"
+                        />
                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs">
                             <p className="truncate">{creation.prompt}</p>
                         </div>
@@ -112,7 +118,13 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
                     onClick={() => onSelect(creation)} 
                     className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                 >
-                    <Image src={creation.patternUri} alt={`公共创意 ${creation.id}`} fill className="object-cover" />
+                    <Image 
+                        src={creation.patternUri} 
+                        alt={`公共创意 ${creation.id}`} 
+                        fill 
+                        className="object-cover" 
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                    />
                 </button>
             ))}
         </div>

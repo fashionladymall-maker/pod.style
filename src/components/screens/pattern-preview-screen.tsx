@@ -26,7 +26,13 @@ const PatternPreviewScreen = ({
     >
       {generatedPattern ? (
           <div className="absolute inset-0 w-full h-full animate-scale-in">
-            <Image src={generatedPattern} alt="生成的创意图案" layout="fill" className="object-cover" />
+            <Image 
+              src={generatedPattern} 
+              alt="生成的创意图案" 
+              fill 
+              className="object-cover"
+              sizes="100vh"
+            />
           </div>
       ): (
         <div className="flex-grow flex items-center justify-center">

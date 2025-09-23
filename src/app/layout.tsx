@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter } from 'next/font/google';
@@ -56,12 +56,13 @@ export const metadata: Metadata = {
     description: APP_DESCRIPTION,
     images: ['https://images.unsplash.com/photo-1554224155-83e7b01b6a34?q=80&w=1740&auto=format&fit=crop'], // Replace with your actual Twitter image URL
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
