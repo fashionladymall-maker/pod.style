@@ -19,3 +19,4 @@ functions/node_modules
 # 编辑器/系统
 .vscode
 .DS_Store
+key.json
