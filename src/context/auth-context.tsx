@@ -84,11 +84,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     const signInAndMigrate = async (credential: FirebaseAuthCredential) => {
-        if (!auth || !auth.currentUser) {
+        if (!auth) {
             throw new Error("Auth not ready.");
         }
 
-        const isUpgrading = auth.currentUser.isAnonymous;
+        const isUpgrading = auth.currentUser?.isAnonymous;
         const anonymousUid = isUpgrading ? auth.currentUser.uid : null;
 
         try {
@@ -107,7 +107,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             if (error.code === 'auth/network-request-failed') {
                 throw new Error("网络请求失败。请检查您的网络连接，并确保您的应用域已在Firebase认证设置中列入白名单。");
             }
-            throw error; // Re-throw other errors to be handled by the UI
+             if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                throw new Error("邮箱或密码不正确。");
+            }
+            throw error;
         }
     };
     
@@ -121,44 +124,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     const googleSignIn = async () => {
         const provider = new GoogleAuthProvider();
-        // With signInWithPopup, Firebase handles linking automatically if a user is already signed in (even anonymously).
-        // But our custom flow gives us more control over data migration toasts.
-        const result = await signInWithPopup(auth, provider);
-        const permanentUid = result.user.uid;
-
-        // Since we can't get the anonymous UID after this finishes, we rely on a slightly different flow.
-        // The onAuthStateChanged listener will handle the user update. We might need a different approach
-        // if we need to show a "migrating" toast. A simple "Logged in" is fine for now.
-        toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });
+        await signInWithPopup(auth, provider);
+        // The onAuthStateChanged listener will handle the user update.
+        // A proper migration flow for Google sign-in would require more complex state management
+        // to pass the anonymous UID through the popup redirect flow.
+        // For now, we rely on Firebase's automatic (but less transparent) linking.
+        toast({ title: `登录成功!` });
     };
 
     const emailSignUp = async (email: string, password: string) => {
         if (!auth) throw new Error("Auth not initialized");
-        if (!auth.currentUser || !auth.currentUser.isAnonymous) {
-            // If there's no user or a signed-in user, just create a new account
-            await createUserWithEmailAndPassword(auth, email, password);
-            toast({ title: "注册成功", description: "欢迎！" });
-            return;
-        }
-
-        // Upgrade anonymous user
-        const anonymousUid = auth.currentUser.uid;
-        const credential = EmailAuthProvider.credential(email, password);
+        
+        const isUpgrading = auth.currentUser?.isAnonymous;
+        const anonymousUid = isUpgrading ? auth.currentUser.uid : null;
 
         try {
-            const result = await linkWithCredential(auth.currentUser, credential);
-            const permanentUid = result.user.uid;
-            
-            if (anonymousUid !== permanentUid) {
-                await migrateAndHandleResult(anonymousUid, permanentUid);
+            // If there's no user or a signed-in user, just create a new account
+            if (!isUpgrading) {
+                 await createUserWithEmailAndPassword(auth, email, password);
+                 toast({ title: "注册成功", description: "欢迎！" });
+                 return;
             }
-            toast({ title: "注册成功", description: "欢迎！您的匿名创作历史已保留。" });
+
+            // Upgrade anonymous user: sign out, create new user, then migrate data
+            if (anonymousUid) {
+                await firebaseSignOut(auth); // Sign out anonymous user
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const permanentUid = userCredential.user.uid;
+                if (permanentUid) {
+                    await migrateAndHandleResult(anonymousUid, permanentUid);
+                }
+                toast({ title: "注册成功", description: "欢迎！您的匿名创作历史已保留。" });
+            }
 
         } catch (error: any) {
-             if (error.code === 'auth/credential-already-in-use') {
-                // This case means the email is taken. We should ask them to sign in.
+             if (error.code === 'auth/email-already-in-use') {
                 throw new Error("该邮箱已被注册。请尝试登录。");
              }
+             if (error.code === 'auth/network-request-failed') {
+                throw new Error("网络请求失败。请检查您的网络并确认域名已在Firebase授权。");
+            }
              throw error;
         }
     };
