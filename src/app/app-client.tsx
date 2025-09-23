@@ -223,8 +223,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         });
 
         return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // By adding `user` to the dependency array, we ensure that the component re-renders
+    // when the user state changes, which in turn makes sure the UI (like the header)
+    // correctly reflects the authentication status.
+    }, [user, fetchCreations, fetchOrders, toast]);
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {
