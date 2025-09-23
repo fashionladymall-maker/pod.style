@@ -177,7 +177,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, []);
 
     useEffect(() => {
+        // If Firebase isn't configured, stop here.
         if (!auth) {
+            console.warn("Firebase Auth is not initialized. User authentication will be disabled.");
             setAuthLoading(false);
             return;
         }
@@ -687,5 +689,3 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 };
 
 export default AppClient;
-
-    
