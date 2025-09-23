@@ -1,110 +1,36 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, linkWithCredential, type AuthCredential, EmailAuthProvider, signOut, signInWithCredential } from "firebase/auth";
+import React, { useState, useContext } from 'react';
+import { AuthContext } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Chrome, Mail, ArrowLeft } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { migrateAnonymousDataAction } from '@/app/actions';
 
 type View = 'options' | 'email-signin' | 'email-signup';
 
 const LoginScreen = () => {
+    const { googleSignIn, emailSignUp, emailSignIn } = useContext(AuthContext);
     const { toast } = useToast();
     const [view, setView] = useState<View>('options');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
-    // This helper function centralizes the logic for linking an anonymous account.
-    const linkAnonymousAccount = async (credential: AuthCredential) => {
-        const currentUser = auth.currentUser;
-        if (!currentUser || !currentUser.isAnonymous) {
-            // Should not happen in this flow, but as a safeguard, just sign in.
-            await signInWithCredential(auth, credential);
-            return;
-        }
-
-        const anonymousUid = currentUser.uid;
-
-        try {
-            await linkWithCredential(currentUser, credential);
-            toast({ title: '账户已关联', description: '您的匿名创作历史已同步到新账户。' });
-        } catch (error: any) {
-            if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
-                 toast({
-                    title: "邮箱已被注册",
-                    description: "此邮箱已绑定其他账户，正在为您登录并合并数据...",
-                 });
-                 try {
-                    // Attempt to sign in to the existing account
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    const permanentUid = userCredential.user.uid;
-                    toast({ title: "登录成功", description: "已切换到您的现有账户。" });
-
-                    // Manually migrate data from anonymous user to permanent user
-                    if (anonymousUid && permanentUid) {
-                        toast({ title: '正在合并您的匿名创作历史...', description: '请稍候...' });
-                        const migrationResult = await migrateAnonymousDataAction(anonymousUid, permanentUid);
-                        if (migrationResult.success) {
-                            toast({ title: '数据合并成功！', description: '您所有的创作都已保留。' });
-                        } else {
-                            toast({ variant: 'destructive', title: '数据合并失败', description: '无法迁移您的匿名创作历史，但您已成功登录。' });
-                        }
-                    }
-
-                 } catch (signInError: any) {
-                    // This handles cases like wrong password for the existing account.
-                    toast({
-                        variant: "destructive",
-                        title: "登录失败",
-                        description: "密码不正确，请重试。",
-                    });
-                 }
-            } else {
-                // For other errors (like network failure), show a generic message.
-                console.error("Link error:", error);
-                toast({ variant: 'destructive', title: '账户关联失败', description: `无法关联您的匿名账户，请重试。` });
-            }
-        }
-    };
-
-
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
-        const provider = new GoogleAuthProvider();
-        const currentUser = auth.currentUser;
-        const anonymousUid = currentUser?.isAnonymous ? currentUser.uid : null;
-
         try {
-            const result = await signInWithPopup(auth, provider);
-            const permanentUid = result.user.uid;
-            
-            toast({ title: '登录成功', description: `欢迎回来, ${result.user.displayName}!` });
-            
-            if (anonymousUid && permanentUid) {
-                toast({ title: '正在合并您的匿名创作历史...', description: '请稍候...' });
-                await migrateAnonymousDataAction(anonymousUid, permanentUid);
-                toast({ title: '数据合并成功！', description: '您所有的创作都已保留。' });
-            }
-
+            await googleSignIn();
+            // No need to toast success here, AuthContext and AppClient will handle state change
         } catch (error: any) {
-             if (error.code === 'auth/account-exists-with-different-credential') {
-                toast({
-                    variant: "destructive",
-                    title: "登录失败",
-                    description: "该邮箱已通过其他方式注册，请使用原方式登录。",
-                });
-             } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+             if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
                 console.error("Google sign-in error:", error);
                 toast({
                     variant: "destructive",
                     title: "Google 登录失败",
-                    description: '登录过程中发生错误，请稍后再试。',
+                    description: error.message || '登录过程中发生错误，请稍后再试。',
                 });
             }
         } finally {
@@ -116,9 +42,7 @@ const LoginScreen = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // Firebase automatically handles linking the anonymous account on createUserWithEmailAndPassword.
-            await createUserWithEmailAndPassword(auth, email, password);
-            toast({ title: "注册成功", description: "欢迎！您的新账户已创建，匿名创作历史已保留。" });
+            await emailSignUp(email, password);
         } catch (error: any) {
             toast({
                 variant: "destructive",
@@ -133,14 +57,16 @@ const LoginScreen = () => {
     const handleEmailSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        
         try {
-            const credential = EmailAuthProvider.credential(email, password);
-            await linkAnonymousAccount(credential);
+            await emailSignIn(email, password);
         } catch (error: any) {
-            // Errors are already toasted inside linkAnonymousAccount,
-            // but we catch here to stop execution and prevent the loading spinner from hanging.
-            console.error("Sign-in process failed:", error);
+             toast({
+                variant: "destructive",
+                title: "登录失败",
+                description: error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' 
+                    ? '邮箱或密码不正确' 
+                    : `登录失败: ${error.message}`,
+            });
         } finally {
             setIsLoading(false);
         }

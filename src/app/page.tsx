@@ -2,6 +2,7 @@
 import { getPublicCreationsAction, getTrendingCreationsAction } from '@/app/actions';
 import AppClient from './app-client';
 import type { Creation } from '@/lib/types';
+import { AuthProvider } from '@/context/auth-context';
 
 // This is now a React Server Component (RSC)
 export default async function Page() {
@@ -23,9 +24,11 @@ export default async function Page() {
 
 
   return (
-    <AppClient 
-      initialPublicCreations={publicCreations} 
-      initialTrendingCreations={trendingCreations} 
-    />
+    <AuthProvider>
+      <AppClient 
+        initialPublicCreations={publicCreations} 
+        initialTrendingCreations={trendingCreations} 
+      />
+    </AuthProvider>
   );
 }

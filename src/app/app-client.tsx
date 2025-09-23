@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { 
     generatePatternAction, 
     generateModelAction, 
@@ -20,8 +20,7 @@ import {
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut as firebaseSignOut, signInAnonymously } from "firebase/auth";
+import { AuthContext } from '@/context/auth-context';
 
 
 import HomeScreen from '@/components/screens/home-screen';
@@ -127,10 +126,9 @@ interface AppClientProps {
 
 
 const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClientProps) => {
+    const { user, authLoading, signOut } = useContext(AuthContext);
     const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
-    const [user, setUser] = useState<FirebaseUser | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [creations, setCreations]  = useState<Creation[]>([]);
     const [publicCreations, setPublicCreations] = useState<Creation[]>(initialPublicCreations);
@@ -177,56 +175,24 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, []);
 
     useEffect(() => {
-        if (!auth) {
-            console.warn("Firebase Auth is not available. User authentication will be disabled.");
-            setAuthLoading(false);
-            setIsDataLoading(false);
-            return;
-        }
-
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            if (firebaseUser) {
-                const isNewUser = !user || user.uid !== firebaseUser.uid;
-                
-                setUser(firebaseUser);
-                setAuthLoading(false);
-                
-                if (isNewUser) {
-                    setIsDataLoading(true);
-                    fetchCreations(firebaseUser.uid);
-                    fetchOrders(firebaseUser.uid);
-                }
-
-                if (!firebaseUser.isAnonymous) {
-                    setStep(prevStep => prevStep === 'login' ? 'home' : prevStep);
-                }
-
-            } else {
-                setUser(null);
-                setCreations([]);
-                setOrders([]);
-                signInAnonymously(auth).catch(error => {
-                    console.error("AUTH ERROR", {
-                        code: error?.code,
-                        message: error?.message,
-                        name: error?.name,
-                        customData: error?.customData,
-                    });
-                    toast({ 
-                        variant: 'destructive', 
-                        title: '网络或配置错误', 
-                        description: '无法连接到认证服务，请检查网络或联系管理员。'
-                    });
-                    setAuthLoading(false);
-                });
-            }
+      if (user) {
+        setIsDataLoading(true);
+        Promise.all([
+          fetchCreations(user.uid),
+          fetchOrders(user.uid)
+        ]).then(() => {
+           if (step === 'login') {
+             setStep('home');
+           }
         });
+      } else if (!authLoading) {
+        // User is logged out, clear their data
+        setCreations([]);
+        setOrders([]);
+        setIsDataLoading(false);
+      }
+    }, [user, authLoading, fetchCreations, fetchOrders, step]);
 
-        return () => unsubscribe();
-    // By adding `user` to the dependency array, we ensure that the component re-renders
-    // when the user state changes, which in turn makes sure the UI (like the header)
-    // correctly reflects the authentication status.
-    }, [user, fetchCreations, fetchOrders, toast]);
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {
@@ -395,9 +361,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
 
     const handleSignOut = async () => {
-        if (!auth) return;
         try {
-            await firebaseSignOut(auth);
+            await signOut();
             toast({ title: "已退出登录" });
             setStep('home');
         } catch (error) {
