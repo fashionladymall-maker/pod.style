@@ -223,7 +223,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         });
 
         return () => unsubscribe();
-    });
+    }, [user, step, fetchCreations, fetchOrders, toast]);
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {
@@ -681,3 +681,5 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 };
 
 export default AppClient;
+
+    
