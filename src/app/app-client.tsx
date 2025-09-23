@@ -177,14 +177,14 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, []);
 
     useEffect(() => {
-        // If Firebase isn't configured, stop here.
         if (!auth) {
-            console.warn("Firebase Auth is not initialized. User authentication will be disabled.");
+            console.warn("Firebase Auth is not available. User authentication will be disabled.");
             setAuthLoading(false);
+            setIsDataLoading(false);
             return;
         }
 
-        let isSigningOut = false; // Flag to prevent race condition
+        let isSigningOut = false;
 
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (isSigningOut) {
@@ -198,7 +198,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 setAuthLoading(false);
                 
                 if (needsDataFetch) {
-                    setIsDataLoading(true); // Set loading true before fetching
+                    setIsDataLoading(true);
                     fetchCreations(firebaseUser.uid);
                     fetchOrders(firebaseUser.uid);
                 }
@@ -211,8 +211,17 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 setCreations([]);
                 setOrders([]);
                 signInAnonymously(auth).catch(error => {
-                    console.error("Anonymous sign-in failed:", error);
-                    toast({ variant: 'destructive', title: '网络错误', description: '无法连接到服务，请刷新页面重试。'});
+                    console.error("AUTH ERROR", {
+                        code: error?.code,
+                        message: error?.message,
+                        name: error?.name,
+                        customData: error?.customData,
+                    });
+                    toast({ 
+                        variant: 'destructive', 
+                        title: '网络或配置错误', 
+                        description: '无法连接到认证服务，请检查网络或联系管理员。'
+                    });
                     setAuthLoading(false);
                 });
             }
@@ -221,7 +230,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         const customSignOut = async () => {
             isSigningOut = true;
             await firebaseSignOut(auth);
-            setUser(null); // Explicitly set user to null
+            setUser(null);
             setCreations([]);
             setOrders([]);
             isSigningOut = false;
@@ -231,7 +240,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
         return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [step]); // Add step to dependency array to re-evaluate when it changes
+    }, [step]); 
 
     useEffect(() => {
         if (step === 'shipping' && orders.length > 0) {
