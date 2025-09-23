@@ -66,8 +66,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                     });
                     toast({
                         variant: 'destructive',
-                        title: '网络或配置错误',
-                        description: '无法连接到认证服务，请检查网络或联系管理员。'
+                        title: '无法连接到认证服务器',
+                        description: '请检查您的网络连接，并确保当前域名已在Firebase控制台的“Authorized domains”中正确配置。'
                     });
                 });
             }
