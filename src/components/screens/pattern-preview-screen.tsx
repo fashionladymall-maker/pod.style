@@ -32,6 +32,7 @@ const PatternPreviewScreen = ({
               fill 
               className="object-cover"
               sizes="100vh"
+              priority
             />
           </div>
       ): (
