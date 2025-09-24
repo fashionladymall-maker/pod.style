@@ -22,24 +22,17 @@ const ModifyModelAppearanceInputSchema = z.object({
 export type ModifyModelAppearanceInput = z.infer<typeof ModifyModelAppearanceInputSchema>;
 
 const ModifyModelAppearanceOutputSchema = z.string().describe('A data URI of the generated model image.');
-export type ModifyModelAppearanceOutput = ModifyModelAppearanceOutputSchema;
+export type ModifyModelAppearanceOutput = z.infer<typeof ModifyModelAppearanceOutputSchema>;
 
 export async function modifyModelAppearance(input: ModifyModelAppearanceInput): Promise<ModifyModelAppearanceOutput> {
   return modifyModelAppearanceFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'modifyModelAppearancePrompt',
-  input: {schema: ModifyModelAppearanceInputSchema},
-  output: {schema: z.string().describe('Base64 encoded image data.')},
-  prompt: `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model wearing a {{{colorName}}} t-shirt. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details. The t-shirt must feature this exact design printed prominently on the chest.
+const buildAppearancePrompt = (input: ModifyModelAppearanceInput): string => `A stunning, ultra-high-resolution, and crystal-clear fashion photograph of a model wearing a ${input.colorName} t-shirt. The image must look like it was taken with a professional DSLR camera, with sharp focus and intricate details. The t-shirt must feature this exact design printed prominently on the chest.
 
 CRITICAL INSTRUCTION: If the provided design features a person or character, the model in this photograph MUST look as similar as possible to that character. Match the face, hair, and overall appearance.
 
-The overall image should be a professional product shot, filling the entire vertical phone screen frame. No text or logos on the image. Maintain artistic consistency with the provided design image.
-
-Design: {{media url=patternDataUri}}`,
-});
+The overall image should be a professional product shot, filling the entire vertical phone screen frame. No text or logos on the image. Maintain artistic consistency with the provided design image.`;
 
 const modifyModelAppearanceFlow = ai.defineFlow(
   {
@@ -48,16 +41,19 @@ const modifyModelAppearanceFlow = ai.defineFlow(
     outputSchema: ModifyModelAppearanceOutputSchema,
   },
   async input => {
-    const {output} = await ai.generate({
+    const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image-preview',
-      prompt: prompt(input).prompt,
+      prompt: [
+        { text: buildAppearancePrompt(input) },
+        { media: { url: input.patternDataUri } }
+      ],
       config: {
         responseModalities: ['IMAGE'],
       },
     });
-    if (!output) {
+    if (!media?.url) {
       throw new Error('No image was generated.');
     }
-    return output!;
+    return media.url;
   }
 );

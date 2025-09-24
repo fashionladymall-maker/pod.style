@@ -3,6 +3,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Creation } from '@/lib/types';
@@ -18,7 +19,7 @@ const PatternPreviewScreen = ({
   isModelGenerating,
   onGoToModel,
 }: PatternPreviewScreenProps) => {
-  const generatedPattern = creation?.patternUri;
+  const generatedPattern = creation?.previewPatternUri || creation?.patternUri;
 
   return (
     <div 
@@ -31,6 +32,8 @@ const PatternPreviewScreen = ({
               alt="生成的创意图案" 
               fill 
               className="object-cover"
+              placeholder="blur"
+              blurDataURL={IMAGE_PLACEHOLDER}
               sizes="100vh"
               priority
             />

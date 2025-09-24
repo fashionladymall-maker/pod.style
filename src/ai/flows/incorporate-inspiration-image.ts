@@ -31,21 +31,23 @@ export async function generateTshirtDesign(input: GenerateTshirtDesignInput): Pr
   return generateTshirtDesignFlow(input);
 }
 
-const generateTshirtDesignPrompt = ai.definePrompt({
-  name: 'generateTshirtDesignPrompt',
-  input: {schema: GenerateTshirtDesignInputSchema},
-  output: {schema: GenerateTshirtDesignOutputSchema},
-  prompt: `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '{{prompt}}'{{#if style}}, {{style}}{{/if}}.
+const buildDesignPrompt = (input: GenerateTshirtDesignInput): string => {
+  const styleSuffix = input.style ? `, ${input.style}` : '';
+  const basePrompt = `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '${input.prompt}'${styleSuffix}.
 
-  IMPORTANT RULES:
-  1.  STRICTLY do NOT add any text, letters, or words to the image unless the user explicitly included text in quotation marks in their prompt.
-  2.  If the user asks for text, the text MUST be in English.
-  3.  The final image should only contain the artwork, with no background unless it's part of the scene.
+IMPORTANT RULES:
+1.  STRICTLY do NOT add any text, letters, or words to the image unless the user explicitly included text in quotation marks in their prompt.
+2.  If the user asks for text, the text MUST be in English.
+3.  The final image should only contain the artwork, with no background unless it's part of the scene.`;
 
-  {{#if inspirationImage}}
-  Incorporate elements from the following inspiration image into the design: {{media url=inspirationImage}}
-  {{/if}}`,
-});
+  if (input.inspirationImage) {
+    return `${basePrompt}
+
+Incorporate elements from the provided inspiration image into the design.`;
+  }
+
+  return basePrompt;
+};
 
 const generateTshirtDesignFlow = ai.defineFlow(
   {
@@ -54,11 +56,16 @@ const generateTshirtDesignFlow = ai.defineFlow(
     outputSchema: GenerateTshirtDesignOutputSchema,
   },
   async input => {
+    const promptPayload: ({ text: string } | { media: { url: string } })[] = [
+      { text: buildDesignPrompt(input) }
+    ];
+
+    if (input.inspirationImage) {
+      promptPayload.push({ media: { url: input.inspirationImage } });
+    }
+
     const {output} = await ai.generate({
-      prompt: input.inspirationImage ? [
-        {text: generateTshirtDesignPrompt(input).prompt},
-        {media: {url: input.inspirationImage}}]
-        : generateTshirtDesignPrompt(input).prompt,
+      prompt: promptPayload,
       model: 'googleai/gemini-2.5-flash-image-preview',
       config: { responseModalities: ['IMAGE'] },
     });
@@ -70,4 +77,3 @@ const generateTshirtDesignFlow = ai.defineFlow(
     return { design: output.media.url };
   }
 );
-

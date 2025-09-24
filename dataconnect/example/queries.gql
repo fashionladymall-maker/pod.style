@@ -1,0 +1,35 @@
+mutation CreateTaskList @auth(level: USER) {
+  taskList_insert(data: {
+    name: "My New Task List",
+    userId_expr: "auth.uid",
+    createdAt_expr: "request.time"
+  })
+}
+
+query GetMyTaskLists @auth(level: USER) {
+  taskLists(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    name
+    createdAt
+  }
+}
+
+mutation CreateTask($taskListId: UUID!, $description: String!, $dueDate: Date) @auth(level: USER) {
+  task_insert(data: {
+    taskListId: $taskListId,
+    userId_expr: "auth.uid",
+    description: $description,
+    dueDate: $dueDate,
+    isCompleted: false,
+    createdAt_expr: "request.time"
+  })
+}
+
+mutation UpdateTaskIsCompleted($id: UUID!, $isCompleted: Boolean!) @auth(level: USER) {
+  task_update(
+    key: {id: $id}
+    data: {
+      isCompleted: $isCompleted
+    }
+  )
+}

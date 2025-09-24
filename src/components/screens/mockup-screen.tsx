@@ -3,6 +3,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Model, OrderDetails } from '@/lib/types';
@@ -43,6 +44,8 @@ const MockupScreen = ({
               fill 
               className="object-cover animate-fade-in" 
               priority
+              placeholder="blur"
+              blurDataURL={IMAGE_PLACEHOLDER}
               sizes="100vh"
             />
         ) : (

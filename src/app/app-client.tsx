@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useMemo, useTransition } from 'react';
 import { 
     generatePatternAction, 
     generateModelAction, 
@@ -10,8 +10,11 @@ import {
     createOrderAction, 
     getOrdersAction, 
     toggleCreationPublicStatusAction, 
-    getPublicCreationsAction,
-    getTrendingCreationsAction,
+    forkCreationAction,
+    deleteCreationModelAction,
+    toggleCreationModelVisibilityAction,
+    getPersonalizedFeedsAction,
+    logCreationInteractionAction,
     toggleLikeAction,
     toggleFavoriteAction,
     incrementShareCountAction,
@@ -19,7 +22,7 @@ import {
 } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, FirebaseUser, Creation, Order, AuthCredential } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentInfo, Creation, Order } from '@/lib/types';
 import { AuthContext } from '@/context/auth-context';
 
 
@@ -35,6 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { ToastAction } from '@/components/ui/toast';
 
 
 export type AppStep = 'home' | 'generating' | 'categorySelection' | 'shipping' | 'confirmation' | 'profile' | 'login';
@@ -133,9 +137,12 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const [creations, setCreations]  = useState<Creation[]>([]);
     const [publicCreations, setPublicCreations] = useState<Creation[]>(initialPublicCreations);
     const [trendingCreations, setTrendingCreations] = useState<Creation[]>(initialTrendingCreations);
+    const [popularVisibleCount, setPopularVisibleCount] = useState(12);
+    const [trendingVisibleCount, setTrendingVisibleCount] = useState(12);
+    const [isLoadingFeedsState, setIsLoadingFeedsState] = useState(false);
+    const [isPendingFeeds, startFeedTransition] = useTransition();
     const [orders, setOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [isDataLoading, setIsDataLoading] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
     const [loadingText, setLoadingText] = useState('');
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
@@ -166,15 +173,12 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
 
     const fetchCreations = useCallback(async (userId: string) => {
-        setIsDataLoading(true);
         try {
             const userCreations = await getCreationsAction(userId);
             setCreations(userCreations);
         } catch (error) {
             console.error("Failed to fetch creations:", error);
             toast({ variant: "destructive", title: "获取作品失败", description: "加载您的作品时发生错误。" });
-        } finally {
-            setIsDataLoading(false);
         }
     }, [toast]);
     
@@ -187,9 +191,20 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
       }
     }, []);
 
+    const allCreations = useMemo(() => {
+      const map = new Map<string, Creation>();
+      [creations, publicCreations, trendingCreations].forEach(list => {
+        list.forEach(item => {
+          if (!map.has(item.id)) {
+            map.set(item.id, item);
+          }
+        });
+      });
+      return map;
+    }, [creations, publicCreations, trendingCreations]);
+
     useEffect(() => {
       if (user) {
-        setIsDataLoading(true);
         Promise.all([
           fetchCreations(user.uid),
           fetchOrders(user.uid)
@@ -203,7 +218,6 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         // User is logged out, clear their data
         setCreations([]);
         setOrders([]);
-        setIsDataLoading(false);
       }
     }, [user, authLoading, fetchCreations, fetchOrders, step]);
 
@@ -217,12 +231,50 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         }
     }, [step, orders]);
 
-    const updateCreationsState = (updatedCreation: Creation) => {
+    useEffect(() => {
+      let cancelled = false;
+
+      const loadPersonalizedFeeds = async () => {
+        if (!user) {
+          setPublicCreations(initialPublicCreations);
+          setTrendingCreations(initialTrendingCreations);
+          setPopularVisibleCount(12);
+          setTrendingVisibleCount(12);
+          return;
+        }
+        try {
+          setIsLoadingFeedsState(true);
+          const feeds = await getPersonalizedFeedsAction(user.uid);
+          if (!cancelled && feeds) {
+            setPublicCreations(feeds.popular);
+            setTrendingCreations(feeds.trending);
+            setPopularVisibleCount(Math.min(12, feeds.popular.length));
+            setTrendingVisibleCount(Math.min(12, feeds.trending.length));
+          }
+        } catch (error) {
+          console.error('Failed to load personalized feeds:', error);
+        } finally {
+          if (!cancelled) {
+            setIsLoadingFeedsState(false);
+          }
+        }
+      };
+
+      startFeedTransition(() => {
+        loadPersonalizedFeeds();
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [user, initialPublicCreations, initialTrendingCreations]);
+
+    const updateCreationsState = useCallback((updatedCreation: Creation) => {
       const updateList = (list: Creation[]) => list.map(c => c.id === updatedCreation.id ? updatedCreation : c);
       setCreations(updateList);
       setPublicCreations(updateList);
       setTrendingCreations(updateList);
-    };
+    }, []);
 
     const handleGeneratePattern = useCallback(async () => {
         if (!user) {
@@ -238,6 +290,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         setStep('generating');
 
         try {
+            setLoadingText('AI 正在创作图案...');
             const styleValue = selectedStyle.split(' ')[0];
             const newCreation = await generatePatternAction({
                 userId: user.uid,
@@ -249,12 +302,23 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             setCreations(prev => [newCreation, ...prev]);
             setViewerState({ isOpen: true, creationId: newCreation.id, modelIndex: -1, sourceTab: 'mine' });
             setStep('home');
-        } catch (err: any) {
+        } catch (err) {
             console.error(err);
-            toast({ variant: 'destructive', title: '图案生成失败', description: err.message || '图案生成过程中发生网络错误。' });
+            const message = err instanceof Error ? err.message : '图案生成过程中发生网络错误。';
+            toast({
+              variant: 'destructive',
+              title: '图案生成失败',
+              description: message,
+              action: (
+                <ToastAction altText="重试" onClick={() => handleGeneratePattern()}>
+                  重试
+                </ToastAction>
+              ),
+            });
             setStep('home');
         } finally {
             setIsLoading(false);
+            setLoadingText('');
         }
     }, [prompt, uploadedImage, selectedStyle, user, toast]);
 
@@ -268,41 +332,70 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             return;
         }
         setIsLoading(true);
-        setLoadingText('正在为您生成商品效果图...');
+        setLoadingText('正在准备生成商品效果图...');
         setViewerState(prev => ({ ...prev, isOpen: false })); // Close viewer while generating
         setStep('generating');
 
         try {
+            let targetCreation = activeCreation;
+            let targetSourceTab = viewerState.sourceTab;
+
+            if (activeCreation.userId !== user.uid) {
+                const clonedCreation = await forkCreationAction({
+                  sourceCreationId: activeCreation.id,
+                  userId: user.uid,
+                });
+
+                setCreations(prev => [clonedCreation, ...prev]);
+                targetCreation = clonedCreation;
+                targetSourceTab = 'mine';
+
+                setViewerState({
+                  isOpen: false,
+                  creationId: clonedCreation.id,
+                  modelIndex: -1,
+                  sourceTab: 'mine',
+                });
+            }
+
+            setLoadingText('AI 正在生成商品效果图...');
             const updatedCreation = await generateModelAction({
-                creationId: activeCreation.id,
+                creationId: targetCreation.id,
                 userId: user.uid,
-                patternDataUri: activeCreation.patternUri,
+                patternDataUri: targetCreation.patternUri,
                 colorName: orderDetails.colorName,
                 category: category,
             });
             
-            const newCreations = creations.map((c) => 
-                c.id === updatedCreation.id ? updatedCreation : c
-            );
-
-            setCreations(newCreations);
+            updateCreationsState(updatedCreation);
             setViewerState({ 
               isOpen: true, 
               creationId: updatedCreation.id,
               modelIndex: updatedCreation.models.length - 1,
-              sourceTab: viewerState.sourceTab
+              sourceTab: targetSourceTab
             });
             setStep('home');
-        } catch (err: any) {
+        } catch (err) {
             console.error(err);
-            toast({ variant: 'destructive', title: '效果图生成失败', description: err.message || '效果图生成过程中发生网络错误。' });
+            const message = err instanceof Error ? err.message : '效果图生成过程中发生网络错误。';
+            toast({
+              variant: 'destructive',
+              title: '效果图生成失败',
+              description: message,
+              action: (
+                <ToastAction altText="重试" onClick={() => handleGenerateModel(category)}>
+                  重试
+                </ToastAction>
+              ),
+            });
             // Re-open viewer to the pattern
             setViewerState(prev => ({ ...prev, isOpen: true, modelIndex: -1 }));
             setStep('home');
         } finally {
             setIsLoading(false);
+            setLoadingText('');
         }
-    }, [viewerState.creationId, viewerState.sourceTab, creations, orderDetails.colorName, user, toast, getSourceCreations]);
+    }, [viewerState.creationId, viewerState.sourceTab, orderDetails.colorName, user, toast, getSourceCreations, updateCreationsState]);
 
     const handleDeleteCreation = useCallback(async (creationId: string) => {
         const originalCreations = creations;
@@ -330,6 +423,22 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const goToHistory = (creation: Creation, modelIndex: number = -1) => {
         setViewerState({ isOpen: true, creationId: creation.id, modelIndex, sourceTab: 'mine' });
     };
+
+    useEffect(() => {
+      setPopularVisibleCount(prev => Math.min(Math.max(prev, 12), publicCreations.length || 12));
+    }, [publicCreations]);
+
+    useEffect(() => {
+      setTrendingVisibleCount(prev => Math.min(Math.max(prev, 12), trendingCreations.length || 12));
+    }, [trendingCreations]);
+
+    const handleLoadMorePopular = useCallback(() => {
+      setPopularVisibleCount(prev => Math.min(prev + 9, publicCreations.length));
+    }, [publicCreations.length]);
+
+    const handleLoadMoreTrending = useCallback(() => {
+      setTrendingVisibleCount(prev => Math.min(prev + 9, trendingCreations.length));
+    }, [trendingCreations.length]);
     
     const handleSelectPublicCreation = (creation: Creation, source: HomeTab, modelIndex?: number) => {
         const existingIndex = creations.findIndex(c => c.id === creation.id);
@@ -361,6 +470,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
           description: `您的作品已${!currentStatus ? '公开' : '设为私密'}。`,
         });
       } catch (error) {
+        console.error('Failed to toggle public status:', error);
         toast({
           variant: "destructive",
           title: "更新失败",
@@ -387,6 +497,54 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         }
     };
 
+    const handleLikeToggle = useCallback(async (creationId: string, userId: string, isLiked: boolean) => {
+        const result = await toggleLikeAction(creationId, userId, isLiked);
+        logCreationInteractionAction({
+          userId,
+          creationId,
+          action: isLiked ? 'unlike' : 'like',
+          weight: isLiked ? -2 : 2,
+        });
+        return result;
+    }, []);
+
+    const handleFavoriteToggle = useCallback(async (creationId: string, userId: string, isFavorited: boolean) => {
+        const result = await toggleFavoriteAction(creationId, userId, isFavorited);
+        logCreationInteractionAction({
+          userId,
+          creationId,
+          action: isFavorited ? 'unfavorite' : 'favorite',
+          weight: isFavorited ? -3 : 3,
+        });
+        return result;
+    }, []);
+
+    const handleShare = useCallback(async (creationId: string) => {
+        const result = await incrementShareCountAction(creationId);
+        if (user) {
+          logCreationInteractionAction({
+            userId: user.uid,
+            creationId,
+            action: 'share',
+            weight: 1,
+          });
+        }
+        return result;
+    }, [user]);
+
+    const handleRemake = useCallback(async (creationId: string) => {
+        const result = await incrementRemakeCountAction(creationId);
+        if (user) {
+          logCreationInteractionAction({
+            userId: user.uid,
+            creationId,
+            action: 'remake',
+            weight: 4,
+          });
+        }
+        return result;
+    }, [user]);
+
     const handlePlaceOrder = async () => {
         if (user?.isAnonymous && !shippingInfo.email) {
           toast({
@@ -402,8 +560,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         setLoadingText("正在处理您的订单...");
         setStep('generating');
         
-        const activeCreation = creations.find(c => c.id === viewerState.creationId);
-        const activeModel = activeCreation?.models[viewerState.modelIndex];
+        const activeCreation = viewerState.creationId ? allCreations.get(viewerState.creationId) : undefined;
+        const activeModel = viewerState.modelIndex !== undefined && viewerState.modelIndex >= 0
+          ? activeCreation?.models?.[viewerState.modelIndex]
+          : undefined;
 
         if (!user || !activeCreation || !activeModel) {
             toast({ variant: 'destructive', title: '订单错误', description: '无法找到订单信息，请重试。' });
@@ -414,8 +574,6 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         }
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
             const newOrder = await createOrderAction({
                 userId: user.uid,
                 creationId: activeCreation.id,
@@ -432,14 +590,66 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
         } catch (error) {
             console.error("Failed to create order:", error);
-            toast({ variant: 'destructive', title: '下单失败', description: '创建订单时发生错误，请稍后重试。' });
+            toast({
+              variant: 'destructive',
+              title: '下单失败',
+              description: '创建订单时发生错误，请稍后重试。',
+              action: (
+                <ToastAction altText="重试" onClick={() => handlePlaceOrder()}>
+                  重试
+                </ToastAction>
+              ),
+            });
             setStep('shipping');
         } finally {
             setIsLoading(false);
+            setLoadingText('');
         }
     };
     
     const handleQuantityChange = (amount: number) => { setOrderDetails(prev => ({ ...prev, quantity: Math.max(1, prev.quantity + amount) })); };
+
+    const handleDeleteModel = useCallback(async (creationId: string, modelUri: string) => {
+        try {
+            const updatedCreation = await deleteCreationModelAction({ creationId, modelUri });
+            updateCreationsState(updatedCreation);
+
+            if (viewerState.creationId === creationId) {
+                const remainingModels = updatedCreation.models || [];
+                const newModelIndex = Math.min(viewerState.modelIndex, remainingModels.length - 1);
+                setViewerState(prev => ({
+                    ...prev,
+                    modelIndex: newModelIndex >= 0 ? newModelIndex : -1,
+                    creationId: updatedCreation.id,
+                }));
+            }
+
+            toast({ title: '删除成功', description: '已移除所选商品效果图。' });
+        } catch (error) {
+            console.error('Failed to delete model:', error);
+            toast({ variant: 'destructive', title: '删除失败', description: '无法删除该商品效果图，请稍后再试。' });
+        }
+    }, [updateCreationsState, viewerState.creationId, viewerState.modelIndex, toast]);
+
+    const handleToggleModelVisibility = useCallback(async (creationId: string, modelUri: string, targetVisibility: boolean) => {
+        try {
+            const updatedCreation = await toggleCreationModelVisibilityAction({ creationId, modelUri, isPublic: targetVisibility });
+            updateCreationsState(updatedCreation);
+
+            if (viewerState.creationId === creationId) {
+                const models = updatedCreation.models || [];
+                const targetIndex = models.findIndex(model => model.uri === modelUri);
+                if (targetIndex !== -1 && targetVisibility === false && viewerState.modelIndex === targetIndex) {
+                    setViewerState(prev => ({ ...prev, modelIndex: -1 }));
+                }
+            }
+
+            toast({ title: targetVisibility ? '已公开' : '已设为私密' });
+        } catch (error) {
+            console.error('Failed to update model visibility:', error);
+            toast({ variant: 'destructive', title: '操作失败', description: '无法更新商品公开状态，请稍后再试。' });
+        }
+    }, [updateCreationsState, viewerState.creationId, viewerState.modelIndex, toast]);
     
     const resetOrderFlow = () => {
         setOrderDetails({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
@@ -453,7 +663,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }
     
     const AppHeader = () => {
-        let title = 'POD.STYLE';
+        const title = 'POD.STYLE';
         let showBack = false;
 
         switch(step) {
@@ -564,10 +774,11 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 user={user}
                 creations={creations}
                 orders={orders}
-                onBack={() => setStep('home')}
                 onGoToHistory={goToHistory}
                 onSignOut={handleSignOut}
                 onDeleteCreation={handleDeleteCreation}
+                onDeleteModel={handleDeleteModel}
+                onToggleModelVisibility={handleToggleModelVisibility}
                 onLoginRequest={() => setStep('login')}
                 onTogglePublic={handleTogglePublic}
             />;
@@ -575,12 +786,16 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             default:
                 return <HomeScreen
                     prompt={prompt} setPrompt={setPrompt}
-                    user={user}
                     uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
                     onGenerate={handleGeneratePattern}
                     publicCreations={publicCreations}
                     trendingCreations={trendingCreations}
+                    popularVisibleCount={popularVisibleCount}
+                    trendingVisibleCount={trendingVisibleCount}
+                    onLoadMorePopular={handleLoadMorePopular}
+                    onLoadMoreTrending={handleLoadMoreTrending}
                     onSelectPublicCreation={handleSelectPublicCreation}
+                    isFeedLoading={isLoadingFeedsState || isPendingFeeds}
                     isLoading={!initialPublicCreations && !initialTrendingCreations} // Show loading only if server data wasn't provided
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
@@ -642,11 +857,11 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                    setStep('categorySelection');
                 }}
                 price={MOCK_PRICE}
-                onLikeToggle={toggleLikeAction}
-                onFavoriteToggle={toggleFavoriteAction}
-                onShare={incrementShareCountAction}
+                onLikeToggle={handleLikeToggle}
+                onFavoriteToggle={handleFavoriteToggle}
+                onShare={handleShare}
                 onUpdateCreation={updateCreationsState}
-                onRemake={incrementRemakeCountAction}
+                onRemake={handleRemake}
               />
             )}
         </main>

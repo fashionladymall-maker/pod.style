@@ -28,6 +28,8 @@ export type { AuthCredential };
 export interface Model {
     uri: string;
     category: string;
+    isPublic?: boolean;
+    previewUri?: string;
 }
 
 
@@ -40,6 +42,7 @@ export interface Creation {
     style: string;
     summary?: string;
     patternUri: string;
+    previewPatternUri?: string;
     models: Model[];
     createdAt: string; // ISO String
     isPublic: boolean;

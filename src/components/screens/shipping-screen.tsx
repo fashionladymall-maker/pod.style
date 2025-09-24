@@ -46,8 +46,12 @@ const ShippingScreen = ({ user, shippingInfo, setShippingInfo, onNext, onBack, i
 
   return (
     <div className="flex flex-col h-full animate-fade-in bg-background">
-      <div className="flex-shrink-0">
-        <h2 className="text-xl font-medium text-center py-4">收货信息</h2>
+      <div className="flex items-center justify-between px-6 py-4 flex-shrink-0">
+        <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h2 className="text-xl font-medium">收货信息</h2>
+        <span className="w-9" aria-hidden="true" />
       </div>
       <ScrollArea className="flex-grow">
         <form onSubmit={(e) => e.preventDefault()} className="space-y-4 p-6 pt-0">

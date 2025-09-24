@@ -1,57 +1,102 @@
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
+import type { AppOptions } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
-let app: admin.app.App;
+let app: admin.app.App | null = null;
+let firestoreInstance: admin.firestore.Firestore | null = null;
+let storageInstance: admin.storage.Storage | null = null;
 
-function initializeAdminApp() {
-    if (admin.apps.length > 0) {
-        return admin.app();
+const getProjectId = () =>
+  process.env.GCLOUD_PROJECT ||
+  process.env.GOOGLE_CLOUD_PROJECT ||
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+const resolveStorageBucket = () =>
+  process.env.FIREBASE_STORAGE_BUCKET ||
+  process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+
+const isEmulatorEnvironment = () =>
+  Boolean(
+    process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+    process.env.FIRESTORE_EMULATOR_HOST ||
+    process.env.STORAGE_EMULATOR_HOST ||
+    process.env.EMULATORS_RUNNING
+  );
+
+function initializeAdminApp(): admin.app.App {
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+
+  const options: AppOptions = {};
+  const storageBucket = resolveStorageBucket();
+  if (storageBucket) {
+    options.storageBucket = storageBucket;
+  }
+
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+  if (!serviceAccountString) {
+    const projectId = getProjectId();
+
+    if (!projectId) {
+      throw new Error(
+        'Firebase Admin configuration missing. Set FIREBASE_SERVICE_ACCOUNT or NEXT_PUBLIC_FIREBASE_PROJECT_ID.'
+      );
     }
 
-    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!serviceAccountString) {
-        if (process.env.NODE_ENV === 'development') {
-            console.warn('FIREBASE_SERVICE_ACCOUNT is not set. Server-side Firebase features will not work.');
-            // Return a dummy app object to prevent crashes in dev without config
-            return {
-                firestore: () => { throw new Error("Firebase Admin not initialized.") },
-                storage: () => { throw new Error("Firebase Admin not initialized.") },
-            } as any;
-        }
-        throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
+    options.projectId = projectId;
+
+    if (!isEmulatorEnvironment()) {
+      throw new Error(
+        'FIREBASE_SERVICE_ACCOUNT environment variable is not set. Provide credentials or run against the Firebase Emulators.'
+      );
     }
 
-    const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
-    if (!storageBucket) {
-        throw new Error('FIREBASE_STORAGE_BUCKET environment variable is not set.');
-    }
+    console.warn(
+      'FIREBASE_SERVICE_ACCOUNT is not set. Initialising Firebase Admin with emulator-friendly defaults.'
+    );
 
-    try {
-        const serviceAccount = JSON.parse(serviceAccountString);
-        const newApp = admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            storageBucket: storageBucket,
-        });
-        console.log('Firebase Admin SDK initialized successfully.');
-        return newApp;
-    } catch (e) {
-        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT or initialize Firebase Admin SDK:', e);
-        throw new Error('Firebase Admin SDK initialization failed.');
+    return admin.initializeApp(options);
+  }
+
+  try {
+    const serviceAccount = JSON.parse(serviceAccountString);
+    options.credential = admin.credential.cert(serviceAccount);
+    if (!options.projectId) {
+      options.projectId = serviceAccount.project_id;
     }
+    return admin.initializeApp(options);
+  } catch (error) {
+    console.error('Failed to initialise Firebase Admin SDK:', error);
+    throw new Error('Firebase Admin SDK initialization failed.');
+  }
 }
 
-function getInitializedApp() {
-    if (!app) {
-        app = initializeAdminApp();
-    }
-    return app;
+function getInitializedApp(): admin.app.App {
+  if (!app) {
+    app = initializeAdminApp();
+  }
+  return app;
 }
 
-// Lazy-initialized services
-const db: admin.firestore.Firestore = getFirestore(getInitializedApp());
-const storage: admin.storage.Storage = getStorage(getInitializedApp());
+export const getDb = (): admin.firestore.Firestore => {
+  if (!firestoreInstance) {
+    firestoreInstance = getFirestore(getInitializedApp());
+  }
+  return firestoreInstance;
+};
 
-export { db, storage };
+export const getAdminStorage = (): admin.storage.Storage => {
+  if (!storageInstance) {
+    storageInstance = getStorage(getInitializedApp());
+  }
+  return storageInstance;
+};
+
+export const db = getDb();
+export const storage = getAdminStorage();
+
 export default admin;

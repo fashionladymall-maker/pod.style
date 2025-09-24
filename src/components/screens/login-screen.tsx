@@ -5,61 +5,42 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Chrome, Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FirebaseError } from 'firebase/app';
 
 type View = 'options' | 'email-signin' | 'email-signup';
 
 const LoginScreen = () => {
-    const { googleSignIn, emailSignUp, emailSignIn } = useContext(AuthContext);
+    const { emailSignUp, emailSignIn } = useContext(AuthContext);
     const { toast } = useToast();
     const [view, setView] = useState<View>('options');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     
-    const handleGoogleSignIn = async () => {
-        setIsLoading(true);
-        try {
-            await googleSignIn();
-            // No need to toast success here, AuthContext will handle state change and toast
-        } catch (error: any) {
-             if (error.code === 'auth/network-request-failed') {
-                toast({
-                    variant: "destructive",
-                    title: "网络请求失败",
-                    description: "请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。",
-                });
-             } else if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
-                console.error("Google sign-in error:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Google 登录失败",
-                    description: error.message || '登录过程中发生错误，请稍后再试。',
-                });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleEmailSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         try {
             await emailSignUp(email, password);
-        } catch (error: any) {
-             let description = error.message || '注册失败，请检查您的邮箱和密码。';
-            if (error.code === 'auth/email-already-in-use') {
-                description = '该邮箱已被注册。请尝试登录或使用其他邮箱。';
-            } else if (error.code === 'auth/network-request-failed') {
-                description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
+        } catch (error) {
+            let description = '注册失败，请检查您的邮箱和密码。';
+            if (error instanceof FirebaseError) {
+                description = error.message || description;
+                if (error.code === 'auth/email-already-in-use') {
+                    description = '该邮箱已被注册。请尝试登录或使用其他邮箱。';
+                } else if (error.code === 'auth/network-request-failed') {
+                    description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
+                }
+            } else {
+                console.error('Unexpected email sign-up error:', error);
             }
             toast({
                 variant: "destructive",
                 title: "注册失败",
-                description: description,
+                description,
             });
         } finally {
             setIsLoading(false);
@@ -71,17 +52,22 @@ const LoginScreen = () => {
         setIsLoading(true);
         try {
             await emailSignIn(email, password);
-        } catch (error: any) {
-            let description = error.message || `登录失败: ${error.message}`;
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                description = '邮箱或密码不正确。';
-            } else if (error.code === 'auth/network-request-failed') {
-                description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
+        } catch (error) {
+            let description = '登录失败，请稍后重试。';
+            if (error instanceof FirebaseError) {
+                description = error.message || description;
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    description = '邮箱或密码不正确。';
+                } else if (error.code === 'auth/network-request-failed') {
+                    description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
+                }
+            } else {
+                console.error('Unexpected email sign-in error:', error);
             }
              toast({
                 variant: "destructive",
                 title: "登录失败",
-                description: description,
+                description,
             });
         } finally {
             setIsLoading(false);
@@ -97,10 +83,7 @@ const LoginScreen = () => {
               <span className="text-sm">Free Your Mind, Customize Your Way.</span>
             </p>
             <div className="space-y-4">
-                <Button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full rounded-full h-12 text-lg">
-                    <Chrome className="mr-3" /> 使用 Google 登录/注册
-                </Button>
-                <Button onClick={() => setView('email-signin')} variant="secondary" disabled={isLoading} className="w-full rounded-full h-12 text-lg">
+                <Button onClick={() => setView('email-signin')} disabled={isLoading} className="w-full rounded-full h-12 text-lg">
                     <Mail className="mr-3" /> 使用邮箱登录或注册
                 </Button>
             </div>

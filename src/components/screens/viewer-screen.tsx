@@ -13,6 +13,7 @@ import MockupScreen from './mockup-screen';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import CommentsSheet from '../sheets/comments-sheet';
+import { logCreationInteractionAction } from '@/app/actions';
 
 interface ViewerScreenProps {
   user: FirebaseUser | null;
@@ -54,6 +55,9 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const { toast } = useToast();
 
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
   const currentCreation = useMemo(() => 
     sourceCreations.find(c => c.id === viewerState.creationId)
   , [sourceCreations, viewerState.creationId]);
@@ -71,12 +75,14 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     const map: { creationId: string, modelIndex: number }[] = [];
     sourceCreations.forEach((creation) => {
       map.push({ creationId: creation.id, modelIndex: -1 }); // The pattern itself
-      creation.models.forEach((_, mIndex) => {
-        map.push({ creationId: creation.id, modelIndex: mIndex });
+      creation.models.forEach((model, mIndex) => {
+        if (creation.userId === user?.uid || model?.isPublic !== false) {
+          map.push({ creationId: creation.id, modelIndex: mIndex });
+        }
       });
     });
     return map;
-  }, [sourceCreations]);
+  }, [sourceCreations, user?.uid]);
   
   const handleClose = () => {
     setViewerState(prev => ({ ...prev, isOpen: false }));
@@ -127,22 +133,55 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 
   const isPatternView = viewerState.modelIndex === -1;
   const currentModel = !isPatternView ? currentCreation?.models[viewerState.modelIndex] : undefined;
+  const currentModelImage = currentModel ? currentModel.previewUri || currentModel.uri : undefined;
 
-  const bind = useDrag(
-    ({ last, swipe: [, swipeY] }) => {
-      if (last && !isNavigating) {
-        if (swipeY === -1) {
-          handleNavigate('next');
-        } else if (swipeY === 1) {
-          handleNavigate('prev');
-        }
-      }
-    },
-    {
-      axis: 'y',
-      swipe: { distance: 50, velocity: 0.3 },
+  useEffect(() => {
+    if (!currentCreation) return;
+    if (isPatternView) return;
+    const model = currentCreation.models[viewerState.modelIndex];
+    if (!model) {
+      setViewerState(prev => ({ ...prev, modelIndex: -1 }));
+      return;
     }
-  );
+    if (currentCreation.userId !== user?.uid && model.isPublic === false) {
+      setViewerState(prev => ({ ...prev, modelIndex: -1 }));
+    }
+  }, [currentCreation, viewerState.modelIndex, isPatternView, setViewerState, user?.uid]);
+
+  useEffect(() => {
+    if (!viewerState.isOpen || !currentCreation || !user?.uid) return;
+    const action = isPatternView ? 'view_creation' : 'view_model';
+    const modelUri = !isPatternView && currentModel ? currentModel.uri : undefined;
+    logCreationInteractionAction({
+      userId: user.uid,
+      creationId: currentCreation.id,
+      modelUri,
+      action,
+      weight: isPatternView ? 0.5 : 1,
+    });
+  }, [viewerState.isOpen, currentCreation, user?.uid, isPatternView, currentModel]);
+
+  const bind = useDrag(({ last, movement: [, my], velocity: [, vy], direction: [, dy] }) => {
+    if (isNavigating) return;
+    if (!last) {
+      setIsDragging(true);
+      setDragOffset(my);
+      return;
+    }
+
+    setIsDragging(false);
+    setDragOffset(0);
+
+    const threshold = 120;
+    const shouldNavigate = Math.abs(my) > threshold || vy > 0.35;
+    if (shouldNavigate) {
+      const direction = dy < 0 ? 'next' : 'prev';
+      handleNavigate(direction);
+    }
+  }, {
+    axis: 'y',
+    filterTaps: true,
+  });
 
   const formatCount = (count: number) => {
     if (count < 1000) return count;
@@ -185,26 +224,48 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 
   const handleShare = async () => {
     if (!currentCreation) return;
-    if (navigator.share) {
-        navigator.share({
-            title: '看看我的AI新创作！',
-            text: `我用POD.STYLE创作了“${currentCreation.prompt}”`,
-            url: window.location.href, // This should be a deep link to the creation in a real app
-        })
-        .then(() => {
-            onShare(currentCreation.id);
-            const updatedCreation = { ...currentCreation, shareCount: currentCreation.shareCount + 1 };
-            onUpdateCreation(updatedCreation);
-        })
-        .catch((error) => {
-          // Silently ignore AbortError which is thrown when the user cancels the share dialog
-          if (error.name !== 'AbortError') {
-            console.error('Share failed:', error);
-          }
-        });
-    } else {
-        toast({ title: '分享功能需要支持的浏览器' });
+
+    const isTopLevel = typeof window !== 'undefined' && window.top === window.self;
+    const isSecure = typeof window !== 'undefined' && window.isSecureContext;
+    const shareData = {
+      title: '看看我的AI新创作！',
+      text: `我用POD.STYLE创作了“${currentCreation.prompt}”`,
+      url: window.location.href,
+    };
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function' && isTopLevel) {
+      try {
+        await navigator.share(shareData);
+        onShare(currentCreation.id);
+        const updatedCreation = { ...currentCreation, shareCount: currentCreation.shareCount + 1 };
+        onUpdateCreation(updatedCreation);
+      } catch (error: unknown) {
+        if (!(error instanceof DOMException) || error.name !== 'AbortError') {
+          console.warn('Native share failed:', error);
+        }
+      }
+      return;
     }
+
+    if (isSecure && isTopLevel && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        toast({ title: '链接已复制', description: '快去分享给朋友吧！' });
+        onShare(currentCreation.id);
+        const updatedCreation = { ...currentCreation, shareCount: currentCreation.shareCount + 1 };
+        onUpdateCreation(updatedCreation);
+      } catch (error) {
+        console.warn('Clipboard copy failed:', error);
+        toast({ variant: 'destructive', title: '无法复制链接', description: '请检查浏览器的剪贴板权限设置。' });
+      }
+      return;
+    }
+
+    toast({
+      variant: 'destructive',
+      title: '分享功能受限',
+      description: '当前环境不支持系统分享或剪贴板复制，请手动复制浏览器地址栏。',
+    });
   };
 
   const handleRemake = () => {
@@ -241,7 +302,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     } else {
         return (
             <MockupScreen
-                modelImage={currentModel?.uri}
+                modelImage={currentModelImage}
                 models={currentCreation.models || []}
                 orderDetails={orderDetails}
                 setOrderDetails={setOrderDetails}
@@ -261,7 +322,11 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
     <div
       {...bind()}
       className="fixed inset-0 z-50 bg-black flex flex-col"
-      style={{ touchAction: 'pan-y' }}
+      style={{
+        touchAction: 'none',
+        transform: `translateY(${dragOffset}px)`,
+        transition: isDragging ? 'none' : 'transform 0.25s ease-out',
+      }}
     >
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center p-4 bg-gradient-to-b from-black/30 to-transparent">
         <Button onClick={handleClose} variant="ghost" size="icon" className="rounded-full text-white bg-black/20 hover:bg-black/40">
@@ -315,7 +380,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             onOpenChange={setIsCommentsOpen}
             creation={currentCreation}
             user={user}
-            onCommentAdded={(newComment) => {
+            onCommentAdded={() => {
                 const updatedCreation = {
                     ...currentCreation,
                     commentCount: currentCreation.commentCount + 1,

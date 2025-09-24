@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { addCommentAction, getCommentsAction } from '@/app/actions';
 import type { Creation, Comment, FirebaseUser } from '@/lib/types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";

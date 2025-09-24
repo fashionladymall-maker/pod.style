@@ -1,0 +1,299 @@
+extend type Task {
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "Task", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `Task` table.
+  """
+  _count: Int! @fdc_generated(from: "Task.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `description` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  description_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.description", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `dueDate` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  dueDate_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.dueDate", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `isCompleted` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  isCompleted_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.isCompleted", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `taskListId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  taskListId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.taskListId", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Task` table where the `userId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  userId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Task.userId", purpose: QUERY_COUNT)
+  """
+  ✨ Minimum of the `createdAt` field in the `Task` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "Task.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `dueDate` field in the `Task` table.
+  """
+  dueDate_min: Date @fdc_generated(from: "Task.dueDate", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `Task` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "Task.createdAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `dueDate` field in the `Task` table.
+  """
+  dueDate_max: Date @fdc_generated(from: "Task.dueDate", purpose: QUERY_MAX)
+}
+extend type TaskList {
+  """
+  ✨ List `Task` objects in a one-to-many relationship (where `Task`.`taskList` is this object).
+  """
+  tasks_on_taskList(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Task_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Task_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Task_Having
+  ): [Task!]! @fdc_generated(from: "Task.taskList", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "TaskList", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `TaskList` table.
+  """
+  _count: Int! @fdc_generated(from: "TaskList.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `TaskList` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "TaskList.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `TaskList` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "TaskList.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `TaskList` table where the `name` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  name_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "TaskList.name", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `TaskList` table where the `userId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  userId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "TaskList.userId", purpose: QUERY_COUNT)
+  """
+  ✨ Minimum of the `createdAt` field in the `TaskList` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "TaskList.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `TaskList` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "TaskList.createdAt", purpose: QUERY_MAX)
+}
+extend type User {
+  """
+  ✨ List `Task` objects in a one-to-many relationship (where `Task`.`user` is this object).
+  """
+  tasks_on_user(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Task_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Task_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Task_Having
+  ): [Task!]! @fdc_generated(from: "Task.user", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  ✨ List `TaskList` objects in a one-to-many relationship (where `TaskList`.`user` is this object).
+  """
+  taskLists_on_user(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: TaskList_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [TaskList_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: TaskList_Having
+  ): [TaskList!]! @fdc_generated(from: "TaskList.user", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "User", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `User` table.
+  """
+  _count: Int! @fdc_generated(from: "User.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `displayName` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  displayName_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.displayName", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `email` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  email_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.email", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.id", purpose: QUERY_COUNT)
+  """
+  ✨ Minimum of the `createdAt` field in the `User` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "User.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `User` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "User.createdAt", purpose: QUERY_MAX)
+}

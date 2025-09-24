@@ -2,7 +2,7 @@
 "use server";
 
 import admin from 'firebase-admin';
-import { db, storage } from '@/lib/firebase-admin';
+import { getDb, getAdminStorage } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
@@ -12,12 +12,138 @@ import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentI
 import { v4 as uuidv4 } from 'uuid';
 import { cache } from 'react';
 
+const getFirestoreDb = () => getDb();
+
+const hasErrorCode = (error: unknown): error is { code: string } =>
+  typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code: unknown }).code === 'string';
+
 
 // --- Firestore Helper Functions ---
 
-const getCreationsCollection = () => db.collection("creations");
-const getOrdersCollection = () => db.collection("orders");
+const getCreationsCollection = () => getDb().collection("creations");
+const getOrdersCollection = () => getDb().collection("orders");
 const getCommentsCollection = (creationId: string) => getCreationsCollection().doc(creationId).collection("comments");
+
+const HOURS_TO_MS = 60 * 60 * 1000;
+
+const calculateRecencyBoost = (createdAt: string | undefined) => {
+  if (!createdAt) return 0;
+  const createdTime = new Date(createdAt).getTime();
+  if (Number.isNaN(createdTime)) return 0;
+  const ageInHours = (Date.now() - createdTime) / HOURS_TO_MS;
+  if (ageInHours <= 0) return 50;
+  return Math.max(0, 50 - Math.log10(ageInHours + 1) * 10);
+};
+
+const basePopularityScore = (creation: Creation, mode: 'popular' | 'trending') => {
+  const {
+    likeCount = 0,
+    favoriteCount = 0,
+    shareCount = 0,
+    commentCount = 0,
+    remakeCount = 0,
+    orderCount = 0,
+  } = creation;
+
+  const engagement = likeCount * 2 + favoriteCount * 3 + shareCount + commentCount * 1.5 + remakeCount * 4;
+  const orders = orderCount * 5;
+
+  return mode === 'trending' ? orders + engagement * 0.8 : engagement + orders * 0.6;
+};
+
+const personalBoost = (creation: Creation, userId: string | null | undefined) => {
+  if (!userId) return 0;
+  let boost = 0;
+  if (creation.userId === userId) boost += 60;
+  if (creation.likedBy?.includes(userId)) boost += 35;
+  if (creation.favoritedBy?.includes(userId)) boost += 30;
+  if (creation.shareCount && creation.shareCount > 0) boost += 2;
+  return boost;
+};
+
+const shuffleWithSeed = <T,>(items: T[]) => {
+  return [...items].sort(() => Math.random() - 0.5);
+};
+
+const rankCreations = (creations: Creation[], userId: string | null, mode: 'popular' | 'trending') => {
+  const ranked = creations.map((creation) => {
+    const score = basePopularityScore(creation, mode)
+      + calculateRecencyBoost(creation.createdAt)
+      + personalBoost(creation, userId);
+
+    return { creation, score };
+  });
+
+  ranked.sort((a, b) => b.score - a.score);
+
+  const diversified = ranked.slice(0, 200); // soft cap for performance
+  return shuffleWithSeed(diversified.slice(0, 30)).concat(diversified.slice(30)).map(item => item.creation);
+};
+
+interface CachedModel {
+  uri: string;
+  category: string;
+  isPublic?: boolean;
+  previewUri?: string | null;
+}
+
+interface CachedCreation extends Omit<Creation, 'summary' | 'previewPatternUri' | 'models'> {
+  summary?: string | null;
+  previewPatternUri?: string | null;
+  models?: CachedModel[];
+}
+
+const serializeCreationForCache = (creation: Creation): CachedCreation => ({
+  ...creation,
+  summary: creation.summary ?? null,
+  previewPatternUri: creation.previewPatternUri ?? null,
+  models: (creation.models || []).map((model) => ({
+    ...model,
+    isPublic: model.isPublic ?? true,
+    previewUri: model.previewUri ?? null,
+  })),
+});
+
+const deserializeCreationFromCache = (creation: CachedCreation): Creation => ({
+  ...creation,
+  summary: creation.summary ?? undefined,
+  previewPatternUri: creation.previewPatternUri ?? undefined,
+  models: (creation.models ?? []).map((model) => ({
+    ...model,
+    isPublic: model.isPublic ?? true,
+    previewUri: model.previewUri ?? undefined,
+  })),
+});
+
+const enqueueStorageCleanup = async (items: { path: string; reason: string; metadata?: Record<string, unknown> }[]) => {
+  if (!items.length) return;
+  const db = getFirestoreDb();
+  const batch = db.batch();
+  const queueRef = db.collection('storage_cleanup_queue');
+  items.forEach(item => {
+    const docRef = queueRef.doc();
+    batch.set(docRef, {
+      path: item.path,
+      reason: item.reason,
+      metadata: item.metadata ?? {},
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: 'pending',
+    });
+  });
+  await batch.commit();
+};
+
+const extractGcsPath = (urlString: string | undefined | null) => {
+  if (!urlString) return null;
+  try {
+    const url = new URL(urlString);
+    const path = url.pathname.split('/').slice(2).join('/');
+    return path || null;
+  } catch (error) {
+    console.warn('Failed to parse storage url for cleanup:', urlString, error);
+    return null;
+  }
+};
 
 const docToCreation = (doc: FirebaseFirestore.DocumentSnapshot): Creation => {
   const data = doc.data() as CreationData;
@@ -124,7 +250,7 @@ const deleteCreation = async (creationId: string): Promise<void> => {
     if (!doc.exists) return;
 
     const creation = docToCreation(doc);
-    const bucket = storage.bucket();
+    const bucket = getAdminStorage().bucket();
 
     const fileUris = [creation.patternUri, ...creation.models.map(m => m.uri)];
 
@@ -155,7 +281,7 @@ const deleteCreation = async (creationId: string): Promise<void> => {
 // --- Server Actions ---
 
 const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<string> => {
-    const bucket = storage.bucket();
+    const bucket = getAdminStorage().bucket();
     const matches = dataUri.match(/^data:(.+);base64,(.+)$/);
     if (!matches || matches.length !== 3) {
       throw new Error('Invalid Data URI format');
@@ -206,7 +332,10 @@ export async function generatePatternAction(input: GeneratePatternActionInput): 
         summary: summaryResult.summary,
     });
 
-    return newCreation;
+    return {
+      ...newCreation,
+      previewPatternUri: patternResult.generatedImage,
+    };
 
   } catch (error) {
     console.error('Error in generatePatternAction:', error);
@@ -241,13 +370,24 @@ export async function generateModelAction(input: GenerateModelActionInput): Prom
     
     const modelUrl = await uploadDataUriToStorage(result.modelImageUri, userId);
 
-    const newModel: Model = {
+    const newModelForFirestore: Model = {
         uri: modelUrl,
         category: category,
+        isPublic: true,
     };
 
-    const updatedCreation = await addModelToCreation(creationId, newModel);
-    return updatedCreation;
+    const updatedCreation = await addModelToCreation(creationId, newModelForFirestore);
+
+    const enhancedModels = updatedCreation.models.map((model, index) =>
+      index === updatedCreation.models.length - 1 && model.uri === modelUrl
+        ? { ...model, previewUri: result.modelImageUri }
+        : model
+    );
+
+    return {
+      ...updatedCreation,
+      models: enhancedModels,
+    };
 
   } catch (error) {
     console.error('Error in generateModelAction:', error);
@@ -279,6 +419,188 @@ export async function getCreationsAction(userId: string): Promise<Creation[]> {
   }
 }
 
+interface ForkCreationInput {
+  sourceCreationId: string;
+  userId: string;
+}
+
+export async function forkCreationAction({ sourceCreationId, userId }: ForkCreationInput): Promise<Creation> {
+  const sourceDoc = await getCreationsCollection().doc(sourceCreationId).get();
+  if (!sourceDoc.exists) {
+    throw new Error('原始作品不存在或已被删除。');
+  }
+
+  const sourceData = docToCreation(sourceDoc);
+
+  const clonedCreation = await addCreation({
+    userId,
+    prompt: sourceData.prompt,
+    style: sourceData.style,
+    summary: sourceData.summary,
+    patternUri: sourceData.patternUri,
+  });
+
+  console.log(`Creation ${sourceCreationId} forked to new creation ${clonedCreation.id} for user ${userId}.`);
+
+  return clonedCreation;
+}
+
+interface DeleteCreationModelInput {
+  creationId: string;
+  modelUri: string;
+}
+
+export async function deleteCreationModelAction({ creationId, modelUri }: DeleteCreationModelInput): Promise<Creation> {
+  const creationRef = getCreationsCollection().doc(creationId);
+  const doc = await creationRef.get();
+
+  if (!doc.exists) {
+    throw new Error('要删除的作品不存在。');
+  }
+
+  const data = doc.data() as CreationData;
+  const existingModels = data.models || [];
+  const filteredModels = existingModels.filter(model => model.uri !== modelUri);
+
+  if (filteredModels.length === existingModels.length) {
+    throw new Error('未找到要删除的商品效果图。');
+  }
+
+  try {
+    const bucket = getAdminStorage().bucket();
+    const url = new URL(modelUri);
+    const filePath = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
+    if (filePath) {
+      await bucket.file(filePath).delete().catch(err => {
+        console.warn(`删除模型图 ${filePath} 失败:`, err.message);
+      });
+    }
+  } catch (error) {
+    console.warn('解析模型图路径失败，跳过存储删除。', error);
+  }
+
+  await creationRef.update({ models: filteredModels });
+
+  const updatedDoc = await creationRef.get();
+  return docToCreation(updatedDoc);
+}
+
+interface ToggleCreationModelVisibilityInput {
+  creationId: string;
+  modelUri: string;
+  isPublic: boolean;
+}
+
+export async function toggleCreationModelVisibilityAction({ creationId, modelUri, isPublic }: ToggleCreationModelVisibilityInput): Promise<Creation> {
+  const creationRef = getCreationsCollection().doc(creationId);
+  const doc = await creationRef.get();
+
+  if (!doc.exists) {
+    throw new Error('要更新的作品不存在。');
+  }
+
+  const data = doc.data() as CreationData;
+  const existingModels = data.models || [];
+  const targetIndex = existingModels.findIndex(model => model.uri === modelUri);
+
+  if (targetIndex === -1) {
+    throw new Error('未找到要更新的商品效果图。');
+  }
+
+  existingModels[targetIndex] = {
+    ...existingModels[targetIndex],
+    isPublic,
+  } as Model;
+
+  await creationRef.update({ models: existingModels });
+
+  if (!isPublic) {
+    const path = extractGcsPath(modelUri);
+    if (path) {
+      await enqueueStorageCleanup([
+        {
+          path,
+          reason: 'model-private',
+          metadata: { creationId, modelUri },
+        },
+      ]);
+    }
+  }
+
+  const updatedDoc = await creationRef.get();
+  return docToCreation(updatedDoc);
+}
+
+interface LogInteractionInput {
+  userId: string;
+  creationId: string;
+  action: string;
+  weight?: number;
+  modelUri?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export async function logCreationInteractionAction({ userId, creationId, action, weight, modelUri, metadata }: LogInteractionInput): Promise<void> {
+  try {
+    const db = getFirestoreDb();
+    await db.collection('creation_interactions').add({
+      userId,
+      creationId,
+      action,
+      weight: weight ?? 1,
+      modelUri: modelUri ?? null,
+      metadata: metadata ?? {},
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Failed to log creation interaction:', error);
+  }
+}
+
+export async function getPersonalizedFeedsAction(userId: string | null): Promise<{ popular: Creation[]; trending: Creation[] }> {
+  try {
+    const db = getFirestoreDb();
+    const cacheId = userId ?? 'public';
+    const CACHE_TTL_MS = 10 * 60 * 1000;
+
+    const cacheDoc = await db.collection('personalized_feed_cache').doc(cacheId).get();
+    if (cacheDoc.exists) {
+      const data = cacheDoc.data();
+      if (data) {
+        const updatedAt: admin.firestore.Timestamp | undefined = data.updatedAt;
+        const updatedTime = updatedAt?.toDate().getTime();
+        if (updatedTime && Date.now() - updatedTime < CACHE_TTL_MS) {
+          return {
+            popular: (data.popular ?? []).map(deserializeCreationFromCache),
+            trending: (data.trending ?? []).map(deserializeCreationFromCache),
+          };
+        }
+      }
+    }
+
+    const snapshot = await getCreationsCollection()
+      .where('isPublic', '==', true)
+      .get();
+
+    const creations = snapshot.docs.map(docToCreation);
+
+    const popular = rankCreations(creations, userId, 'popular');
+    const trending = rankCreations(creations, userId, 'trending');
+
+    await db.collection('personalized_feed_cache').doc(cacheId).set({
+      popular: popular.map(serializeCreationForCache),
+      trending: trending.map(serializeCreationForCache),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    return { popular, trending };
+  } catch (error) {
+    console.error('Failed to build personalized feeds:', error);
+    if (error instanceof Error) throw error;
+    throw new Error(String(error));
+  }
+}
+
 export async function deleteCreationAction(creationId: string): Promise<{ success: boolean }> {
     try {
         await deleteCreation(creationId);
@@ -307,6 +629,7 @@ export async function createOrderAction(input: CreateOrderActionInput): Promise<
     const { userId, creationId, model, orderDetails, shippingInfo, paymentInfo, price } = input;
     const creationRef = getCreationsCollection().doc(creationId);
     const orderRef = getOrdersCollection().doc();
+    const db = getFirestoreDb();
     
     const timestamp = admin.firestore.Timestamp.now();
 
@@ -388,6 +711,7 @@ export async function migrateAnonymousDataAction(anonymousUid: string, permanent
         return { success: true };
     }
     
+    const db = getFirestoreDb();
     const batch = db.batch();
 
     creationsSnapshot.docs.forEach(doc => {
@@ -414,6 +738,20 @@ export async function toggleCreationPublicStatusAction(creationId: string, isPub
     try {
         const creationRef = getCreationsCollection().doc(creationId);
         await creationRef.update({ isPublic: isPublic });
+
+        if (!isPublic) {
+            const snapshot = await creationRef.get();
+            if (snapshot.exists) {
+                const data = snapshot.data() as CreationData;
+                const paths = [extractGcsPath(data.patternUri), ...(data.models || []).map(model => extractGcsPath(model.uri))]
+                    .filter((path): path is string => Boolean(path));
+                await enqueueStorageCleanup(paths.map(path => ({
+                    path,
+                    reason: 'creation-private',
+                    metadata: { creationId },
+                })));
+            }
+        }
         return { success: true };
     } catch (error) {
         console.error('Error in toggleCreationPublicStatusAction:', error);
@@ -515,6 +853,7 @@ export async function addCommentAction(creationId: string, commentData: Omit<Com
     const creationRef = getCreationsCollection().doc(creationId);
     const commentsRef = getCommentsCollection(creationId);
     const newCommentRef = commentsRef.doc();
+    const db = getFirestoreDb();
 
     const dataWithTimestamp: CommentData = {
         ...commentData,
@@ -547,7 +886,7 @@ export async function getCommentsAction(creationId: string): Promise<Comment[]> 
     } catch (error) {
         console.error('Error in getCommentsAction:', error);
         // Firestore will throw if the index doesn't exist. This is a common setup step.
-        if ((error as any).code === 'FAILED_PRECONDITION') {
+        if (hasErrorCode(error) && error.code === 'FAILED_PRECONDITION') {
             console.error(`This query requires a Firestore index. Please create a composite index on the 'comments' subcollection with fields: 'createdAt' (descending).`);
         }
         return [];

@@ -26,21 +26,23 @@ export async function generateTShirtPattern(input: GenerateTShirtPatternInput): 
   return generateTShirtPatternFlow(input);
 }
 
-const generateTShirtPatternPrompt = ai.definePrompt({
-  name: 'generateTShirtPatternPrompt',
-  input: {schema: GenerateTShirtPatternInputSchema},
-  output: {schema: GenerateTShirtPatternOutputSchema},
-  prompt: `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '{{{prompt}}}'{{#if styleInstruction}}, {{{styleInstruction}}}{{/if}}. It should be incredibly detailed with sharp focus.
+const buildPatternPrompt = (input: GenerateTShirtPatternInput): string => {
+  const styleSuffix = input.styleInstruction ? `, ${input.styleInstruction}` : '';
+  const basePrompt = `Generate a stunning, ultra-high-resolution, and crystal-clear creative image suitable for a t-shirt print. The concept is: '${input.prompt}'${styleSuffix}. It should be incredibly detailed with sharp focus.
 
 IMPORTANT RULES:
 1.  STRICTLY do NOT add any text, letters, or words to the image unless the user explicitly included text in quotation marks in their prompt.
 2.  If the user asks for text, the text MUST be in English.
-3.  The final image should only contain the artwork, with no background unless it's part of the scene.
+3.  The final image should only contain the artwork, with no background unless it's part of the scene.`;
 
-{{#if uploadedImage}}
-Incorporate elements from the following image into the generated pattern: {{media url=uploadedImage}}
-{{/if}}`,
-});
+  if (input.uploadedImage) {
+    return `${basePrompt}
+
+Incorporate elements from the provided inspiration image into the generated pattern.`;
+  }
+
+  return basePrompt;
+};
 
 const generateTShirtPatternFlow = ai.defineFlow(
   {
@@ -49,16 +51,17 @@ const generateTShirtPatternFlow = ai.defineFlow(
     outputSchema: GenerateTShirtPatternOutputSchema,
   },
   async input => {
+    const promptPieces: ({ text: string } | { media: { url: string } })[] = [
+      { text: buildPatternPrompt(input) }
+    ];
+
+    if (input.uploadedImage) {
+      promptPieces.push({ media: { url: input.uploadedImage } });
+    }
+
     const {media} = await ai.generate({
         model: 'googleai/gemini-2.5-flash-image-preview',
-        prompt: [
-          {
-            text: generateTShirtPatternPrompt(input).prompt
-          },
-          ...(input.uploadedImage ? [{
-            media: {url: input.uploadedImage}
-          }] : [])
-        ],
+        prompt: promptPieces,
         config: {
           responseModalities: ['IMAGE']
         }

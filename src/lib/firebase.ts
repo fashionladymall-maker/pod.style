@@ -1,8 +1,12 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, initializeAuth, indexedDBLocalPersistence, inMemoryPersistence, type Auth } from "firebase/auth";
+import { initializeAuth, indexedDBLocalPersistence, inMemoryPersistence, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+
+interface AppCheckDebugWindow extends Window {
+  FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean;
+}
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -38,7 +42,7 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 
             // Initialize App Check and handle errors gracefully
             if (process.env.NODE_ENV === 'development') {
-              (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+              (window as AppCheckDebugWindow).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
             }
             
             const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;

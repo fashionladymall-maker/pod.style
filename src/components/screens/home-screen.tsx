@@ -3,14 +3,15 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Mic, Palette, ArrowUp, TrendingUp, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Mic, Palette, ArrowUp, TrendingUp, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { FirebaseUser, Creation } from '@/lib/types';
+import type { Creation } from '@/lib/types';
+import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { HomeTab } from '@/app/app-client';
 import { Skeleton } from '../ui/skeleton';
@@ -18,20 +19,68 @@ import { Skeleton } from '../ui/skeleton';
 interface HomeScreenProps {
   prompt: string;
   setPrompt: (value: string) => void;
-  user: FirebaseUser | null;
   uploadedImage: string | null;
   setUploadedImage: (value: string | null) => void;
   onGenerate: () => void;
   publicCreations: Creation[];
   trendingCreations: Creation[];
+  popularVisibleCount: number;
+  trendingVisibleCount: number;
+  onLoadMorePopular: () => void;
+  onLoadMoreTrending: () => void;
   onSelectPublicCreation: (creation: Creation, source: HomeTab, modelIndex?: number) => void;
   isLoading: boolean;
+  isFeedLoading: boolean;
   isRecording: boolean;
   setIsRecording: (value: boolean) => void;
   artStyles: string[];
   selectedStyle: string;
   setSelectedStyle: (style: string) => void;
 }
+
+interface SpeechRecognitionAlternativeLike {
+  transcript: string;
+}
+
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  0: SpeechRecognitionAlternativeLike;
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: SpeechRecognitionResultLike[];
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
+
+interface SpeechRecognitionWindow extends Window {
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  SpeechRecognition?: SpeechRecognitionConstructor;
+}
+
+const getSpeechRecognitionConstructor = (): SpeechRecognitionConstructor | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const speechWindow = window as SpeechRecognitionWindow;
+  return speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition || null;
+};
 
 const creativePrompts = [
   "一只戴着VR眼镜的太空猫",
@@ -72,10 +121,13 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
     
     if (displayMode === 'model') {
         const itemsToDisplay = creations.map(creation => {
-            const latestModel = creation.models.length > 0 ? creation.models[creation.models.length - 1] : null;
-            const modelIndex = latestModel ? creation.models.length - 1 : -1;
-            const imageUrl = latestModel ? latestModel.uri : creation.patternUri;
-            const altText = latestModel ? `商品: ${latestModel.category}` : `创意: ${creation.prompt}`;
+            const visibleModels = creation.models
+              .map((model, index) => ({ model, index }))
+              .filter(({ model }) => model?.isPublic !== false);
+            const latestEntry = visibleModels.length > 0 ? visibleModels[visibleModels.length - 1] : null;
+            const imageUrl = latestEntry ? (latestEntry.model.previewUri || latestEntry.model.uri) : (creation.previewPatternUri || creation.patternUri);
+            const altText = latestEntry ? `商品: ${latestEntry.model.category}` : `创意: ${creation.prompt}`;
+            const modelIndex = latestEntry ? latestEntry.index : -1;
 
             return {
                 creation,
@@ -98,6 +150,8 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
                             alt={altText} 
                             fill 
                             className="object-cover" 
+                            placeholder="blur"
+                            blurDataURL={IMAGE_PLACEHOLDER}
                             sizes="(max-width: 768px) 50vw, 33vw"
                         />
                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs">
@@ -119,10 +173,12 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
                     className="aspect-square bg-secondary rounded-lg overflow-hidden transform hover:scale-105 transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border hover:border-blue-500"
                 >
                     <Image 
-                        src={creation.patternUri} 
+                        src={creation.previewPatternUri || creation.patternUri} 
                         alt={`公共创意 ${creation.id}`} 
                         fill 
                         className="object-cover" 
+                        placeholder="blur"
+                        blurDataURL={IMAGE_PLACEHOLDER}
                         sizes="(max-width: 768px) 50vw, 33vw"
                     />
                 </button>
@@ -133,12 +189,16 @@ const CreationGrid = ({ creations, onSelect, displayMode = 'pattern', isLoading 
 
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
-  prompt, setPrompt, user, uploadedImage, setUploadedImage, onGenerate,
-  publicCreations, trendingCreations, onSelectPublicCreation,
-  isLoading, isRecording, setIsRecording, artStyles, selectedStyle, setSelectedStyle
+  prompt, setPrompt, uploadedImage, setUploadedImage, onGenerate,
+  publicCreations, trendingCreations,
+  popularVisibleCount, trendingVisibleCount,
+  onLoadMorePopular, onLoadMoreTrending,
+  onSelectPublicCreation,
+  isLoading, isFeedLoading, isRecording, setIsRecording,
+  artStyles, selectedStyle, setSelectedStyle
 }) => {
   const { toast } = useToast();
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef('');
   const [stylePopoverOpen, setStylePopoverOpen] = useState(false);
   const [placeholder, setPlaceholder] = useState(creativePrompts[0]);
@@ -154,15 +214,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
+    const SpeechRecognitionCtor = getSpeechRecognitionConstructor();
+    if (SpeechRecognitionCtor) {
+      const recognition = new SpeechRecognitionCtor();
       recognitionRef.current = recognition;
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'zh-CN';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEventLike) => {
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
@@ -174,7 +234,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         setPrompt(finalTranscriptRef.current + interimTranscript);
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEventLike) => {
         console.error('Speech recognition error:', event.error);
         if (event.error !== 'no-speech' && event.error !== 'aborted') {
           toast({ variant: 'destructive', title: '语音识别错误', description: event.error });
@@ -236,11 +296,39 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     <TabsTrigger value="popular" className="py-1"><Sparkles className="mr-2 h-4 w-4" />流行创意</TabsTrigger>
                     <TabsTrigger value="trending" className="py-1"><TrendingUp className="mr-2 h-4 w-4" />定制排行</TabsTrigger>
                 </TabsList>
-                <TabsContent value="popular" className="mt-4">
-                  <CreationGrid creations={publicCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)} displayMode="pattern" isLoading={isLoading} />
+                <TabsContent value="popular" className="mt-4 space-y-4">
+                  <CreationGrid
+                    creations={publicCreations.slice(0, popularVisibleCount)}
+                    onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'popular', modelIndex)}
+                    displayMode="pattern"
+                    isLoading={isLoading || isFeedLoading}
+                  />
+                  {popularVisibleCount < publicCreations.length && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full"
+                      onClick={onLoadMorePopular}
+                    >
+                      加载更多热门作品
+                    </Button>
+                  )}
                 </TabsContent>
-                <TabsContent value="trending" className="mt-4">
-                  <CreationGrid creations={trendingCreations} onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)} displayMode="model" isLoading={isLoading} />
+                <TabsContent value="trending" className="mt-4 space-y-4">
+                  <CreationGrid
+                    creations={trendingCreations.slice(0, trendingVisibleCount)}
+                    onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'trending', modelIndex)}
+                    displayMode="model"
+                    isLoading={isLoading || isFeedLoading}
+                  />
+                  {trendingVisibleCount < trendingCreations.length && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full"
+                      onClick={onLoadMoreTrending}
+                    >
+                      加载更多热销商品
+                    </Button>
+                  )}
                 </TabsContent>
             </Tabs>
         </div>
