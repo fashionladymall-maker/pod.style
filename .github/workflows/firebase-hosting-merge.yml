@@ -1,29 +1,46 @@
-name: Deploy to Firebase Hosting on merge
+name: Deploy to Firebase Hosting (Next.js)
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_SITE_ID: ${{ secrets.FIREBASE_SITE_ID }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Use Node 20
+        uses: actions/setup-node@v4
         with:
-            node-version: '20'
-            cache: 'npm'
+          node-version: '20'
+          cache: 'npm'
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install deps
+        run: npm ci
 
-      - name: Deploy to Firebase Hosting
+      - name: Build Next.js
+        run: npm run build
+        # 如果你是纯静态导出，改用：
+        # run: npm run export
+
+      - name: Deploy to Firebase Hosting (live)
         uses: FirebaseExtended/action-hosting-deploy@v0
-        env:
-        FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: studio-1269295870-5fde0
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
           channelId: live
+          projectId: ${{ env.FIREBASE_PROJECT_ID }}
+          target: ${{ env.FIREBASE_SITE_ID }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          # 如果你坚持用 token（login:ci）部署，就把上一行注释，改用：
+          # token: ${{ secrets.FIREBASE_TOKEN }}
