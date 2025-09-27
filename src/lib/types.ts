@@ -35,6 +35,44 @@ export interface Model {
 }
 
 
+export type UserFineTunedModelStatus = 'training' | 'ready' | 'failed';
+export type UserFineTunedModelProvider = 'googleai' | 'openai' | 'custom';
+
+export interface UserFineTunedModelPersonalization {
+    strength: number;
+    tags: string[];
+    preferredStyles?: string[];
+}
+
+export interface UserFineTunedModel {
+    userId: string;
+    modelName: string;
+    displayName: string;
+    provider: UserFineTunedModelProvider;
+    baseModel: string;
+    status: UserFineTunedModelStatus;
+    createdAt: string;
+    updatedAt: string;
+    lastUsedAt?: string;
+    personalization?: UserFineTunedModelPersonalization;
+    metadata?: Record<string, unknown>;
+}
+
+export interface UserFineTunedModelData {
+    userId: string;
+    modelName: string;
+    displayName: string;
+    provider: UserFineTunedModelProvider;
+    baseModel: string;
+    status: UserFineTunedModelStatus;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+    lastUsedAt?: Timestamp;
+    personalization?: UserFineTunedModelPersonalization;
+    metadata?: Record<string, unknown>;
+}
+
+
 // This is the object shape that the client-side components will receive.
 // Note that 'createdAt' is a string because Timestamp objects are not serializable across server/client boundaries.
 export interface Creation {

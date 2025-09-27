@@ -18,6 +18,10 @@ import { MOCK_PUBLIC_CREATIONS, MOCK_TRENDING_CREATIONS } from '@/lib/mock-data'
 import { admin, getAdminStorage } from '@/server/firebase/admin';
 import { logger } from '@/utils/logger';
 import {
+  ensureUserFineTunedModel,
+  markUserFineTunedModelAsUsed,
+} from '@/features/user-models/server/user-model-service';
+import {
   createCreation,
   deleteCreation as deleteCreationDoc,
   findCreationById,
@@ -167,13 +171,40 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
 
 export const generatePattern = async (input: GeneratePatternInput): Promise<Creation> => {
   const { userId, prompt, style, referenceImage } = input;
+  const userModel = await ensureUserFineTunedModel(userId);
+
+  const personalizationPrompts: string[] = [];
+  const personalization = userModel.personalization;
+  if (personalization?.tags && personalization.tags.length > 0) {
+    personalizationPrompts.push(
+      `Focus on themes such as ${personalization.tags.join(', ')} that match the user's taste.`
+    );
+  }
+  if (personalization?.preferredStyles && personalization.preferredStyles.length > 0) {
+    personalizationPrompts.push(
+      `Give subtle priority to styles like ${personalization.preferredStyles.join(', ')}.`
+    );
+  }
+  if (personalization?.strength !== undefined) {
+    personalizationPrompts.push(
+      `Adjust personalization strength to ${(personalization.strength * 100).toFixed(0)}% of the base prompt.`
+    );
+  }
+
+  const generationPrompt = personalizationPrompts.length
+    ? `${prompt}. ${personalizationPrompts.join(' ')}`
+    : prompt;
+
   const payload: GenerateTShirtPatternWithStyleInput = {
-    prompt,
+    prompt: generationPrompt,
     style,
     referenceImage: referenceImage ?? undefined,
+    model: userModel.modelName,
   };
 
   const patternResult = await generateTShirtPatternWithStyle(payload);
+
+  await markUserFineTunedModelAsUsed(userId);
 
   const summary = await summarizePrompt({ prompt });
 
@@ -247,6 +278,7 @@ export const generateModel = async (
   if (!updated) {
     throw new Error('Creation not found after adding model');
   }
+  await markUserFineTunedModelAsUsed(input.userId);
   return updated;
 };
 
