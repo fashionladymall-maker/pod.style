@@ -36,43 +36,53 @@ function initializeAdminApp(): admin.app.App {
     options.storageBucket = storageBucket;
   }
 
-  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
-
-  if (!serviceAccountString) {
-    const projectId = getProjectId();
-
-    if (!projectId) {
-      throw new Error(
-        'Firebase Admin configuration missing. Set FIREBASE_SERVICE_ACCOUNT or NEXT_PUBLIC_FIREBASE_PROJECT_ID.'
-      );
-    }
-
+  const projectId = getProjectId();
+  if (projectId) {
     options.projectId = projectId;
+  }
 
-    if (!isEmulatorEnvironment()) {
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const runningOnEmulator = isEmulatorEnvironment();
+
+  if (serviceAccountString) {
+    try {
+      const serviceAccount = JSON.parse(serviceAccountString);
+      options.credential = admin.credential.cert(serviceAccount);
+      if (!options.projectId && serviceAccount.project_id) {
+        options.projectId = serviceAccount.project_id;
+      }
+    } catch (error) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT. Ensure it contains valid JSON.', error);
+      throw new Error('Firebase Admin SDK initialization failed due to invalid FIREBASE_SERVICE_ACCOUNT.');
+    }
+  } else {
+    try {
+      options.credential = admin.credential.applicationDefault();
+    } catch (error) {
+      if (runningOnEmulator) {
+        console.warn(
+          'FIREBASE_SERVICE_ACCOUNT is not set. Initialising Firebase Admin with emulator-friendly defaults.'
+        );
+      } else {
+        console.error('Failed to load application default credentials for Firebase Admin SDK.', error);
+        throw new Error(
+          'Firebase Admin SDK initialization failed. Provide FIREBASE_SERVICE_ACCOUNT or configure application default credentials.'
+        );
+      }
+    }
+  }
+
+  if (!options.projectId) {
+    if (runningOnEmulator) {
+      console.warn('Firebase project ID not set. Using emulator defaults.');
+    } else if (!options.credential) {
       throw new Error(
-        'FIREBASE_SERVICE_ACCOUNT environment variable is not set. Provide credentials or run against the Firebase Emulators.'
+        'Firebase Admin project ID is not configured. Set NEXT_PUBLIC_FIREBASE_PROJECT_ID or include project_id in credentials.'
       );
     }
-
-    console.warn(
-      'FIREBASE_SERVICE_ACCOUNT is not set. Initialising Firebase Admin with emulator-friendly defaults.'
-    );
-
-    return admin.initializeApp(options);
   }
 
-  try {
-    const serviceAccount = JSON.parse(serviceAccountString);
-    options.credential = admin.credential.cert(serviceAccount);
-    if (!options.projectId) {
-      options.projectId = serviceAccount.project_id;
-    }
-    return admin.initializeApp(options);
-  } catch (error) {
-    console.error('Failed to initialise Firebase Admin SDK:', error);
-    throw new Error('Firebase Admin SDK initialization failed.');
-  }
+  return admin.initializeApp(options);
 }
 
 function getInitializedApp(): admin.app.App {
