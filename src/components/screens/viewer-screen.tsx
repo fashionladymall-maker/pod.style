@@ -23,6 +23,8 @@ interface ViewerScreenProps {
   orderDetails: OrderDetails;
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;
+  isAuthenticated: boolean;
+  onLoginRequest: () => void;
   onNext: () => void;
   onGoToCategorySelection: (creation: Creation) => void;
   price: number;
@@ -41,6 +43,8 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   orderDetails,
   setOrderDetails,
   handleQuantityChange,
+  isAuthenticated,
+  onLoginRequest,
   onNext,
   onGoToCategorySelection,
   price,
@@ -149,7 +153,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   }, [currentCreation, viewerState.modelIndex, isPatternView, setViewerState, user?.uid]);
 
   useEffect(() => {
-    if (!viewerState.isOpen || !currentCreation || !user?.uid) return;
+    if (!viewerState.isOpen || !currentCreation || !user?.uid || !isAuthenticated) return;
     const action = isPatternView ? 'view_creation' : 'view_model';
     const modelUri = !isPatternView && currentModel ? currentModel.uri : undefined;
     logCreationInteractionAction({
@@ -159,7 +163,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
       action,
       weight: isPatternView ? 0.5 : 1,
     });
-  }, [viewerState.isOpen, currentCreation, user?.uid, isPatternView, currentModel]);
+  }, [viewerState.isOpen, currentCreation, user?.uid, isPatternView, currentModel, isAuthenticated]);
 
   const bind = useDrag(({ last, movement: [, my], velocity: [, vy], direction: [, dy] }) => {
     if (isNavigating) return;
@@ -190,9 +194,18 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   }
 
   const handleLike = async () => {
-    if (!user || !currentCreation) return;
+    if (!currentCreation) return;
+    if (!isAuthenticated || !user) {
+      toast({
+        variant: 'destructive',
+        title: '请先登录',
+        description: '登录后即可为作品点赞。',
+      });
+      onLoginRequest();
+      return;
+    }
     const isLiked = currentCreation.likedBy.includes(user.uid);
-    
+
     // Optimistic update
     const updatedCreation = {
         ...currentCreation,
@@ -207,7 +220,16 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   };
   
   const handleFavorite = async () => {
-    if (!user || !currentCreation) return;
+    if (!currentCreation) return;
+    if (!isAuthenticated || !user) {
+      toast({
+        variant: 'destructive',
+        title: '请先登录',
+        description: '登录后即可收藏作品。',
+      });
+      onLoginRequest();
+      return;
+    }
     const isFavorited = currentCreation.favoritedBy.includes(user.uid);
 
     const updatedCreation = {
@@ -270,6 +292,15 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 
   const handleRemake = () => {
     if (!currentCreation) return;
+    if (!isAuthenticated || !user) {
+      toast({
+        variant: 'destructive',
+        title: '请先登录',
+        description: '登录后即可复刻并生成商品效果图。',
+      });
+      onLoginRequest();
+      return;
+    }
 
     // Optimistic update
     const updatedCreation = { ...currentCreation, remakeCount: currentCreation.remakeCount + 1 };
@@ -280,8 +311,8 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
   };
 
 
-  const isLiked = user && currentCreation ? currentCreation.likedBy.includes(user.uid) : false;
-  const isFavorited = user && currentCreation ? currentCreation.favoritedBy.includes(user.uid) : false;
+  const isLiked = isAuthenticated && user && currentCreation ? currentCreation.likedBy.includes(user.uid) : false;
+  const isFavorited = isAuthenticated && user && currentCreation ? currentCreation.favoritedBy.includes(user.uid) : false;
 
   const socialButtonClass = "flex flex-col items-center text-white text-xs font-semibold gap-1";
   const iconButtonClass = "flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 h-12 w-12";

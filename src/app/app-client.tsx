@@ -131,6 +131,7 @@ interface AppClientProps {
 
 const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClientProps) => {
     const { user, authLoading, signOut } = useContext(AuthContext);
+    const isAuthenticated = !!(user && !user.isAnonymous);
     const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -209,13 +210,13 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, [creations, publicCreations, trendingCreations]);
 
     useEffect(() => {
-      if (user) {
+      if (isAuthenticated && user) {
         Promise.all([
           fetchCreations(user.uid),
           fetchOrders(user.uid)
         ]).then(() => {
            // Only navigate away from login screen if user is no longer anonymous
-           if (step === 'login' && user && !user.isAnonymous) {
+           if (step === 'login') {
              setStep('home');
            }
         });
@@ -225,7 +226,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         setOrders([]);
         setPendingModelRequest(null);
       }
-    }, [user, authLoading, fetchCreations, fetchOrders, step]);
+    }, [user, authLoading, fetchCreations, fetchOrders, step, isAuthenticated]);
 
 
     useEffect(() => {
@@ -241,7 +242,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
       let cancelled = false;
 
       const loadPersonalizedFeeds = async () => {
-        if (!user) {
+        if (!user || user.isAnonymous) {
           setPublicCreations(initialPublicCreations);
           setTrendingCreations(initialTrendingCreations);
           setPopularVisibleCount(12);
@@ -276,10 +277,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, [user, initialPublicCreations, initialTrendingCreations]);
 
     useEffect(() => {
-      if (!authLoading && user && !user.isAnonymous && pendingModelRequest && step === 'login') {
+      if (!authLoading && isAuthenticated && pendingModelRequest && step === 'login') {
         setStep('categorySelection');
       }
-    }, [authLoading, user, pendingModelRequest, step]);
+    }, [authLoading, isAuthenticated, pendingModelRequest, step]);
 
     const updateCreationsState = useCallback((updatedCreation: Creation) => {
       const updateList = (list: Creation[]) => list.map(c => c.id === updatedCreation.id ? updatedCreation : c);
@@ -289,8 +290,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, []);
 
     const handleGeneratePattern = useCallback(async () => {
-        if (!user) {
+        if (!user || user.isAnonymous) {
             toast({ variant: 'destructive', title: '请先登录', description: '您需要登录后才能生成创意图案。' });
+            setStep('login');
             return;
         }
         if (!prompt && !uploadedImage) {
@@ -700,7 +702,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const AppHeader = () => {
         const title = 'POD.STYLE';
         let showBack = false;
-        const isAuthenticatedUser = !!(user && !user.isAnonymous);
+        const isAuthenticatedUser = isAuthenticated;
 
         switch(step) {
             case 'profile':
@@ -855,7 +857,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                     setSelectedStyle={setSelectedStyle}
                     onLoginRequest={() => setStep('login')}
                     onViewProfile={() => setStep('profile')}
-                    isAuthenticated={!!(user && !user.isAnonymous)}
+                    isAuthenticated={isAuthenticated}
                 />;
         }
     };
@@ -902,6 +904,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 orderDetails={orderDetails}
                 setOrderDetails={setOrderDetails}
                 handleQuantityChange={handleQuantityChange}
+                isAuthenticated={isAuthenticated}
+                onLoginRequest={() => setStep('login')}
                 onNext={() => {
                   setViewerState(prev => ({...prev, isOpen: false}));
                   setStep('shipping');
