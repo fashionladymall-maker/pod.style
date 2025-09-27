@@ -17,6 +17,76 @@ const getFirestoreDb = () => getDb();
 const hasErrorCode = (error: unknown): error is { code: string } =>
   typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code: unknown }).code === 'string';
 
+const getNumericErrorCode = (error: unknown): number | null => {
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const code = (error as { code: unknown }).code;
+    if (typeof code === 'number') {
+      return code;
+    }
+    if (typeof code === 'string' && !Number.isNaN(Number(code))) {
+      return Number(code);
+    }
+  }
+  return null;
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (!error) return '';
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string') {
+    return (error as { message: string }).message;
+  }
+  return '';
+};
+
+const getErrorDetails = (error: unknown): string => {
+  if (typeof error === 'object' && error !== null && 'details' in error) {
+    const details = (error as { details: unknown }).details;
+    if (typeof details === 'string') {
+      return details;
+    }
+  }
+  return '';
+};
+
+const isFirebaseCredentialError = (error: unknown) => {
+  const code = getNumericErrorCode(error);
+  if (code === 16) {
+    return true;
+  }
+
+  if (hasErrorCode(error)) {
+    const normalized = error.code.toLowerCase();
+    if (normalized.includes('unauthenticated') || normalized.includes('permission-denied')) {
+      return true;
+    }
+  }
+
+  const message = `${getErrorMessage(error)} ${getErrorDetails(error)}`.toLowerCase();
+  return message.includes('invalid authentication credentials')
+    || message.includes('firebase service account environment variable is not set')
+    || message.includes('firebase admin configuration missing')
+    || message.includes('could not load the default credentials');
+};
+
+let hasLoggedCredentialWarning = false;
+let hasLoggedCredentialDetails = false;
+
+const handleFirebaseCredentialError = (context: string, error: unknown) => {
+  if (!hasLoggedCredentialWarning) {
+    console.warn(
+      'Firebase Admin credentials are not configured. Server-rendered data will be empty until valid credentials or emulator configuration is provided.'
+    );
+    hasLoggedCredentialWarning = true;
+  }
+
+  if (!hasLoggedCredentialDetails) {
+    console.warn(`${context} skipped due to missing Firebase credentials.`, error);
+    hasLoggedCredentialDetails = true;
+  }
+};
+
 
 // --- Firestore Helper Functions ---
 
@@ -765,7 +835,7 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
             .get();
-        
+
         const creations = querySnapshot.docs.map(docToCreation);
 
         creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -773,9 +843,13 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
         return creations;
 
     } catch (error) {
+        if (isFirebaseCredentialError(error)) {
+            handleFirebaseCredentialError('getPublicCreationsAction', error);
+            return [];
+        }
+
         console.error('Error in getPublicCreationsAction:', error);
-        if (error instanceof Error) throw error;
-        throw new Error(String(error));
+        return [];
     }
 });
 
@@ -798,9 +872,13 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
         return creations;
 
     } catch (error) {
+        if (isFirebaseCredentialError(error)) {
+            handleFirebaseCredentialError('getTrendingCreationsAction', error);
+            return [];
+        }
+
         console.error('Error in getTrendingCreationsAction:', error);
-        if (error instanceof Error) throw error;
-        throw new Error(String(error));
+        return [];
     }
 });
 
