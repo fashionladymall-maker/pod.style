@@ -764,32 +764,43 @@ export async function getOrdersAction(userId: string): Promise<Order[]> {
 
 // --- Data Migration Action ---
 
-export async function migrateAnonymousDataAction(anonymousUid: string, permanentUid: string): Promise<{ success: boolean }> {
+export async function migrateAnonymousDataAction(
+  anonymousUid: string,
+  permanentUid: string
+): Promise<{ success: boolean; error?: string }> {
   if (!anonymousUid || !permanentUid || anonymousUid === permanentUid) {
-    console.warn(`Migration skipped: Invalid UIDs. anonymousUid: ${anonymousUid}, permanentUid: ${permanentUid}`);
-    return { success: false };
+    console.warn(
+      `Migration skipped: Invalid UIDs. anonymousUid: ${anonymousUid}, permanentUid: ${permanentUid}`
+    );
+    return { success: false, error: 'invalid-uids' };
   }
 
-  console.log(`Starting data migration from anonymous user ${anonymousUid} to permanent user ${permanentUid}`);
+  console.log(
+    `Starting data migration from anonymous user ${anonymousUid} to permanent user ${permanentUid}`
+  );
 
   try {
-    const creationsSnapshot = await getCreationsCollection().where('userId', '==', anonymousUid).get();
-    const ordersSnapshot = await getOrdersCollection().where('userId', '==', anonymousUid).get();
+    const creationsSnapshot = await getCreationsCollection()
+      .where('userId', '==', anonymousUid)
+      .get();
+    const ordersSnapshot = await getOrdersCollection()
+      .where('userId', '==', anonymousUid)
+      .get();
 
     if (creationsSnapshot.empty && ordersSnapshot.empty) {
-        console.log("No data to migrate.");
-        return { success: true };
+      console.log('No data to migrate.');
+      return { success: true };
     }
-    
+
     const db = getFirestoreDb();
     const batch = db.batch();
 
-    creationsSnapshot.docs.forEach(doc => {
+    creationsSnapshot.docs.forEach((doc) => {
       console.log(`Migrating creation: ${doc.id}`);
       batch.update(doc.ref, { userId: permanentUid });
     });
 
-    ordersSnapshot.docs.forEach(doc => {
+    ordersSnapshot.docs.forEach((doc) => {
       console.log(`Migrating order: ${doc.id}`);
       batch.update(doc.ref, { userId: permanentUid });
     });
@@ -798,9 +809,12 @@ export async function migrateAnonymousDataAction(anonymousUid: string, permanent
     console.log(`Data migration completed successfully for user ${permanentUid}.`);
     return { success: true };
   } catch (error) {
-    console.error(`Error during data migration from ${anonymousUid} to ${permanentUid}:`, error);
-    if (error instanceof Error) throw error;
-    throw new Error(String(error));
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(
+      `Error during data migration from ${anonymousUid} to ${permanentUid}:`,
+      error
+    );
+    return { success: false, error: errorMessage };
   }
 }
 
