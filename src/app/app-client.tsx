@@ -856,79 +856,97 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         );
     };
 
-    const renderStep = () => {
-        switch (step) {
-            case 'login': return <LoginScreen />;
-            case 'generating': return <LoadingScreen text={loadingText} />;
-            case 'categorySelection': return <CategorySelectionScreen />;
-            case 'shipping': return <ShippingScreen 
-                user={user}
-                shippingInfo={shippingInfo} 
-                setShippingInfo={setShippingInfo} 
-                onNext={handlePlaceOrder} 
-                onBack={() => {
-                  setStep('home');
-                  setViewerState(prev => ({...prev, isOpen: true}));
-                }}
-                isLoading={isLoading}
-            />;
-            case 'confirmation': return <ConfirmationScreen onGoHome={handleGoHome} onReset={resetOrderFlow} category={lastOrderedCategory} />;
-            case 'profile': return <ProfileScreen
-                user={user}
-                creations={creations}
-                orders={orders}
-                onGoToHistory={goToHistory}
-                onSignOut={handleSignOut}
-                onDeleteCreation={handleDeleteCreation}
-                onDeleteModel={handleDeleteModel}
-                onToggleModelVisibility={handleToggleModelVisibility}
-                onLoginRequest={() => setStep('login')}
-                onTogglePublic={handleTogglePublic}
-            />;
-            case 'home':
-            default:
-                return <HomeScreen
-                    prompt={prompt} setPrompt={setPrompt}
-                    uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
-                    onGenerate={handleGeneratePattern}
-                    publicCreations={publicCreations}
-                    trendingCreations={trendingCreations}
-                    popularVisibleCount={popularVisibleCount}
-                    trendingVisibleCount={trendingVisibleCount}
-                    immersiveVisibleCount={immersiveVisibleCount}
-                    onLoadMorePopular={handleLoadMorePopular}
-                    onLoadMoreTrending={handleLoadMoreTrending}
-                    onLoadMoreImmersive={handleLoadMoreImmersive}
-                    onSelectPublicCreation={handleSelectPublicCreation}
-                    isFeedLoading={isLoadingFeedsState || isPendingFeeds}
-                    isLoading={isLoading}
-                    isRecording={isRecording}
-                    setIsRecording={setIsRecording}
-                    artStyles={artStyles}
-                    selectedStyle={selectedStyle}
-                    setSelectedStyle={setSelectedStyle}
-                    onLoginRequest={() => setStep('login')}
-                    onViewProfile={() => setStep('profile')}
-                    hasUserSession={hasActiveUser}
-                    isAuthenticated={isAuthenticated}
-                />;
-        }
-    };
-    
-
-    const renderMainContent = () => (
-        <div className="w-full bg-card overflow-hidden" style={{ height: '100%' }}>
-            <div className="h-full flex flex-col">
-                <AppHeader/>
-                <div className="flex-grow min-h-0">
-                    {renderStep()}
-                </div>
-            </div>
-        </div>
+    const renderHome = () => (
+        <HomeScreen
+            prompt={prompt} setPrompt={setPrompt}
+            uploadedImage={uploadedImage} setUploadedImage={setUploadedImage}
+            onGenerate={handleGeneratePattern}
+            publicCreations={publicCreations}
+            trendingCreations={trendingCreations}
+            userCreations={creations}
+            popularVisibleCount={popularVisibleCount}
+            trendingVisibleCount={trendingVisibleCount}
+            immersiveVisibleCount={immersiveVisibleCount}
+            onLoadMorePopular={handleLoadMorePopular}
+            onLoadMoreTrending={handleLoadMoreTrending}
+            onLoadMoreImmersive={handleLoadMoreImmersive}
+            onSelectPublicCreation={handleSelectPublicCreation}
+            isFeedLoading={isLoadingFeedsState || isPendingFeeds}
+            isLoading={isLoading}
+            isRecording={isRecording}
+            setIsRecording={setIsRecording}
+            artStyles={artStyles}
+            selectedStyle={selectedStyle}
+            setSelectedStyle={setSelectedStyle}
+            onLoginRequest={() => setStep('login')}
+            onViewProfile={() => setStep('profile')}
+            hasUserSession={hasActiveUser}
+            isAuthenticated={isAuthenticated}
+        />
     );
 
+    const renderStepContent = () => {
+        switch (step) {
+            case 'login':
+                return <LoginScreen />;
+            case 'generating':
+                return <LoadingScreen text={loadingText} />;
+            case 'categorySelection':
+                return <CategorySelectionScreen />;
+            case 'shipping':
+                return (
+                    <ShippingScreen
+                        user={user}
+                        shippingInfo={shippingInfo}
+                        setShippingInfo={setShippingInfo}
+                        onNext={handlePlaceOrder}
+                        onBack={() => {
+                            setStep('home');
+                            setViewerState(prev => ({ ...prev, isOpen: true }));
+                        }}
+                        isLoading={isLoading}
+                    />
+                );
+            case 'confirmation':
+                return <ConfirmationScreen onGoHome={handleGoHome} onReset={resetOrderFlow} category={lastOrderedCategory} />;
+            case 'profile':
+                return (
+                    <ProfileScreen
+                        user={user}
+                        creations={creations}
+                        orders={orders}
+                        onGoToHistory={goToHistory}
+                        onSignOut={handleSignOut}
+                        onDeleteCreation={handleDeleteCreation}
+                        onDeleteModel={handleDeleteModel}
+                        onToggleModelVisibility={handleToggleModelVisibility}
+                        onLoginRequest={() => setStep('login')}
+                        onTogglePublic={handleTogglePublic}
+                    />
+                );
+            case 'home':
+            default:
+                return null;
+        }
+    };
+
+    const renderMainContent = () => {
+        if (step === 'home') {
+            return renderHome();
+        }
+
+        return (
+            <div className="flex min-h-[100dvh] flex-col bg-background">
+                <AppHeader />
+                <div className="flex-grow min-h-0 overflow-y-auto">
+                    {renderStepContent()}
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <main className="h-full w-full bg-background text-foreground font-sans">
+        <main className="min-h-[100dvh] w-full bg-black text-white font-sans">
             { authLoading ? (
                 <div className="w-full h-full flex flex-col">
                     <div className="flex-grow min-h-0">

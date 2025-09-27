@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { Creation } from "@/lib/types";
 import { IMAGE_PLACEHOLDER } from "@/lib/image-placeholders";
 import { Bookmark, Heart, Share2, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface VerticalCreationFeedProps {
   creations: Creation[];
@@ -13,6 +14,8 @@ interface VerticalCreationFeedProps {
   onLoadMore: () => void;
   hasMore: boolean;
   isLoading: boolean;
+  className?: string;
+  onActiveItemChange?: (payload: { index: number; item: Creation; modelIndex: number }) => void;
 }
 
 interface FeedItem {
@@ -52,12 +55,25 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
   onLoadMore,
   hasMore,
   isLoading,
+  className,
+  onActiveItemChange,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const feedItems = useMemo(() => getFeedItems(creations.slice(0, visibleCount)), [creations, visibleCount]);
+
+  const updateActiveIndex = useCallback(
+    (nextIndex: number) => {
+      setActiveIndex(nextIndex);
+      const target = feedItems[nextIndex];
+      if (target && onActiveItemChange) {
+        onActiveItemChange({ index: nextIndex, item: target.creation, modelIndex: target.modelIndex });
+      }
+    },
+    [feedItems, onActiveItemChange]
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -75,7 +91,7 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
 
         if (entry) {
           const index = Number((entry.target as HTMLElement).dataset.index ?? 0);
-          setActiveIndex(index);
+          updateActiveIndex(index);
         }
       },
       {
@@ -89,7 +105,7 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [feedItems.length]);
+  }, [feedItems.length, updateActiveIndex]);
 
   useEffect(() => {
     if (!sentinelRef.current || !containerRef.current || !hasMore) {
@@ -119,8 +135,14 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
   }, [hasMore, onLoadMore, feedItems.length]);
 
   useEffect(() => {
-    setActiveIndex(0);
-  }, [creations]);
+    updateActiveIndex(0);
+  }, [creations, feedItems.length, updateActiveIndex]);
+
+  useEffect(() => {
+    if (feedItems.length > 0 && activeIndex >= feedItems.length) {
+      updateActiveIndex(feedItems.length - 1);
+    }
+  }, [feedItems.length, activeIndex, updateActiveIndex]);
 
   const handleSelect = useCallback(
     (item: FeedItem) => {
@@ -152,10 +174,10 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
   }
 
   return (
-    <div className="relative rounded-3xl border bg-background shadow-sm">
+    <div className={cn("relative rounded-[36px] border border-white/10 bg-black/60 shadow-2xl", className)}>
       <div
         ref={containerRef}
-        className="h-[78vh] max-h-[760px] overflow-y-auto rounded-3xl scroll-smooth snap-y snap-mandatory bg-black/90"
+        className="h-[calc(100dvh-200px)] min-h-[540px] overflow-y-auto rounded-[36px] scroll-smooth snap-y snap-mandatory bg-black"
       >
         <div className="relative flex flex-col gap-6 py-6 px-4">
           {feedItems.map((item, index) => (
@@ -167,7 +189,7 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
             >
               <button
                 onClick={() => handleSelect(item)}
-                className="group relative block w-full overflow-hidden rounded-[28px] bg-black"
+                className="group relative block w-full overflow-hidden rounded-[32px] bg-black"
                 aria-label={`查看 ${item.creation.prompt}`}
               >
                 <div className="relative h-[72vh] min-h-[520px] w-full">
@@ -215,7 +237,7 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
         </div>
       </div>
 
-      <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2">
+      <div className="pointer-events-none absolute left-1/2 top-6 -translate-x-1/2">
         <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs text-white/80 backdrop-blur">
           <span>向上/向下滑动查看更多灵感</span>
         </div>
@@ -226,7 +248,10 @@ const VerticalCreationFeed: React.FC<VerticalCreationFeedProps> = ({
           {feedItems.map((_, index) => (
             <span
               key={index}
-              className={`h-2 w-2 rounded-full transition-all ${index === activeIndex ? "scale-125 bg-white" : "bg-white/40"}`}
+              className={cn(
+                "h-2 w-2 rounded-full transition-all",
+                index === activeIndex ? "scale-125 bg-white" : "bg-white/40"
+              )}
             />
           ))}
         </div>
