@@ -51,6 +51,28 @@ Repeat for each secret, following the prompts to provide the values. You can rev
 firebase apphosting:secrets:list
 ```
 
+### Provide Firebase Admin credentials
+
+Server-side features that access Firestore or Cloud Storage require Firebase Admin credentials. You can provide them in one of two ways:
+
+1. **Service account JSON (recommended for App Hosting)** – download a service account key from the Firebase console and store it as the `FIREBASE_SERVICE_ACCOUNT` secret. The value must be the raw JSON string (not base64-encoded). For example:
+
+   ```bash
+   firebase apphosting:secrets:set FIREBASE_SERVICE_ACCOUNT --data-file service-account.json
+   ```
+
+   For local development, add the same JSON to your `.env.local` file:
+
+   ```bash
+   FIREBASE_SERVICE_ACCOUNT='{"type":"service_account",...}'
+   ```
+
+   Never commit the JSON file or the `.env.local` file to version control.
+
+2. **Application Default Credentials (ADC)** – alternatively, configure [Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc) on the deployment environment. When ADC is available, the app automatically picks it up without `FIREBASE_SERVICE_ACCOUNT`.
+
+If neither a service account nor ADC is available, the project falls back to the Firebase emulators (when running locally with the emulators configured).
+
 ## 4. Deploy the application
 
 App Hosting automatically runs the production build for your Next.js app. If you want to double-check the build locally, run `npm run build` once before deploying. Then deploy using:
