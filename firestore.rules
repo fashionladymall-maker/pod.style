@@ -1,18 +1,229 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function hasOptionalStringField(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is string;
+    }
+
+    function hasOptionalBooleanField(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is bool;
+    }
+
+    function hasOptionalListField(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is list;
+    }
+
+    function isNonNegativeInt(value) {
+      return value is int && value >= 0;
+    }
+
+    function isPositiveInt(value) {
+      return value is int && value > 0;
+    }
+
+    function validModel(model) {
+      return model is map
+        && model.keys().hasOnly(['uri', 'category', 'isPublic', 'previewUri'])
+        && model.uri is string
+        && model.category is string
+        && hasOptionalBooleanField(model, 'isPublic')
+        && hasOptionalStringField(model, 'previewUri');
+    }
+
+    function validEngagementMap(engagement) {
+      return engagement is map
+        && engagement.keys().hasOnly(['view', 'like', 'favorite', 'share', 'order', 'comment', 'remake'])
+        && engagement.keys().all(key, engagement[key] is number && engagement[key] >= 0);
+    }
+
+    function validCreation(data) {
+      return data.keys().hasOnly([
+          'userId',
+          'prompt',
+          'style',
+          'summary',
+          'patternUri',
+          'previewPatternUri',
+          'models',
+          'createdAt',
+          'isPublic',
+          'orderCount',
+          'likeCount',
+          'likedBy',
+          'favoriteCount',
+          'favoritedBy',
+          'commentCount',
+          'shareCount',
+          'remakeCount',
+          'engagement',
+          'lastInteractionAt',
+          'lastInteractionType',
+          'lastInteractionMetadata'
+        ])
+        && data.userId is string
+        && data.prompt is string
+        && data.style is string
+        && data.patternUri is string
+        && hasOptionalStringField(data, 'summary')
+        && hasOptionalStringField(data, 'previewPatternUri')
+        && data.models is list
+        && data.models.size() <= 50
+        && data.models.all(model, validModel(model))
+        && data.createdAt is timestamp
+        && data.isPublic is bool
+        && isNonNegativeInt(data.orderCount)
+        && isNonNegativeInt(data.likeCount)
+        && hasOptionalListField(data, 'likedBy')
+        && isNonNegativeInt(data.favoriteCount)
+        && hasOptionalListField(data, 'favoritedBy')
+        && isNonNegativeInt(data.commentCount)
+        && isNonNegativeInt(data.shareCount)
+        && isNonNegativeInt(data.remakeCount)
+        && (!data.keys().hasAny(['likedBy']) || data.likedBy.all(uid, uid is string))
+        && (!data.keys().hasAny(['favoritedBy']) || data.favoritedBy.all(uid, uid is string))
+        && (!data.keys().hasAny(['engagement']) || validEngagementMap(data.engagement))
+        && (!data.keys().hasAny(['lastInteractionAt']) || data.lastInteractionAt is timestamp)
+        && (!data.keys().hasAny(['lastInteractionType']) || data.lastInteractionType is string)
+        && (!data.keys().hasAny(['lastInteractionMetadata']) || data.lastInteractionMetadata is map);
+    }
+
+    function validComment(data) {
+      return data.keys().hasOnly(['userId', 'userName', 'userPhotoURL', 'text', 'createdAt'])
+        && data.userId is string
+        && data.userName is string
+        && hasOptionalStringField(data, 'userPhotoURL')
+        && data.text is string
+        && data.text.size() > 0
+        && data.createdAt is timestamp;
+    }
+
+    function validShippingInfo(shipping) {
+      return shipping is map
+        && shipping.keys().hasOnly(['name', 'address', 'phone', 'email'])
+        && shipping.name is string
+        && shipping.address is string
+        && shipping.phone is string
+        && (!shipping.keys().hasAny(['email']) || shipping.email is string);
+    }
+
+    function validPaymentSummary(payment) {
+      return payment is map
+        && payment.keys().hasOnly(['tokenId', 'brand', 'last4', 'gateway', 'status'])
+        && payment.tokenId is string
+        && payment.brand is string
+        && payment.last4 is string
+        && payment.last4.size() == 4
+        && payment.gateway in ['stripe', 'paypal', 'mock']
+        && payment.status in ['requires_action', 'pending', 'succeeded', 'failed'];
+    }
+
+    function validStatusEvent(event) {
+      return event is map
+        && event.keys().hasOnly(['status', 'occurredAt', 'note'])
+        && event.status in ['Processing', 'Shipped', 'Delivered', 'Cancelled']
+        && event.occurredAt is timestamp
+        && (!event.keys().hasAny(['note']) || event.note is string);
+    }
+
+    function validOrder(data) {
+      return data.keys().hasOnly([
+          'userId',
+          'creationId',
+          'modelUri',
+          'category',
+          'size',
+          'colorName',
+          'quantity',
+          'price',
+          'shippingInfo',
+          'paymentSummary',
+          'createdAt',
+          'status',
+          'statusHistory'
+        ])
+        && data.userId is string
+        && data.creationId is string
+        && data.modelUri is string
+        && data.category is string
+        && data.size is string
+        && data.colorName is string
+        && isPositiveInt(data.quantity)
+        && data.price is number && data.price >= 0
+        && validShippingInfo(data.shippingInfo)
+        && validPaymentSummary(data.paymentSummary)
+        && data.createdAt is timestamp
+        && data.status in ['Processing', 'Shipped', 'Delivered', 'Cancelled']
+        && data.statusHistory is list
+        && data.statusHistory.size() > 0
+        && data.statusHistory.all(event, validStatusEvent(event));
+    }
+
+    function getCreation(creationId) {
+      return get(/databases/$(database)/documents/creations/$(creationId));
+    }
+
+    match /creations/{creationId} {
+      allow read: if isSignedIn() && (resource.data.isPublic == true || isOwner(resource.data.userId));
+
+      allow create: if isOwner(request.resource.data.userId)
+        && validCreation(request.resource.data);
+
+      allow update: if isOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validCreation(request.resource.data);
+
+      allow delete: if isOwner(resource.data.userId);
+
+      match /comments/{commentId} {
+        function parentCreationDoc() {
+          return getCreation(creationId);
+        }
+
+        allow read: if parentCreationDoc().data != null
+          && (parentCreationDoc().data.isPublic == true
+            || (isSignedIn() && request.auth.uid == parentCreationDoc().data.userId));
+
+        allow create: if isSignedIn()
+          && parentCreationDoc().data != null
+          && (parentCreationDoc().data.isPublic == true || request.auth.uid == parentCreationDoc().data.userId)
+          && request.resource.data.userId == request.auth.uid
+          && validComment(request.resource.data);
+
+        allow update: if isSignedIn()
+          && parentCreationDoc().data != null
+          && (request.auth.uid == resource.data.userId || request.auth.uid == parentCreationDoc().data.userId)
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && validComment(request.resource.data);
+
+        allow delete: if isSignedIn()
+          && parentCreationDoc().data != null
+          && (request.auth.uid == resource.data.userId || request.auth.uid == parentCreationDoc().data.userId);
+      }
+    }
+
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && validOrder(request.resource.data);
+
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 10, 24);
+      allow read, write: if false;
     }
   }
 }
