@@ -22,6 +22,10 @@ const GenerateTShirtPatternWithStyleInputSchema = z.object({
     .string()
     .optional()
     .describe('The artistic style to apply to the generated pattern.'),
+  model: z
+    .string()
+    .optional()
+    .describe('The identifier of the personalized fine-tuned model to use.'),
 });
 export type GenerateTShirtPatternWithStyleInput = z.infer<
   typeof GenerateTShirtPatternWithStyleInputSchema
@@ -76,7 +80,7 @@ IMPORTANT RULES:
     
     const {media} = await ai.generate({
       prompt: promptParts,
-      model: 'googleai/gemini-2.5-flash-image-preview',
+      model: input.model ?? 'googleai/gemini-2.5-flash-image-preview',
       config: {
         responseModalities: ['IMAGE'],
       },
