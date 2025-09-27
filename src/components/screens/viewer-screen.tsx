@@ -13,7 +13,7 @@ import MockupScreen from './mockup-screen';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import CommentsSheet from '../sheets/comments-sheet';
-import { logCreationInteractionAction } from '@/app/actions';
+import { logCreationInteractionAction } from '@/server/actions';
 
 interface ViewerScreenProps {
   user: FirebaseUser | null;

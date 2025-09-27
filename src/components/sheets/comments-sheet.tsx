@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { addCommentAction, getCommentsAction } from '@/app/actions';
+import { addCommentAction, getCommentsAction } from '@/server/actions';
 import type { Creation, Comment, FirebaseUser } from '@/lib/types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from '@/components/ui/scroll-area';

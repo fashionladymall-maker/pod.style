@@ -2,14 +2,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useContext, useMemo, useTransition } from 'react';
-import { 
-    generatePatternAction, 
-    generateModelAction, 
-    getCreationsAction, 
-    deleteCreationAction, 
-    createOrderAction, 
-    getOrdersAction, 
-    toggleCreationPublicStatusAction, 
+import {
+    generatePatternAction,
+    generateModelAction,
+    getCreationsAction,
+    deleteCreationAction,
+    createOrderAction,
+    getOrdersAction,
+    toggleCreationPublicStatusAction,
     forkCreationAction,
     deleteCreationModelAction,
     toggleCreationModelVisibilityAction,
@@ -19,10 +19,10 @@ import {
     toggleFavoriteAction,
     incrementShareCountAction,
     incrementRemakeCountAction
-} from '@/app/actions';
+} from '@/server/actions';
 
 import { useToast } from "@/hooks/use-toast";
-import type { OrderDetails, ShippingInfo, PaymentInfo, Creation, Order } from '@/lib/types';
+import type { OrderDetails, ShippingInfo, PaymentSummary, Creation, Order } from '@/lib/types';
 import { AuthContext } from '@/context/auth-context';
 
 
@@ -121,6 +121,33 @@ const artStyles = [
     "天野喜孝 (Yoshitaka Amano)",
 ];
 
+type PaymentFormState = {
+  cardNumber: string;
+  expiry: string;
+  cvv: string;
+};
+
+const detectCardBrand = (cardNumber: string) => {
+  const normalized = cardNumber.replace(/\s+/g, '');
+  if (normalized.startsWith('4')) return 'visa';
+  if (/^5[1-5]/.test(normalized)) return 'mastercard';
+  if (/^3[47]/.test(normalized)) return 'amex';
+  if (normalized.startsWith('6')) return 'discover';
+  return 'unknown';
+};
+
+const buildPaymentSummary = (form: PaymentFormState): PaymentSummary => {
+  const normalized = form.cardNumber.replace(/\s+/g, '');
+  const last4 = normalized.slice(-4).padStart(4, '0');
+  return {
+    tokenId: `mock_${Date.now()}`,
+    brand: detectCardBrand(normalized),
+    last4,
+    gateway: 'mock',
+    status: 'pending',
+  };
+};
+
 const MOCK_PRICE = 129;
 
 interface AppClientProps {
@@ -149,7 +176,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const [loadingText, setLoadingText] = useState('');
     const [orderDetails, setOrderDetails] = useState<OrderDetails>({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
     const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({ name: '', address: '', phone: '' });
-    const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ cardNumber: '', expiry: '', cvv: '' });
+    const [paymentForm, setPaymentForm] = useState<PaymentFormState>({ cardNumber: '', expiry: '', cvv: '' });
     const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
     const [lastOrderedCategory, setLastOrderedCategory] = useState('T恤');
     const { toast } = useToast();
@@ -610,13 +637,15 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         }
 
         try {
+            const paymentSummary = buildPaymentSummary(paymentForm);
             const newOrder = await createOrderAction({
                 userId: user.uid,
                 creationId: activeCreation.id,
-                model: activeModel,
+                modelUri: activeModel.uri,
+                category: activeModel.category,
                 orderDetails,
                 shippingInfo,
-                paymentInfo,
+                paymentSummary,
                 price: MOCK_PRICE,
             });
 
@@ -690,7 +719,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const resetOrderFlow = () => {
         setOrderDetails({ color: 'bg-white', colorName: 'white', size: 'M', quantity: 1 });
         setShippingInfo({ name: '', address: '', phone: '' });
-        setPaymentInfo({ cardNumber: '', expiry: '', cvv: '' });
+        setPaymentForm({ cardNumber: '', expiry: '', cvv: '' });
         setStep('home');
     };
 

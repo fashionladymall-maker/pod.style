@@ -15,7 +15,7 @@ import {
 import { FirebaseError } from 'firebase/app';
 import type { FirebaseUser } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { migrateAnonymousDataAction } from '@/app/actions';
+import { migrateAnonymousDataAction } from '@/server/actions';
 
 interface AuthContextType {
     user: FirebaseUser | null;
