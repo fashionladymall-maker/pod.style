@@ -29,5 +29,7 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Deploy App Hosting
-        run: |
-          firebase deploy --only apphosting --project "studio-1269295870-5fde0" --non-interactive --force
+  env:
+    CI: true
+  run: |
+    yes | firebase deploy --only apphosting --project "studio-1269295870-5fde0" --non-interactive --force
