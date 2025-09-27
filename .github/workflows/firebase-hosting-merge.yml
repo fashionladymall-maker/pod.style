@@ -1,16 +1,15 @@
-name: Deploy to Firebase App Hosting (Next.js)
+name: Deploy Firebase App Hosting
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    env:
+      CI: true
 
     steps:
       - name: Checkout
@@ -20,26 +19,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install deps
-        run: npm ci
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools@latest
 
-      - name: Build Next.js
-        run: npm run build
-        # 如果你是纯静态导出，改用：
-        # run: npm run export
-
-      - name: Authenticate to Google Cloud
+      - name: Authenticate with Service Account
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Deploy to Firebase App Hosting (live)
-        env:
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      - name: Deploy App Hosting
         run: |
-          firebase deploy --only apphosting --project "$FIREBASE_PROJECT_ID"
+          firebase deploy --only apphosting --project "studio-1269295870-5fde0" --non-interactive --force
