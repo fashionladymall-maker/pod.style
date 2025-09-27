@@ -14,7 +14,6 @@ import type {
   CreationData,
   Model,
 } from '@/lib/types';
-import { MOCK_PUBLIC_CREATIONS, MOCK_TRENDING_CREATIONS } from '@/lib/mock-data';
 import { admin, getAdminStorage } from '@/server/firebase/admin';
 import { logger } from '@/utils/logger';
 import {
@@ -391,10 +390,11 @@ export const logInteraction = async ({
 
 export const getPersonalizedFeeds = async (userId: string | null) => {
   const creations = await listPublicCreations();
+
   if (!creations.length) {
     return {
-      popular: MOCK_PUBLIC_CREATIONS,
-      trending: MOCK_TRENDING_CREATIONS,
+      popular: [],
+      trending: [],
     };
   }
 
@@ -441,17 +441,11 @@ export const toggleCreationPublicStatus = async (creationId: string, isPublic: b
 
 export const getPublicCreations = async (): Promise<Creation[]> => {
   const creations = await listPublicCreations();
-  if (!creations.length) {
-    return MOCK_PUBLIC_CREATIONS;
-  }
   return creations;
 };
 
 export const getTrendingCreations = async (): Promise<Creation[]> => {
   const creations = await listPublicCreations();
-  if (!creations.length) {
-    return MOCK_TRENDING_CREATIONS;
-  }
   return rankCreations(creations, null, 'trending');
 };
 
