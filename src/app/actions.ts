@@ -2,6 +2,7 @@
 "use server";
 
 import admin from 'firebase-admin';
+import { unstable_noStore as noStore } from 'next/cache';
 import { getDb, getAdminStorage, isFirebaseAdminConfigured } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
@@ -10,7 +11,6 @@ import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup'
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
 import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentInfo, ShippingInfo, Comment, CommentData } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
-import { cache } from 'react';
 
 const getFirestoreDb = () => getDb();
 
@@ -73,11 +73,9 @@ const isFirebaseCredentialError = (error: unknown) => {
 
 let hasLoggedCredentialWarning = false;
 let hasLoggedCredentialDetails = false;
-let hasDetectedCredentialIssue = false;
 const shouldLogCredentialWarnings = process.env.NODE_ENV !== 'production';
 
 const handleFirebaseCredentialError = (context: string, error: unknown) => {
-  hasDetectedCredentialIssue = true;
   if (shouldLogCredentialWarnings) {
     if (!hasLoggedCredentialWarning) {
       console.warn(
@@ -94,14 +92,7 @@ const handleFirebaseCredentialError = (context: string, error: unknown) => {
   }
 };
 
-
-const shouldBypassFirestore = () => hasDetectedCredentialIssue;
-
 const ensureFirestoreAvailability = (context: string) => {
-  if (shouldBypassFirestore()) {
-    return false;
-  }
-
   if (!isFirebaseAdminConfigured()) {
     handleFirebaseCredentialError(context, new Error('Firebase Admin SDK configuration is missing.'));
     return false;
@@ -867,7 +858,8 @@ export async function toggleCreationPublicStatusAction(creationId: string, isPub
     }
 }
 
-export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
+export async function getPublicCreationsAction(): Promise<Creation[]> {
+    noStore();
     if (!ensureFirestoreAvailability('getPublicCreationsAction')) {
         return [];
     }
@@ -892,10 +884,11 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
         console.error('Error in getPublicCreationsAction:', error);
         return [];
     }
-});
+}
 
 
-export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> => {
+export async function getTrendingCreationsAction(): Promise<Creation[]> {
+    noStore();
     if (!ensureFirestoreAvailability('getTrendingCreationsAction')) {
         return [];
     }
@@ -925,7 +918,7 @@ export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> =>
         console.error('Error in getTrendingCreationsAction:', error);
         return [];
     }
-});
+}
 
 
 // --- Social Actions ---
