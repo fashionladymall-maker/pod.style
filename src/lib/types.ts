@@ -16,10 +16,12 @@ export interface ShippingInfo {
     email?: string; // Add email for guest checkout
 }
 
-export interface PaymentInfo {
-    cardNumber: string;
-    expiry: string;
-    cvv: string;
+export interface PaymentSummary {
+    tokenId: string;
+    brand: string;
+    last4: string;
+    gateway: 'stripe' | 'paypal' | 'mock';
+    status: 'requires_action' | 'pending' | 'succeeded' | 'failed';
 }
 
 export type FirebaseUser = FirebaseUserType;
@@ -64,6 +66,7 @@ export interface CreationData {
     style: string;
     summary?: string;
     patternUri: string;
+    previewPatternUri?: string;
     models: Model[];
     createdAt: Timestamp;
     isPublic: boolean;
@@ -81,6 +84,12 @@ export interface CreationData {
 export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 
 // Client-side Order type
+export interface OrderStatusEvent {
+    status: OrderStatus;
+    occurredAt: string;
+    note?: string;
+}
+
 export interface Order {
     id: string;
     userId: string;
@@ -92,9 +101,10 @@ export interface Order {
     quantity: number;
     price: number;
     shippingInfo: ShippingInfo;
-    paymentInfo: PaymentInfo;
+    paymentSummary: PaymentSummary;
     createdAt: string; // ISO string
     status: OrderStatus;
+    statusHistory: OrderStatusEvent[];
 }
 
 // Firestore Order data type
@@ -108,9 +118,14 @@ export interface OrderData {
     quantity: number;
     price: number;
     shippingInfo: ShippingInfo;
-    paymentInfo: PaymentInfo;
+    paymentSummary: PaymentSummary;
     createdAt: Timestamp;
     status: OrderStatus;
+    statusHistory: {
+        status: OrderStatus;
+        occurredAt: Timestamp;
+        note?: string;
+    }[];
 }
 
 // Client-side Comment type

@@ -1,5 +1,5 @@
 
-import { getPublicCreationsAction, getTrendingCreationsAction } from '@/app/actions';
+import { getPublicCreationsAction, getTrendingCreationsAction } from '@/server/actions';
 import AppClient from './app-client';
 import type { Creation } from '@/lib/types';
 import { AuthProvider } from '@/context/auth-context';
