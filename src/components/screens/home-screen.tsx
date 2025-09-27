@@ -47,8 +47,9 @@ interface HomeScreenProps {
   setSelectedStyle: (style: string) => void;
   onLoginRequest: () => void;
   onViewProfile: () => void;
+  hasUserSession: boolean;
   isAuthenticated: boolean;
-}
+} 
 
 interface SpeechRecognitionAlternativeLike {
   transcript: string;
@@ -248,6 +249,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   setSelectedStyle,
   onLoginRequest,
   onViewProfile,
+  hasUserSession,
   isAuthenticated,
 }) => {
   const { toast } = useToast();
@@ -375,10 +377,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   size="lg"
                   variant="outline"
                   className="rounded-full h-12 px-6 border-white/60 text-white hover:bg-white/15"
-                  onClick={isAuthenticated ? onViewProfile : onLoginRequest}
+                  onClick={hasUserSession ? onViewProfile : onLoginRequest}
                 >
                   <UserPlus className="mr-2" size={18} />
-                  {isAuthenticated ? '进入我的工作台' : '登录 / 注册'}
+                  {hasUserSession ? '进入我的工作台' : '登录 / 注册'}
                 </Button>
               </div>
             </div>
@@ -571,13 +573,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 立即登录即可同步创作历史，并解锁商品生成、订单管理等完整功能。灵感永远不等人。
               </p>
               <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                <Button className="rounded-full h-11 px-6" onClick={isAuthenticated ? onViewProfile : onLoginRequest}>
-                  {isAuthenticated ? '打开我的订单' : '登录体验完整流程'}
+                <Button className="rounded-full h-11 px-6" onClick={hasUserSession ? onViewProfile : onLoginRequest}>
+                  {hasUserSession ? '查看我的订单' : '登录体验完整流程'}
                 </Button>
-                {!isAuthenticated && (
+                {!hasUserSession && (
                   <Button variant="ghost" className="rounded-full h-11 px-6" onClick={handleStartCreating}>
                     先试试看生成效果
                   </Button>
+                )}
+                {hasUserSession && !isAuthenticated && (
+                  <p className="text-xs text-secondary-foreground/80 flex items-center">
+                    当前为匿名体验模式，注册账号即可永久保存成果。
+                  </p>
                 )}
               </div>
             </div>

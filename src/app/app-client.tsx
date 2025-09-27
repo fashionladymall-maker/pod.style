@@ -131,6 +131,7 @@ interface AppClientProps {
 
 const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClientProps) => {
     const { user, authLoading, signOut } = useContext(AuthContext);
+    const hasActiveUser = !!user;
     const isAuthenticated = !!(user && !user.isAnonymous);
     const [step, setStep] = useState<AppStep>('home');
     const [prompt, setPrompt] = useState('');
@@ -210,7 +211,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, [creations, publicCreations, trendingCreations]);
 
     useEffect(() => {
-      if (isAuthenticated && user) {
+      if (user) {
         Promise.all([
           fetchCreations(user.uid),
           fetchOrders(user.uid)
@@ -226,7 +227,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         setOrders([]);
         setPendingModelRequest(null);
       }
-    }, [user, authLoading, fetchCreations, fetchOrders, step, isAuthenticated]);
+    }, [user, authLoading, fetchCreations, fetchOrders, step]);
 
 
     useEffect(() => {
@@ -277,10 +278,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, [user, initialPublicCreations, initialTrendingCreations]);
 
     useEffect(() => {
-      if (!authLoading && isAuthenticated && pendingModelRequest && step === 'login') {
+      if (!authLoading && hasActiveUser && pendingModelRequest && step === 'login') {
         setStep('categorySelection');
       }
-    }, [authLoading, isAuthenticated, pendingModelRequest, step]);
+    }, [authLoading, hasActiveUser, pendingModelRequest, step]);
 
     const updateCreationsState = useCallback((updatedCreation: Creation) => {
       const updateList = (list: Creation[]) => list.map(c => c.id === updatedCreation.id ? updatedCreation : c);
@@ -290,9 +291,8 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, []);
 
     const handleGeneratePattern = useCallback(async () => {
-        if (!user || user.isAnonymous) {
-            toast({ variant: 'destructive', title: '请先登录', description: '您需要登录后才能生成创意图案。' });
-            setStep('login');
+        if (!user) {
+            toast({ variant: 'destructive', title: '无法生成图案', description: '正在尝试建立会话，请稍后重试或登录账户。' });
             return;
         }
         if (!prompt && !uploadedImage) {
@@ -348,10 +348,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             return;
         }
 
-        if (!user || user.isAnonymous) {
-            toast({ variant: 'destructive', title: '请先登录', description: '登录后即可生成商品效果图。' });
+        if (!user) {
+            toast({ variant: 'destructive', title: '暂时无法生成', description: '正在尝试建立会话，请稍后重试或登录账户。' });
             setPendingModelRequest(reference);
-            setStep('login');
             return;
         }
 
@@ -702,7 +701,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const AppHeader = () => {
         const title = 'POD.STYLE';
         let showBack = false;
-        const isAuthenticatedUser = isAuthenticated;
+        const canShowProfile = !!user;
 
         switch(step) {
             case 'profile':
@@ -737,7 +736,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
               {step === 'login' ? (
                 <div className="w-9" />
-              ) : isAuthenticatedUser && user ? (
+              ) : canShowProfile ? (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -747,7 +746,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                   <Avatar className="w-7 h-7">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      {(user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
+                      {user?.isAnonymous ? '访' : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -857,6 +856,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                     setSelectedStyle={setSelectedStyle}
                     onLoginRequest={() => setStep('login')}
                     onViewProfile={() => setStep('profile')}
+                    hasUserSession={hasActiveUser}
                     isAuthenticated={isAuthenticated}
                 />;
         }
@@ -904,7 +904,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 orderDetails={orderDetails}
                 setOrderDetails={setOrderDetails}
                 handleQuantityChange={handleQuantityChange}
-                isAuthenticated={isAuthenticated}
+                hasActiveUser={hasActiveUser}
                 onLoginRequest={() => setStep('login')}
                 onNext={() => {
                   setViewerState(prev => ({...prev, isOpen: false}));
@@ -917,13 +917,12 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                    const request = { creationId: creation.id, sourceTab: viewerState.sourceTab };
                    setPendingModelRequest(request);
                    setViewerState(prev => ({...prev, isOpen: false}));
-                   if (!user || user.isAnonymous) {
+                   if (!user) {
                      toast({
                        variant: 'destructive',
-                       title: '请先登录',
-                       description: '登录后即可生成商品效果图。',
+                       title: '暂时无法生成',
+                       description: '正在尝试建立会话，请稍后重试或登录账户。',
                      });
-                     setStep('login');
                      return;
                    }
                    setStep('categorySelection');

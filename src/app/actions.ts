@@ -11,6 +11,7 @@ import type { GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup'
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
 import { Creation, CreationData, Model, Order, OrderData, OrderDetails, PaymentInfo, ShippingInfo, Comment, CommentData } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
+import { MOCK_PUBLIC_CREATIONS, MOCK_TRENDING_CREATIONS } from '@/lib/mock-data';
 
 const getFirestoreDb = () => getDb();
 
@@ -861,7 +862,7 @@ export async function toggleCreationPublicStatusAction(creationId: string, isPub
 export async function getPublicCreationsAction(): Promise<Creation[]> {
     noStore();
     if (!ensureFirestoreAvailability('getPublicCreationsAction')) {
-        return [];
+        return [...MOCK_PUBLIC_CREATIONS];
     }
 
     try {
@@ -873,16 +874,16 @@ export async function getPublicCreationsAction(): Promise<Creation[]> {
 
         creations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        return creations;
+        return creations.length > 0 ? creations : [...MOCK_PUBLIC_CREATIONS];
 
     } catch (error) {
         if (isFirebaseCredentialError(error)) {
             handleFirebaseCredentialError('getPublicCreationsAction', error);
-            return [];
+            return [...MOCK_PUBLIC_CREATIONS];
         }
 
         console.error('Error in getPublicCreationsAction:', error);
-        return [];
+        return [...MOCK_PUBLIC_CREATIONS];
     }
 }
 
@@ -890,7 +891,7 @@ export async function getPublicCreationsAction(): Promise<Creation[]> {
 export async function getTrendingCreationsAction(): Promise<Creation[]> {
     noStore();
     if (!ensureFirestoreAvailability('getTrendingCreationsAction')) {
-        return [];
+        return [...MOCK_TRENDING_CREATIONS];
     }
 
     try {
@@ -907,16 +908,16 @@ export async function getTrendingCreationsAction(): Promise<Creation[]> {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
 
-        return creations;
+        return creations.length > 0 ? creations : [...MOCK_TRENDING_CREATIONS];
 
     } catch (error) {
         if (isFirebaseCredentialError(error)) {
             handleFirebaseCredentialError('getTrendingCreationsAction', error);
-            return [];
+            return [...MOCK_TRENDING_CREATIONS];
         }
 
         console.error('Error in getTrendingCreationsAction:', error);
-        return [];
+        return [...MOCK_TRENDING_CREATIONS];
     }
 }
 
