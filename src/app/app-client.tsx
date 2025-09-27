@@ -33,7 +33,7 @@ import ConfirmationScreen from '@/components/screens/confirmation-screen';
 import ProfileScreen from '@/components/screens/profile-screen';
 import LoginScreen from '@/components/screens/login-screen';
 import ViewerScreen from '@/components/screens/viewer-screen';
-import { Menu, ArrowLeft, User } from 'lucide-react';
+import { Menu, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -158,9 +158,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
       modelIndex: -1,
       sourceTab: 'popular',
     });
+    const [pendingModelRequest, setPendingModelRequest] = useState<{ creationId: string; sourceTab: HomeTab } | null>(null);
     
-    const getSourceCreations = useCallback(() => {
-        switch(viewerState.sourceTab) {
+    const getCreationsByTab = useCallback((tab: HomeTab) => {
+        switch(tab) {
             case 'popular':
                 return publicCreations;
             case 'trending':
@@ -169,7 +170,11 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             default:
                 return creations;
         }
-    }, [viewerState.sourceTab, publicCreations, trendingCreations, creations]);
+    }, [creations, publicCreations, trendingCreations]);
+
+    const getSourceCreations = useCallback(() => {
+        return getCreationsByTab(viewerState.sourceTab);
+    }, [viewerState.sourceTab, getCreationsByTab]);
 
 
     const fetchCreations = useCallback(async (userId: string) => {
@@ -218,6 +223,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         // User is logged out, clear their data
         setCreations([]);
         setOrders([]);
+        setPendingModelRequest(null);
       }
     }, [user, authLoading, fetchCreations, fetchOrders, step]);
 
@@ -268,6 +274,12 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         cancelled = true;
       };
     }, [user, initialPublicCreations, initialTrendingCreations]);
+
+    useEffect(() => {
+      if (!authLoading && user && !user.isAnonymous && pendingModelRequest && step === 'login') {
+        setStep('categorySelection');
+      }
+    }, [authLoading, user, pendingModelRequest, step]);
 
     const updateCreationsState = useCallback((updatedCreation: Creation) => {
       const updateList = (list: Creation[]) => list.map(c => c.id === updatedCreation.id ? updatedCreation : c);
@@ -323,22 +335,43 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }, [prompt, uploadedImage, selectedStyle, user, toast]);
 
     const handleGenerateModel = useCallback(async (category: string) => {
-        const sourceCreations = getSourceCreations();
-        const activeCreation = sourceCreations.find(c => c.id === viewerState.creationId);
+        const reference = pendingModelRequest ?? (viewerState.creationId ? {
+            creationId: viewerState.creationId,
+            sourceTab: viewerState.sourceTab,
+        } : null);
 
-        if (!user || !activeCreation) {
-            toast({ variant: 'destructive', title: '操作无效', description: '没有可用的图案来生成模特图。' });
-            setViewerState(prev => ({ ...prev, isOpen: false }));
+        if (!reference) {
+            toast({ variant: 'destructive', title: '操作无效', description: '请先选择一个创意图案。' });
+            setStep('home');
             return;
         }
+
+        if (!user || user.isAnonymous) {
+            toast({ variant: 'destructive', title: '请先登录', description: '登录后即可生成商品效果图。' });
+            setPendingModelRequest(reference);
+            setStep('login');
+            return;
+        }
+
+        const sourceCreations = getCreationsByTab(reference.sourceTab);
+        const activeCreation = sourceCreations.find(c => c.id === reference.creationId);
+
+        if (!activeCreation) {
+            toast({ variant: 'destructive', title: '找不到创意', description: '请重新选择一个创意图案后再试。' });
+            setPendingModelRequest(null);
+            setStep('home');
+            return;
+        }
+
         setIsLoading(true);
         setLoadingText('正在准备生成商品效果图...');
-        setViewerState(prev => ({ ...prev, isOpen: false })); // Close viewer while generating
+        setViewerState(prev => ({ ...prev, isOpen: false }));
         setStep('generating');
 
         try {
             let targetCreation = activeCreation;
-            let targetSourceTab = viewerState.sourceTab;
+            let targetSourceTab = reference.sourceTab;
+            let currentReference = reference;
 
             if (activeCreation.userId !== user.uid) {
                 const clonedCreation = await forkCreationAction({
@@ -349,6 +382,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 setCreations(prev => [clonedCreation, ...prev]);
                 targetCreation = clonedCreation;
                 targetSourceTab = 'mine';
+                currentReference = { creationId: clonedCreation.id, sourceTab: 'mine' };
 
                 setViewerState({
                   isOpen: false,
@@ -358,22 +392,24 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 });
             }
 
+            setPendingModelRequest(currentReference);
             setLoadingText('AI 正在生成商品效果图...');
             const updatedCreation = await generateModelAction({
                 creationId: targetCreation.id,
                 userId: user.uid,
                 patternDataUri: targetCreation.patternUri,
                 colorName: orderDetails.colorName,
-                category: category,
+                category,
             });
-            
+
             updateCreationsState(updatedCreation);
-            setViewerState({ 
-              isOpen: true, 
+            setViewerState({
+              isOpen: true,
               creationId: updatedCreation.id,
               modelIndex: updatedCreation.models.length - 1,
-              sourceTab: targetSourceTab
+              sourceTab: targetSourceTab,
             });
+            setPendingModelRequest(null);
             setStep('home');
         } catch (err) {
             console.error(err);
@@ -388,14 +424,13 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                 </ToastAction>
               ),
             });
-            // Re-open viewer to the pattern
             setViewerState(prev => ({ ...prev, isOpen: true, modelIndex: -1 }));
             setStep('home');
         } finally {
             setIsLoading(false);
             setLoadingText('');
         }
-    }, [viewerState.creationId, viewerState.sourceTab, orderDetails.colorName, user, toast, getSourceCreations, updateCreationsState]);
+    }, [pendingModelRequest, viewerState.creationId, viewerState.sourceTab, orderDetails.colorName, user, toast, getCreationsByTab, updateCreationsState]);
 
     const handleDeleteCreation = useCallback(async (creationId: string) => {
         const originalCreations = creations;
@@ -665,6 +700,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const AppHeader = () => {
         const title = 'POD.STYLE';
         let showBack = false;
+        const isAuthenticatedUser = !!(user && !user.isAnonymous);
 
         switch(step) {
             case 'profile':
@@ -697,17 +733,32 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                   <h1 className="text-base font-medium">{title}</h1>
               </Button>
 
-              {step !== 'login' && user && (
-                <Button variant="ghost" size="icon" className="rounded-full w-9 h-9" onClick={() => user.isAnonymous ? setStep('login') : setStep('profile')}>
+              {step === 'login' ? (
+                <div className="w-9" />
+              ) : isAuthenticatedUser && user ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full w-9 h-9"
+                  onClick={() => setStep('profile')}
+                >
                   <Avatar className="w-7 h-7">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      {user.isAnonymous ? <User size={16} /> : (user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
+                      {(user?.displayName?.[0] || user?.email?.[0])?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="px-3 rounded-full"
+                  onClick={() => setStep('login')}
+                >
+                  登录
+                </Button>
               )}
-              { (step === 'login' || !user) && <div className="w-9"></div>}
           </header>
         );
     };
@@ -796,12 +847,15 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                     onLoadMoreTrending={handleLoadMoreTrending}
                     onSelectPublicCreation={handleSelectPublicCreation}
                     isFeedLoading={isLoadingFeedsState || isPendingFeeds}
-                    isLoading={!initialPublicCreations && !initialTrendingCreations} // Show loading only if server data wasn't provided
+                    isLoading={isLoading}
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
                     artStyles={artStyles}
                     selectedStyle={selectedStyle}
                     setSelectedStyle={setSelectedStyle}
+                    onLoginRequest={() => setStep('login')}
+                    onViewProfile={() => setStep('profile')}
+                    isAuthenticated={!!(user && !user.isAnonymous)}
                 />;
         }
     };
@@ -852,8 +906,22 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                   setViewerState(prev => ({...prev, isOpen: false}));
                   setStep('shipping');
                 }}
-                onGoToCategorySelection={() => {
+                onGoToCategorySelection={(creation) => {
+                   if (!creation) {
+                     return;
+                   }
+                   const request = { creationId: creation.id, sourceTab: viewerState.sourceTab };
+                   setPendingModelRequest(request);
                    setViewerState(prev => ({...prev, isOpen: false}));
+                   if (!user || user.isAnonymous) {
+                     toast({
+                       variant: 'destructive',
+                       title: '请先登录',
+                       description: '登录后即可生成商品效果图。',
+                     });
+                     setStep('login');
+                     return;
+                   }
                    setStep('categorySelection');
                 }}
                 price={MOCK_PRICE}
