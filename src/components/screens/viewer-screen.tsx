@@ -24,7 +24,7 @@ interface ViewerScreenProps {
   setOrderDetails: React.Dispatch<React.SetStateAction<OrderDetails>>;
   handleQuantityChange: (amount: number) => void;
   onNext: () => void;
-  onGoToCategorySelection: () => void;
+  onGoToCategorySelection: (creation: Creation) => void;
   price: number;
   onLikeToggle: (creationId: string, userId: string, isLiked: boolean) => Promise<{ success: boolean }>;
   onFavoriteToggle: (creationId: string, userId: string, isFavorited: boolean) => Promise<{ success: boolean }>;
@@ -270,13 +270,13 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 
   const handleRemake = () => {
     if (!currentCreation) return;
-    
+
     // Optimistic update
     const updatedCreation = { ...currentCreation, remakeCount: currentCreation.remakeCount + 1 };
     onUpdateCreation(updatedCreation);
 
     onRemake(currentCreation.id);
-    onGoToCategorySelection();
+    onGoToCategorySelection(currentCreation);
   };
 
 
@@ -296,7 +296,7 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
             <PatternPreviewScreen
                 creation={currentCreation}
                 isModelGenerating={false}
-                onGoToModel={onGoToCategorySelection}
+                onGoToModel={() => currentCreation && onGoToCategorySelection(currentCreation)}
             />
         );
     } else {
