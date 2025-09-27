@@ -2,7 +2,7 @@
 "use server";
 
 import admin from 'firebase-admin';
-import { getDb, getAdminStorage } from '@/lib/firebase-admin';
+import { getDb, getAdminStorage, isFirebaseAdminConfigured } from '@/lib/firebase-admin';
 import { generateTShirtPatternWithStyle } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import type { GenerateTShirtPatternWithStyleInput } from '@/ai/flows/generate-t-shirt-pattern-with-style';
 import { generateModelMockup } from '@/ai/flows/generate-model-mockup';
@@ -67,24 +67,47 @@ const isFirebaseCredentialError = (error: unknown) => {
   return message.includes('invalid authentication credentials')
     || message.includes('firebase service account environment variable is not set')
     || message.includes('firebase admin configuration missing')
-    || message.includes('could not load the default credentials');
+    || message.includes('could not load the default credentials')
+    || message.includes('unable to detect a project id');
 };
 
 let hasLoggedCredentialWarning = false;
 let hasLoggedCredentialDetails = false;
+let hasDetectedCredentialIssue = false;
+const shouldLogCredentialWarnings = process.env.NODE_ENV !== 'production';
 
 const handleFirebaseCredentialError = (context: string, error: unknown) => {
-  if (!hasLoggedCredentialWarning) {
-    console.warn(
-      'Firebase Admin credentials are not configured. Server-rendered data will be empty until valid credentials or emulator configuration is provided.'
-    );
-    hasLoggedCredentialWarning = true;
+  hasDetectedCredentialIssue = true;
+  if (shouldLogCredentialWarnings) {
+    if (!hasLoggedCredentialWarning) {
+      console.warn(
+        'Firebase Admin credentials are not configured. Server-rendered data will be empty until valid credentials or emulator configuration is provided.'
+      );
+      hasLoggedCredentialWarning = true;
+    }
+
+    if (!hasLoggedCredentialDetails) {
+      const message = getErrorMessage(error) || 'Missing Firebase credentials.';
+      console.warn(`${context} skipped due to missing Firebase credentials: ${message}`);
+      hasLoggedCredentialDetails = true;
+    }
+  }
+};
+
+
+const shouldBypassFirestore = () => hasDetectedCredentialIssue;
+
+const ensureFirestoreAvailability = (context: string) => {
+  if (shouldBypassFirestore()) {
+    return false;
   }
 
-  if (!hasLoggedCredentialDetails) {
-    console.warn(`${context} skipped due to missing Firebase credentials.`, error);
-    hasLoggedCredentialDetails = true;
+  if (!isFirebaseAdminConfigured()) {
+    handleFirebaseCredentialError(context, new Error('Firebase Admin SDK configuration is missing.'));
+    return false;
   }
+
+  return true;
 };
 
 
@@ -845,6 +868,10 @@ export async function toggleCreationPublicStatusAction(creationId: string, isPub
 }
 
 export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
+    if (!ensureFirestoreAvailability('getPublicCreationsAction')) {
+        return [];
+    }
+
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)
@@ -869,6 +896,10 @@ export const getPublicCreationsAction = cache(async (): Promise<Creation[]> => {
 
 
 export const getTrendingCreationsAction = cache(async (): Promise<Creation[]> => {
+    if (!ensureFirestoreAvailability('getTrendingCreationsAction')) {
+        return [];
+    }
+
     try {
         const querySnapshot = await getCreationsCollection()
             .where("isPublic", "==", true)

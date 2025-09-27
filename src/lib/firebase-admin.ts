@@ -17,6 +17,14 @@ const resolveStorageBucket = () =>
   process.env.FIREBASE_STORAGE_BUCKET ||
   process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 
+const hasServiceAccountCredentials = () => Boolean(process.env.FIREBASE_SERVICE_ACCOUNT);
+
+const hasApplicationDefaultCredentials = () => Boolean(
+  process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+  process.env.GOOGLE_AUTH_CREDENTIALS ||
+  process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
+);
+
 const isEmulatorEnvironment = () =>
   Boolean(
     process.env.FIREBASE_AUTH_EMULATOR_HOST ||
@@ -24,6 +32,22 @@ const isEmulatorEnvironment = () =>
     process.env.STORAGE_EMULATOR_HOST ||
     process.env.EMULATORS_RUNNING
   );
+
+export const isFirebaseAdminConfigured = () => {
+  if (isEmulatorEnvironment()) {
+    return true;
+  }
+
+  if (hasServiceAccountCredentials()) {
+    return true;
+  }
+
+  if (hasApplicationDefaultCredentials()) {
+    return true;
+  }
+
+  return Boolean(getProjectId());
+};
 
 function initializeAdminApp(): admin.app.App {
   if (admin.apps.length > 0) {
