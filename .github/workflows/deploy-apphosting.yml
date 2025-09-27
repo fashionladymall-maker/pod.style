@@ -2,7 +2,7 @@ name: Deploy Firebase App Hosting
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]   # 如果你的默认分支不是 main，这里改成对应的名字
 
 jobs:
   deploy:
@@ -20,13 +20,11 @@ jobs:
       - name: Install Firebase CLI
         run: npm i -g firebase-tools@latest
 
-      - name: Write service account key
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/gcp-key.json
+      - name: Authenticate with Service Account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Deploy App Hosting
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.HOME }}/gcp-key.json
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
         run: |
-          firebase --project "$FIREBASE_PROJECT_ID" deploy --only apphosting
+          firebase --project "studio-1269295870-5fde0" deploy --only apphosting --non-interactive
