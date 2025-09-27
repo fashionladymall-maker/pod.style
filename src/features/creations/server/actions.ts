@@ -26,8 +26,6 @@ import {
   type ToggleModelVisibilityInput,
 } from './creation-service';
 import { isFirebaseAdminConfigured } from '@/server/firebase/admin';
-import { MOCK_PUBLIC_CREATIONS, MOCK_TRENDING_CREATIONS } from '@/lib/mock-data';
-import type { Creation } from '@/lib/types';
 
 const ensureFirestore = () => {
   if (!isFirebaseAdminConfigured()) {
@@ -124,12 +122,7 @@ export const logCreationInteractionAction = async (input: LogInteractionInput) =
 };
 
 export const getPersonalizedFeedsAction = async (userId: string | null) => {
-  if (!isFirebaseAdminConfigured()) {
-    return {
-      popular: MOCK_PUBLIC_CREATIONS,
-      trending: MOCK_TRENDING_CREATIONS,
-    } satisfies { popular: Creation[]; trending: Creation[] };
-  }
+  ensureFirestore();
   return getPersonalizedFeeds(userId);
 };
 
@@ -152,16 +145,12 @@ export const toggleCreationPublicStatusAction = async (creationId: string, isPub
 };
 
 export const getPublicCreationsAction = async () => {
-  if (!isFirebaseAdminConfigured()) {
-    return MOCK_PUBLIC_CREATIONS;
-  }
+  ensureFirestore();
   return getPublicCreations();
 };
 
 export const getTrendingCreationsAction = async () => {
-  if (!isFirebaseAdminConfigured()) {
-    return MOCK_TRENDING_CREATIONS;
-  }
+  ensureFirestore();
   return getTrendingCreations();
 };
 
