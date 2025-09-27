@@ -23,7 +23,9 @@ let auth: Auth | null = null;
 let db: Firestore | null = null;
 
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.warn("Firebase configuration is incomplete. Firebase services will be disabled. Please set up your .env.local file with all the required NEXT_PUBLIC_FIREBASE_... variables.");
+    if (process.env.NODE_ENV !== 'production') {
+        console.warn("Firebase configuration is incomplete. Firebase services will be disabled. Please set up your .env.local file with all the required NEXT_PUBLIC_FIREBASE_... variables.");
+    }
 } else {
     if (getApps().length === 0) {
         app = initializeApp(firebaseConfig);
