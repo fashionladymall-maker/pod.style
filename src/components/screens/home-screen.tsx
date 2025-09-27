@@ -12,6 +12,7 @@ import {
   Workflow,
   ShoppingBag,
   UserPlus,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -118,6 +119,11 @@ const featureCards = [
     icon: Workflow,
     title: '一键完成上新',
     description: '从创意到商品展示只需数秒，自动生成模特效果图。',
+  },
+  {
+    icon: Eye,
+    title: '极速预览模式',
+    description: '生成结果自动弹出预览，无需繁琐点选即可确认设计方向。',
   },
   {
     icon: ShoppingBag,
@@ -361,7 +367,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   灵感、设计、上架，一站式完成你的 POD 生意
                 </h1>
                 <p className="text-sm md:text-base text-white/80 leading-relaxed">
-                  在一个屏幕上完成灵感输入、图案生成与商品预览。POD.STYLE 为创作者、品牌方和个人卖家打造高效的工作流。
+                  在一个屏幕上完成灵感输入、图案生成与商品预览，无需繁琐点选即可即时看到成品效果。POD.STYLE 为创作者、品牌方和个人卖家打造高效的工作流。
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -388,7 +394,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl" />
           </section>
 
-          <section className="grid gap-4 md:grid-cols-3">
+          <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {featureCards.map(({ icon: Icon, title, description }) => (
               <div key={title} className="rounded-2xl border bg-background p-5 shadow-sm">
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary">
