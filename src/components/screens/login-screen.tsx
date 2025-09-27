@@ -34,6 +34,9 @@ const LoginScreen = () => {
                 } else if (error.code === 'auth/network-request-failed') {
                     description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
                 }
+            } else if (error instanceof Error) {
+                description = error.message || description;
+                console.error('Unexpected email sign-up error:', error);
             } else {
                 console.error('Unexpected email sign-up error:', error);
             }
@@ -61,6 +64,9 @@ const LoginScreen = () => {
                 } else if (error.code === 'auth/network-request-failed') {
                     description = "网络请求失败。请检查您的网络连接并确保您的应用域已在Firebase认证设置中列入白名单。";
                 }
+            } else if (error instanceof Error) {
+                description = error.message || description;
+                console.error('Unexpected email sign-in error:', error);
             } else {
                 console.error('Unexpected email sign-in error:', error);
             }

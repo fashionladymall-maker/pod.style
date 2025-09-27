@@ -2,15 +2,15 @@
 "use client";
 
 import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { auth } from '@/lib/firebase';
-import { 
-    onAuthStateChanged, 
-    signOut as firebaseSignOut, 
+import { getFirebaseAuth } from '@/lib/firebase';
+import {
+    onAuthStateChanged,
+    signOut as firebaseSignOut,
     signInAnonymously,
     createUserWithEmailAndPassword,
     EmailAuthProvider,
-    signInWithCredential,
-    AuthCredential as FirebaseAuthCredential
+    signInWithEmailAndPassword,
+    linkWithCredential,
 } from "firebase/auth";
 import { FirebaseError } from 'firebase/app';
 import type { FirebaseUser } from '@/lib/types';
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, [toast]);
 
     useEffect(() => {
-        const firebaseAuth = auth;
+        const firebaseAuth = getFirebaseAuth();
         if (!firebaseAuth) {
             console.warn("Firebase Auth is not initialized.");
             setAuthLoading(false);
@@ -105,17 +105,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         });
 
         return () => unsubscribe();
-    }, [toast, migrateAndHandleResult]);
+    }, [toast]);
 
     const signOut = async () => {
-        if (!auth) {
+        const firebaseAuth = getFirebaseAuth();
+        if (!firebaseAuth) {
             throw new Error('Firebase Auth is not initialized.');
         }
-        await firebaseSignOut(auth);
+        await firebaseSignOut(firebaseAuth);
     };
 
-    const signInAndMigrate = async (credential: FirebaseAuthCredential) => {
-        const firebaseAuth = auth;
+    const signInAndMigrate = async (email: string, password: string) => {
+        const firebaseAuth = getFirebaseAuth();
         if (!firebaseAuth) {
             throw new Error("Auth not ready.");
         }
@@ -124,7 +125,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const anonymousUid = isUpgrading ? firebaseAuth.currentUser?.uid ?? null : null;
 
         try {
-            const result = await signInWithCredential(firebaseAuth, credential);
+            const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
             const permanentUid = result.user.uid;
 
             if (isUpgrading && anonymousUid && anonymousUid !== permanentUid) {
@@ -152,27 +153,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
     
     const emailSignUp = async (email: string, password: string) => {
-        const firebaseAuth = auth;
+        const firebaseAuth = getFirebaseAuth();
         if (!firebaseAuth) throw new Error("Auth not initialized");
 
-        const isUpgrading = firebaseAuth.currentUser?.isAnonymous;
-        const anonymousUid = isUpgrading ? firebaseAuth.currentUser?.uid ?? null : null;
+        const currentUser = firebaseAuth.currentUser;
+        const isUpgrading = currentUser?.isAnonymous ?? false;
 
         try {
-            if (!isUpgrading) {
-                await createUserWithEmailAndPassword(firebaseAuth, email, password);
-                toast({ title: "注册成功", description: "欢迎！" });
+            if (isUpgrading && currentUser) {
+                const credential = EmailAuthProvider.credential(email, password);
+                await linkWithCredential(currentUser, credential);
+                toast({ title: "注册成功", description: "欢迎！您的匿名创作历史已保留。" });
                 return;
             }
 
-            if (anonymousUid) {
-                await firebaseSignOut(firebaseAuth);
-                const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
-                const permanentUid = userCredential.user.uid;
-                const migrationSucceeded = permanentUid ? await migrateAndHandleResult(anonymousUid, permanentUid) : false;
-                toast({ title: "注册成功", description: migrationSucceeded ? "欢迎！您的匿名创作历史已保留。" : "欢迎！" });
-            }
-
+            await createUserWithEmailAndPassword(firebaseAuth, email, password);
+            toast({ title: "注册成功", description: "欢迎！" });
         } catch (error) {
             if (error instanceof FirebaseError) {
                 if (error.code === 'auth/email-already-in-use') {
@@ -188,8 +184,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     const emailSignIn = async (email: string, password: string) => {
-        const credential = EmailAuthProvider.credential(email, password);
-        await signInAndMigrate(credential);
+        await signInAndMigrate(email, password);
     };
 
     const value = {
