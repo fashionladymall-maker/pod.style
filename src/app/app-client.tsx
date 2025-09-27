@@ -42,7 +42,7 @@ import { ToastAction } from '@/components/ui/toast';
 
 
 export type AppStep = 'home' | 'generating' | 'categorySelection' | 'shipping' | 'confirmation' | 'profile' | 'login';
-export type HomeTab = 'popular' | 'trending' | 'mine';
+export type HomeTab = 'popular' | 'trending' | 'immersive' | 'mine';
 export interface ViewerState {
   isOpen: boolean;
   creationId: string | null;
@@ -168,6 +168,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const [trendingCreations, setTrendingCreations] = useState<Creation[]>(initialTrendingCreations);
     const [popularVisibleCount, setPopularVisibleCount] = useState(12);
     const [trendingVisibleCount, setTrendingVisibleCount] = useState(12);
+    const [immersiveVisibleCount, setImmersiveVisibleCount] = useState(() => Math.min(6, initialTrendingCreations.length));
     const [isLoadingFeedsState, setIsLoadingFeedsState] = useState(false);
     const [isPendingFeeds, startFeedTransition] = useTransition();
     const [orders, setOrders] = useState<Order[]>([]);
@@ -194,6 +195,7 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             case 'popular':
                 return publicCreations;
             case 'trending':
+            case 'immersive':
                 return trendingCreations;
             case 'mine':
             default:
@@ -495,12 +497,32 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
       setTrendingVisibleCount(prev => Math.min(Math.max(prev, 12), trendingCreations.length || 12));
     }, [trendingCreations]);
 
+    useEffect(() => {
+      setImmersiveVisibleCount(prev => {
+        if (trendingCreations.length === 0) {
+          return 0;
+        }
+        const baseline = Math.min(6, trendingCreations.length);
+        if (prev === 0) {
+          return baseline;
+        }
+        return Math.min(Math.max(prev, baseline), trendingCreations.length);
+      });
+    }, [trendingCreations]);
+
     const handleLoadMorePopular = useCallback(() => {
       setPopularVisibleCount(prev => Math.min(prev + 9, publicCreations.length));
     }, [publicCreations.length]);
 
     const handleLoadMoreTrending = useCallback(() => {
       setTrendingVisibleCount(prev => Math.min(prev + 9, trendingCreations.length));
+    }, [trendingCreations.length]);
+
+    const handleLoadMoreImmersive = useCallback(() => {
+      if (trendingCreations.length === 0) {
+        return;
+      }
+      setImmersiveVisibleCount(prev => Math.min(prev + 3, trendingCreations.length));
     }, [trendingCreations.length]);
     
     const handleSelectPublicCreation = (creation: Creation, source: HomeTab, modelIndex?: number) => {
@@ -873,8 +895,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
                     trendingCreations={trendingCreations}
                     popularVisibleCount={popularVisibleCount}
                     trendingVisibleCount={trendingVisibleCount}
+                    immersiveVisibleCount={immersiveVisibleCount}
                     onLoadMorePopular={handleLoadMorePopular}
                     onLoadMoreTrending={handleLoadMoreTrending}
+                    onLoadMoreImmersive={handleLoadMoreImmersive}
                     onSelectPublicCreation={handleSelectPublicCreation}
                     isFeedLoading={isLoadingFeedsState || isPendingFeeds}
                     isLoading={isLoading}

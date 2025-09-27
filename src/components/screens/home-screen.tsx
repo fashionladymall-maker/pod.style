@@ -24,6 +24,7 @@ import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { HomeTab } from '@/app/app-client';
 import { Skeleton } from '../ui/skeleton';
+import VerticalCreationFeed from '../feeds/vertical-creation-feed';
 
 interface HomeScreenProps {
   prompt: string;
@@ -35,8 +36,10 @@ interface HomeScreenProps {
   trendingCreations: Creation[];
   popularVisibleCount: number;
   trendingVisibleCount: number;
+  immersiveVisibleCount: number;
   onLoadMorePopular: () => void;
   onLoadMoreTrending: () => void;
+  onLoadMoreImmersive: () => void;
   onSelectPublicCreation: (creation: Creation, source: HomeTab, modelIndex?: number) => void;
   isLoading: boolean;
   isFeedLoading: boolean;
@@ -237,8 +240,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   trendingCreations,
   popularVisibleCount,
   trendingVisibleCount,
+  immersiveVisibleCount,
   onLoadMorePopular,
   onLoadMoreTrending,
+  onLoadMoreImmersive,
   onSelectPublicCreation,
   isLoading,
   isFeedLoading,
@@ -527,7 +532,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
 
             <Tabs defaultValue="popular" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-10 p-0.5 rounded-full bg-muted">
+              <TabsList className="grid w-full grid-cols-3 h-10 p-0.5 rounded-full bg-muted">
                 <TabsTrigger value="popular" className="py-1 rounded-full">
                   <Sparkles className="mr-2 h-4 w-4" />
                   流行创意
@@ -535,6 +540,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <TabsTrigger value="trending" className="py-1 rounded-full">
                   <TrendingUp className="mr-2 h-4 w-4" />
                   定制排行
+                </TabsTrigger>
+                <TabsTrigger value="immersive" className="py-1 rounded-full">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  沉浸体验
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="popular" className="mt-4 space-y-4">
@@ -562,6 +571,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     查看更多热销商品
                   </Button>
                 )}
+              </TabsContent>
+              <TabsContent value="immersive" className="mt-4">
+                <VerticalCreationFeed
+                  creations={trendingCreations}
+                  visibleCount={immersiveVisibleCount}
+                  onSelect={(creation, modelIndex) => onSelectPublicCreation(creation, 'immersive', modelIndex)}
+                  onLoadMore={onLoadMoreImmersive}
+                  hasMore={immersiveVisibleCount < trendingCreations.length}
+                  isLoading={isLoading || isFeedLoading}
+                />
               </TabsContent>
             </Tabs>
           </section>
