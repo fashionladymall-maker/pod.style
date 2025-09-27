@@ -44,11 +44,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [authLoading, setAuthLoading] = useState(true);
     const { toast } = useToast();
 
-    const migrateAndHandleResult = useCallback(async (anonymousUid: string, permanentUid: string) => {
-        if (anonymousUid === permanentUid) return;
-        const migrationResult = await migrateAnonymousDataAction(anonymousUid, permanentUid);
-        if (!migrationResult.success) {
-            toast({ variant: 'destructive', title: '数据合并失败', description: '无法迁移您的匿名创作历史，但您已成功登录。' });
+    const migrateAndHandleResult = useCallback(async (anonymousUid: string | null, permanentUid: string | null) => {
+        if (!anonymousUid || !permanentUid || anonymousUid === permanentUid) {
+            return true;
+        }
+
+        try {
+            const migrationResult = await migrateAnonymousDataAction(anonymousUid, permanentUid);
+            if (!migrationResult.success) {
+                console.warn('Anonymous data migration failed', migrationResult.error);
+                toast({
+                    variant: 'destructive',
+                    title: '数据合并失败',
+                    description: '无法迁移您的匿名创作历史，但您已成功登录。',
+                });
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Anonymous data migration threw an error:', error);
+            toast({
+                variant: 'destructive',
+                title: '数据合并失败',
+                description: '无法迁移您的匿名创作历史，但您已成功登录。',
+            });
+            return false;
         }
     }, [toast]);
 
@@ -109,8 +129,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             if (isUpgrading && anonymousUid && anonymousUid !== permanentUid) {
                 toast({ title: '登录成功', description: '正在合并您的匿名创作历史...' });
-                await migrateAndHandleResult(anonymousUid, permanentUid);
-                toast({ title: `欢迎回来, ${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
+                const migrationSucceeded = await migrateAndHandleResult(anonymousUid, permanentUid);
+                if (migrationSucceeded) {
+                    toast({ title: `欢迎回来, ${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
+                }
             } else {
                  toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });
             }
@@ -147,10 +169,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 await firebaseSignOut(firebaseAuth);
                 const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
                 const permanentUid = userCredential.user.uid;
-                if (permanentUid) {
-                    await migrateAndHandleResult(anonymousUid, permanentUid);
-                }
-                toast({ title: "注册成功", description: "欢迎！您的匿名创作历史已保留。" });
+                const migrationSucceeded = permanentUid ? await migrateAndHandleResult(anonymousUid, permanentUid) : false;
+                toast({ title: "注册成功", description: migrationSucceeded ? "欢迎！您的匿名创作历史已保留。" : "欢迎！" });
             }
 
         } catch (error) {
