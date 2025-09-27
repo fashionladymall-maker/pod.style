@@ -2,11 +2,14 @@ name: Deploy Firebase App Hosting
 
 on:
   push:
-    branches: [ "main" ]   # 如果你的默认分支不是 main，这里改成对应的名字
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      CI: true
 
     steps:
       - name: Checkout
@@ -26,7 +29,5 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Deploy App Hosting
-  env:
-    CI: true
-  run: |
-    firebase deploy --only apphosting --project "studio-1269295870-5fde0" --non-interactive --force
+        run: |
+          firebase deploy --only apphosting --project "studio-1269295870-5fde0" --non-interactive --force
