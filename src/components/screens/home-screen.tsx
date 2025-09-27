@@ -184,7 +184,7 @@ const CreationGrid = ({
           <button
             key={`${creation.id}-${modelIndex}`}
             onClick={() => onSelect(creation, modelIndex)}
-            className="aspect-[9/16] bg-secondary rounded-2xl overflow-hidden transform hover:scale-[1.02] transition duration-300 focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border border-transparent hover:border-blue-500"
+            className="group relative aspect-[9/16] overflow-hidden rounded-2xl border border-white/10 bg-secondary/60 transition-all duration-500 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_20px_45px_rgba(93,46,189,0.4)] focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-background"
           >
             <Image
               src={imageUrl}
@@ -195,7 +195,7 @@ const CreationGrid = ({
               blurDataURL={IMAGE_PLACEHOLDER}
               sizes="(max-width: 768px) 50vw, 25vw"
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 text-white text-xs">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-3 text-white text-xs transition-opacity duration-500 group-hover:opacity-100 opacity-90">
               <p className="truncate">{creation.prompt}</p>
             </div>
           </button>
@@ -210,7 +210,7 @@ const CreationGrid = ({
         <button
           key={creation.id + '-pattern'}
           onClick={() => onSelect(creation)}
-          className="aspect-square bg-secondary rounded-2xl overflow-hidden transform hover:scale-[1.02] transition duration-300 focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border border-transparent hover:border-blue-500"
+          className="group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-secondary/60 transition-all duration-500 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_20px_45px_rgba(93,46,189,0.4)] focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-background"
         >
           <Image
             src={creation.previewPatternUri || creation.patternUri}
@@ -346,11 +346,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-muted/10">
-      <ScrollArea className="flex-grow">
-        <div className="px-4 md:px-8 py-6 space-y-8 max-w-5xl mx-auto">
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-500 text-white shadow-xl">
-            <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_60%)]" />
+    <div className="relative flex flex-col h-full overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_12%_18%,rgba(114,91,255,0.18),transparent_55%),radial-gradient(circle_at_82%_12%,rgba(52,211,235,0.12),transparent_60%),radial-gradient(circle_at_10%_78%,rgba(63,114,255,0.14),transparent_55%)]" />
+        <div className="absolute left-1/4 top-[-8%] h-72 w-72 rounded-full bg-primary/40 blur-3xl animate-pulse-glow" />
+        <div className="absolute right-[-6%] top-1/3 h-[420px] w-[420px] rounded-full bg-accent/40 blur-3xl animate-gradient-xy" />
+        <div className="absolute bottom-[-10%] left-[-15%] h-96 w-96 rounded-full bg-primary/30 blur-3xl animate-float-slow" />
+      </div>
+      <ScrollArea className="relative z-10 flex-grow">
+        <div className="px-4 md:px-8 py-10 space-y-10 max-w-5xl mx-auto">
+          <section className="relative overflow-hidden rounded-[28px] border border-white/15 bg-gradient-to-br from-[rgba(94,86,255,0.78)] via-[rgba(133,76,204,0.72)] to-[rgba(46,196,255,0.7)] text-white shadow-[0_25px_80px_rgba(65,43,130,0.45)]">
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_55%)]" />
+            <div className="absolute right-[-10%] top-[10%] h-64 w-64 rounded-full bg-white/25 blur-3xl animate-gradient-xy" />
             <div className="relative z-10 p-6 md:p-10 space-y-6">
               <div className="inline-flex items-center gap-2 text-sm font-medium bg-white/15 backdrop-blur px-4 py-1.5 rounded-full">
                 <Sparkles size={16} />
@@ -367,7 +374,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <Button
                   size="lg"
-                  className="rounded-full h-12 px-6 bg-white text-indigo-600 hover:bg-white/90"
+                  className="rounded-full h-12 px-6 bg-white text-slate-900 shadow-[0_10px_30px_rgba(15,15,35,0.25)] transition-all duration-300 hover:shadow-[0_18px_40px_rgba(148,163,255,0.55)] hover:-translate-y-0.5"
                   onClick={handleStartCreating}
                 >
                   <Sparkles className="mr-2" size={18} />
@@ -376,7 +383,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full h-12 px-6 border-white/60 text-white hover:bg-white/15"
+                  className="rounded-full h-12 px-6 border-white/60 text-white transition-all duration-300 hover:bg-white/15 hover:shadow-[0_14px_35px_rgba(114,91,255,0.45)]"
                   onClick={hasUserSession ? onViewProfile : onLoginRequest}
                 >
                   <UserPlus className="mr-2" size={18} />
@@ -384,14 +391,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 </Button>
               </div>
             </div>
-            <div className="absolute -right-24 top-10 w-64 h-64 bg-white/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-12 h-72 w-72 rounded-full bg-purple-400/30 blur-3xl animate-float-slow" />
           </section>
 
           <section className="grid gap-4 md:grid-cols-3">
             {featureCards.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="rounded-2xl border bg-background p-5 shadow-sm">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary">
+              <div
+                key={title}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-card/70 p-5 shadow-[0_18px_50px_rgba(24,24,54,0.45)] backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_28px_65px_rgba(102,76,255,0.45)]"
+              >
+                <div className="absolute inset-x-4 -top-12 h-24 rounded-full bg-gradient-to-r from-primary/25 via-accent/20 to-primary/25 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/15 text-primary shadow-[0_0_25px_rgba(102,76,255,0.35)]">
                   <Icon size={20} />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold">{title}</h3>
@@ -400,7 +410,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             ))}
           </section>
 
-          <section ref={composerRef} className="rounded-3xl border bg-background shadow-sm p-6 space-y-5">
+          <section ref={composerRef} className="rounded-3xl border border-white/10 bg-card/80 shadow-[0_22px_60px_rgba(18,20,50,0.55)] backdrop-blur p-6 space-y-5">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold">创意工作台</h2>
@@ -414,7 +424,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={stylePopoverOpen}
-                    className="rounded-full bg-secondary hover:bg-muted h-11 px-4"
+                    className="rounded-full h-11 px-4 border-white/15 bg-secondary/70 text-white/90 hover:bg-secondary/60"
                   >
                     <Palette className="mr-2 h-4 w-4" />
                     <span className="text-xs">{selectedStyle.split(' ')[0]}</span>
@@ -447,7 +457,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <div className="relative flex-1">
                   <Input
                     ref={inputRef}
-                    className="w-full bg-secondary text-foreground p-4 pl-12 pr-24 rounded-2xl h-14 border-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="w-full bg-secondary/70 text-foreground p-4 pl-12 pr-24 rounded-2xl h-14 border border-white/10 focus-visible:ring-2 focus-visible:ring-primary/70 transition focus-visible:border-primary/60"
                     placeholder={placeholder}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
@@ -466,7 +476,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       accept="image/*"
                       onChange={handleImageUpload}
                     />
-                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 text-muted-foreground" asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 text-muted-foreground hover:text-white hover:bg-white/10 transition" asChild>
                       <Label htmlFor="imageUpload" className="cursor-pointer flex items-center justify-center">
                         {uploadedImage ? (
                           <div className="relative w-8 h-8 border rounded-md overflow-hidden">
@@ -483,7 +493,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       onClick={handleMicClick}
                       variant="ghost"
                       size="icon"
-                      className={`rounded-full w-10 h-10 ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}
+                      className={`rounded-full w-10 h-10 transition-colors ${isRecording ? 'text-red-500' : 'text-muted-foreground hover:text-white'}`}
                     >
                       <Mic size={18} />
                     </Button>
@@ -492,7 +502,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                         onClick={onGenerate}
                         variant="ghost"
                         size="icon"
-                        className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 w-10 h-10"
+                        className="rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground hover:opacity-90 w-10 h-10 shadow-[0_10px_25px_rgba(93,46,189,0.45)]"
                       >
                         <ArrowUp size={18} />
                       </Button>
@@ -500,7 +510,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   </div>
                 </div>
                 <Button
-                  className="lg:w-48 h-14 rounded-2xl"
+                  className="lg:w-48 h-14 rounded-2xl bg-gradient-to-r from-primary via-purple-500 to-accent text-white shadow-[0_18px_40px_rgba(93,46,189,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_55px_rgba(46,196,255,0.55)]"
                   onClick={onGenerate}
                   disabled={isLoading}
                 >
@@ -514,7 +524,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           </section>
 
-          <section className="rounded-3xl border bg-background shadow-sm p-6 space-y-4">
+          <section className="rounded-3xl border border-white/10 bg-card/80 shadow-[0_22px_60px_rgba(18,20,50,0.55)] backdrop-blur p-6 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -527,12 +537,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
 
             <Tabs defaultValue="popular" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-10 p-0.5 rounded-full bg-muted">
-                <TabsTrigger value="popular" className="py-1 rounded-full">
+              <TabsList className="grid w-full grid-cols-2 h-11 p-1 rounded-full bg-secondary/80 backdrop-blur">
+                <TabsTrigger
+                  value="popular"
+                  className="py-1 rounded-full transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/70 data-[state=active]:to-accent/60 data-[state=active]:text-white data-[state=active]:shadow-[0_12px_30px_rgba(93,46,189,0.4)]"
+                >
                   <Sparkles className="mr-2 h-4 w-4" />
                   流行创意
                 </TabsTrigger>
-                <TabsTrigger value="trending" className="py-1 rounded-full">
+                <TabsTrigger
+                  value="trending"
+                  className="py-1 rounded-full transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/70 data-[state=active]:to-accent/60 data-[state=active]:text-white data-[state=active]:shadow-[0_12px_30px_rgba(93,46,189,0.4)]"
+                >
                   <TrendingUp className="mr-2 h-4 w-4" />
                   定制排行
                 </TabsTrigger>
@@ -545,7 +561,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   isLoading={isLoading || isFeedLoading}
                 />
                 {popularVisibleCount < publicCreations.length && (
-                  <Button variant="outline" className="w-full rounded-full" onClick={onLoadMorePopular}>
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full border-white/15 text-white/90 hover:bg-white/10 hover:text-white"
+                    onClick={onLoadMorePopular}
+                  >
                     查看更多热门创意
                   </Button>
                 )}
@@ -558,7 +578,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   isLoading={isLoading || isFeedLoading}
                 />
                 {trendingVisibleCount < trendingCreations.length && (
-                  <Button variant="outline" className="w-full rounded-full" onClick={onLoadMoreTrending}>
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full border-white/15 text-white/90 hover:bg-white/10 hover:text-white"
+                    onClick={onLoadMoreTrending}
+                  >
                     查看更多热销商品
                   </Button>
                 )}
@@ -567,17 +591,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </section>
 
           <section className="mb-8">
-            <div className="rounded-3xl border bg-secondary/60 text-secondary-foreground p-6 md:p-8">
+            <div className="rounded-3xl border border-white/10 bg-secondary/70 text-secondary-foreground p-6 md:p-8 shadow-[0_22px_60px_rgba(18,20,50,0.55)] backdrop-blur">
               <h3 className="text-lg font-semibold">还在犹豫要不要开始？</h3>
               <p className="text-sm md:text-base text-secondary-foreground/80 mt-2 leading-relaxed">
                 立即登录即可同步创作历史，并解锁商品生成、订单管理等完整功能。灵感永远不等人。
               </p>
               <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                <Button className="rounded-full h-11 px-6" onClick={hasUserSession ? onViewProfile : onLoginRequest}>
+                <Button
+                  className="rounded-full h-11 px-6 bg-gradient-to-r from-primary via-purple-500 to-accent text-white shadow-[0_14px_40px_rgba(93,46,189,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_55px_rgba(46,196,255,0.5)]"
+                  onClick={hasUserSession ? onViewProfile : onLoginRequest}
+                >
                   {hasUserSession ? '查看我的订单' : '登录体验完整流程'}
                 </Button>
                 {!hasUserSession && (
-                  <Button variant="ghost" className="rounded-full h-11 px-6" onClick={handleStartCreating}>
+                  <Button
+                    variant="ghost"
+                    className="rounded-full h-11 px-6 text-white/80 hover:text-white hover:bg-white/10"
+                    onClick={handleStartCreating}
+                  >
                     先试试看生成效果
                   </Button>
                 )}
