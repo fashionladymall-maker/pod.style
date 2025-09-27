@@ -9,8 +9,6 @@ import {
   ArrowUp,
   TrendingUp,
   Sparkles,
-  Workflow,
-  ShoppingBag,
   UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,24 +104,6 @@ const creativePrompts = [
   '一只章鱼在指挥交响乐',
   '一个机器人正在种花',
   '蒸汽朋克风格的飞行器',
-];
-
-const featureCards = [
-  {
-    icon: Sparkles,
-    title: '智能灵感引擎',
-    description: '一句话描述即可生成高品质图案，灵感不再枯竭。',
-  },
-  {
-    icon: Workflow,
-    title: '一键完成上新',
-    description: '从创意到商品展示只需数秒，自动生成模特效果图。',
-  },
-  {
-    icon: ShoppingBag,
-    title: '覆盖全品类',
-    description: 'T恤、帆布包、家居装饰……多种类商品任你选择。',
-  },
 ];
 
 const CreationGridSkeleton = () => (
@@ -259,6 +239,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [stylePopoverOpen, setStylePopoverOpen] = useState(false);
   const [placeholder, setPlaceholder] = useState(creativePrompts[0]);
+  const highlightCreations = (trendingCreations.length ? trendingCreations : publicCreations).slice(0, 3);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -346,67 +327,84 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-muted/10">
+    <div className="flex flex-col h-full bg-gradient-to-b from-zinc-900 via-zinc-950 to-black text-white">
       <ScrollArea className="flex-grow">
-        <div className="px-4 md:px-8 py-6 space-y-8 max-w-5xl mx-auto">
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-500 text-white shadow-xl">
-            <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_60%)]" />
-            <div className="relative z-10 p-6 md:p-10 space-y-6">
-              <div className="inline-flex items-center gap-2 text-sm font-medium bg-white/15 backdrop-blur px-4 py-1.5 rounded-full">
-                <Sparkles size={16} />
-                <span>全新创意工作台</span>
-              </div>
-              <div className="space-y-4">
-                <h1 className="text-3xl md:text-4xl font-semibold leading-tight">
-                  灵感、设计、上架，一站式完成你的 POD 生意
+        <div className="px-4 md:px-8 py-6 space-y-10 max-w-5xl mx-auto">
+          <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-zinc-900 via-black to-zinc-900 shadow-[0_30px_120px_-50px_rgba(59,130,246,0.6)]">
+            <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.55),_transparent_60%)]" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 p-6 md:p-12">
+              <div className="space-y-6 w-full md:max-w-xl">
+                <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/60">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  live pod studio
+                </div>
+                <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
+                  一刷就爆款
                 </h1>
-                <p className="text-sm md:text-base text-white/80 leading-relaxed">
-                  在一个屏幕上完成灵感输入、图案生成与商品预览。POD.STYLE 为创作者、品牌方和个人卖家打造高效的工作流。
+                <p className="text-sm md:text-base text-white/70 max-w-sm">
+                  打开即见热卖灵感，生成按钮永远在手边。
                 </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <Button
+                    size="lg"
+                    className="rounded-full h-12 px-6 bg-white text-zinc-900 hover:bg-white/90"
+                    onClick={handleStartCreating}
+                  >
+                    <Sparkles className="mr-2" size={18} />
+                    秒生成
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="rounded-full h-12 px-6 border-white/40 text-white hover:bg-white/10"
+                    onClick={hasUserSession ? onViewProfile : onLoginRequest}
+                  >
+                    <UserPlus className="mr-2" size={18} />
+                    {hasUserSession ? '我的空间' : '立即登录'}
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <Button
-                  size="lg"
-                  className="rounded-full h-12 px-6 bg-white text-indigo-600 hover:bg-white/90"
-                  onClick={handleStartCreating}
-                >
-                  <Sparkles className="mr-2" size={18} />
-                  立即生成创意
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full h-12 px-6 border-white/60 text-white hover:bg-white/15"
-                  onClick={hasUserSession ? onViewProfile : onLoginRequest}
-                >
-                  <UserPlus className="mr-2" size={18} />
-                  {hasUserSession ? '进入我的工作台' : '登录 / 注册'}
-                </Button>
+              <div className="w-full md:w-[320px]">
+                <div className="grid grid-cols-3 gap-2 md:gap-3">
+                  {highlightCreations.length > 0 ? (
+                    highlightCreations.map((creation) => {
+                      const preview = creation.models?.find((model) => model?.isPublic !== false)?.previewUri || creation.previewPatternUri || creation.patternUri;
+                      return (
+                        <div
+                          key={creation.id}
+                          className="relative aspect-[9/16] rounded-3xl overflow-hidden border border-white/10 bg-white/5"
+                        >
+                          <Image
+                            src={preview}
+                            alt={creation.prompt}
+                            fill
+                            className="object-cover"
+                            placeholder="blur"
+                            blurDataURL={IMAGE_PLACEHOLDER}
+                            sizes="(max-width: 768px) 30vw, 15vw"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/60" />
+                        </div>
+                      );
+                    })
+                  ) : (
+                    [...Array(3)].map((_, index) => (
+                      <div
+                        key={index}
+                        className="aspect-[9/16] rounded-3xl bg-white/5 animate-pulse"
+                      />
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-            <div className="absolute -right-24 top-10 w-64 h-64 bg-white/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl" />
           </section>
 
-          <section className="grid gap-4 md:grid-cols-3">
-            {featureCards.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="rounded-2xl border bg-background p-5 shadow-sm">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary">
-                  <Icon size={20} />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{description}</p>
-              </div>
-            ))}
-          </section>
-
-          <section ref={composerRef} className="rounded-3xl border bg-background shadow-sm p-6 space-y-5">
+          <section ref={composerRef} className="rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-sm p-6 space-y-5">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold">创意工作台</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  输入灵感或上传参考图，AI 将为你生成可用于商品的高质量图案。
-                </p>
+              <div className="space-y-1 text-white/80">
+                <h2 className="text-xl font-semibold text-white">灵感输入区</h2>
+                <p className="text-xs">一句话或一张图，让 AI 帮你完成剩下的。</p>
               </div>
               <Popover open={stylePopoverOpen} onOpenChange={setStylePopoverOpen}>
                 <PopoverTrigger asChild>
@@ -414,7 +412,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={stylePopoverOpen}
-                    className="rounded-full bg-secondary hover:bg-muted h-11 px-4"
+                    className="rounded-full bg-white/5 hover:bg-white/10 h-11 px-4 text-white border-white/20"
                   >
                     <Palette className="mr-2 h-4 w-4" />
                     <span className="text-xs">{selectedStyle.split(' ')[0]}</span>
@@ -447,7 +445,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 <div className="relative flex-1">
                   <Input
                     ref={inputRef}
-                    className="w-full bg-secondary text-foreground p-4 pl-12 pr-24 rounded-2xl h-14 border-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="w-full bg-white/10 text-white placeholder:text-white/40 p-4 pl-12 pr-24 rounded-2xl h-14 border border-white/10 focus-visible:ring-2 focus-visible:ring-white/40"
                     placeholder={placeholder}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
@@ -466,7 +464,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       accept="image/*"
                       onChange={handleImageUpload}
                     />
-                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 text-muted-foreground" asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 text-white/60 hover:text-white" asChild>
                       <Label htmlFor="imageUpload" className="cursor-pointer flex items-center justify-center">
                         {uploadedImage ? (
                           <div className="relative w-8 h-8 border rounded-md overflow-hidden">
@@ -483,7 +481,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       onClick={handleMicClick}
                       variant="ghost"
                       size="icon"
-                      className={`rounded-full w-10 h-10 ${isRecording ? 'text-red-500' : 'text-muted-foreground'}`}
+                      className={`rounded-full w-10 h-10 ${isRecording ? 'text-red-400' : 'text-white/60 hover:text-white'}`}
                     >
                       <Mic size={18} />
                     </Button>
@@ -492,7 +490,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                         onClick={onGenerate}
                         variant="ghost"
                         size="icon"
-                        className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 w-10 h-10"
+                        className="rounded-full bg-white text-zinc-900 hover:bg-white/80 w-10 h-10"
                       >
                         <ArrowUp size={18} />
                       </Button>
@@ -500,41 +498,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   </div>
                 </div>
                 <Button
-                  className="lg:w-48 h-14 rounded-2xl"
+                  className="lg:w-48 h-14 rounded-2xl bg-white text-zinc-900 hover:bg-white/90"
                   onClick={onGenerate}
                   disabled={isLoading}
                 >
                   <Sparkles className="mr-2" size={18} />
-                  {isLoading ? '正在创作...' : '生成图案'}
+                  {isLoading ? '创作中…' : '开始生成'}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                小提示：可以输入“赛博朋克风格的重庆洪崖洞夜景”或上传手绘草图，我们会自动为你优化。
+              <p className="text-[11px] text-white/50">
+                灵感随手记，随时点亮商品效果。
               </p>
             </div>
           </section>
 
-          <section className="rounded-3xl border bg-background shadow-sm p-6 space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div>
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Sparkles className="text-primary" size={18} /> 灵感市场
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  浏览全球创作者的优秀作品，点击即可复刻并生成属于你的商品。
-                </p>
-              </div>
+          <section className="rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-sm p-6 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-white">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Sparkles className="text-emerald-400" size={18} /> 热门灵感流
+              </h2>
+              <p className="text-xs text-white/60">滑动挑选喜欢的，立刻复刻上架。</p>
             </div>
 
             <Tabs defaultValue="popular" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-10 p-0.5 rounded-full bg-muted">
-                <TabsTrigger value="popular" className="py-1 rounded-full">
+              <TabsList className="grid w-full grid-cols-2 h-10 p-0.5 rounded-full bg-white/10">
+                <TabsTrigger value="popular" className="py-1 rounded-full data-[state=active]:bg-white data-[state=active]:text-zinc-900">
                   <Sparkles className="mr-2 h-4 w-4" />
-                  流行创意
+                  流行
                 </TabsTrigger>
-                <TabsTrigger value="trending" className="py-1 rounded-full">
+                <TabsTrigger value="trending" className="py-1 rounded-full data-[state=active]:bg-white data-[state=active]:text-zinc-900">
                   <TrendingUp className="mr-2 h-4 w-4" />
-                  定制排行
+                  热销
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="popular" className="mt-4 space-y-4">
@@ -545,8 +539,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   isLoading={isLoading || isFeedLoading}
                 />
                 {popularVisibleCount < publicCreations.length && (
-                  <Button variant="outline" className="w-full rounded-full" onClick={onLoadMorePopular}>
-                    查看更多热门创意
+                  <Button variant="outline" className="w-full rounded-full border-white/20 text-white hover:bg-white/10" onClick={onLoadMorePopular}>
+                    加载更多灵感
                   </Button>
                 )}
               </TabsContent>
@@ -558,8 +552,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   isLoading={isLoading || isFeedLoading}
                 />
                 {trendingVisibleCount < trendingCreations.length && (
-                  <Button variant="outline" className="w-full rounded-full" onClick={onLoadMoreTrending}>
-                    查看更多热销商品
+                  <Button variant="outline" className="w-full rounded-full border-white/20 text-white hover:bg-white/10" onClick={onLoadMoreTrending}>
+                    加载更多热销
                   </Button>
                 )}
               </TabsContent>
@@ -567,22 +561,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </section>
 
           <section className="mb-8">
-            <div className="rounded-3xl border bg-secondary/60 text-secondary-foreground p-6 md:p-8">
-              <h3 className="text-lg font-semibold">还在犹豫要不要开始？</h3>
-              <p className="text-sm md:text-base text-secondary-foreground/80 mt-2 leading-relaxed">
-                立即登录即可同步创作历史，并解锁商品生成、订单管理等完整功能。灵感永远不等人。
-              </p>
-              <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                <Button className="rounded-full h-11 px-6" onClick={hasUserSession ? onViewProfile : onLoginRequest}>
-                  {hasUserSession ? '查看我的订单' : '登录体验完整流程'}
+            <div className="rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-sm text-white p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">现在开刷</h3>
+                <p className="text-sm text-white/60">收藏、复刻、开卖，一气呵成。</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button className="rounded-full h-11 px-6 bg-white text-zinc-900 hover:bg-white/90" onClick={hasUserSession ? onViewProfile : onLoginRequest}>
+                  {hasUserSession ? '进入我的订单' : '登录上手'}
                 </Button>
                 {!hasUserSession && (
-                  <Button variant="ghost" className="rounded-full h-11 px-6" onClick={handleStartCreating}>
-                    先试试看生成效果
+                  <Button variant="ghost" className="rounded-full h-11 px-6 border border-white/20 text-white hover:bg-white/10" onClick={handleStartCreating}>
+                    先试试看
                   </Button>
                 )}
                 {hasUserSession && !isAuthenticated && (
-                  <p className="text-xs text-secondary-foreground/80 flex items-center">
+                  <p className="text-xs text-white/50 flex items-center">
                     当前为匿名体验模式，注册账号即可永久保存成果。
                   </p>
                 )}
