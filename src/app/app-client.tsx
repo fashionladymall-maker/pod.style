@@ -728,6 +728,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }
     
     const AppHeader = () => {
+        if (step === 'home') {
+            return null;
+        }
         const title = 'POD.STYLE';
         let showBack = false;
         const canShowProfile = !!user;
