@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const signInAndMigrate = async (email: string, password: string) => {
         const firebaseAuth = getFirebaseAuth();
         if (!firebaseAuth) {
-            throw new Error("Auth not ready.");
+            throw new Error("Firebase Auth 尚未初始化。请确认 Firebase Studio 环境中已配置 Web 应用凭据，并稍后重试。");
         }
 
         const isUpgrading = firebaseAuth.currentUser?.isAnonymous;
@@ -170,7 +170,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     const emailSignUp = async (email: string, password: string) => {
         const firebaseAuth = getFirebaseAuth();
-        if (!firebaseAuth) throw new Error("Auth not initialized");
+        if (!firebaseAuth) throw new Error("Firebase Auth 尚未初始化。请确认 Firebase Studio 环境中已配置 Web 应用凭据，并稍后重试。");
 
         const currentUser = firebaseAuth.currentUser;
         const isUpgrading = currentUser?.isAnonymous ?? false;
