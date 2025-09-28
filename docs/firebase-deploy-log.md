@@ -1,0 +1,24 @@
+# Firebase Deploy Log
+
+Command: `firebase deploy --only apphosting --project "" --non-interactive --force`
+
+```
+=== Deploying to 'studio-1269295870-5fde0'...
+
+i  deploying apphosting
+i  apphosting: Found backend(s) studio
+i  apphosting: Uploading source code at /home/runner/work/pod.style/pod.style for backend studio...
+i  apphosting: Source code uploaded at gs://firebaseapphosting-sources-204491544475-us-central1/studio--2178-zamADQ6GX7dM-.zip
+i  apphosting: You may also track the rollout(s) at:
+\thttps://console.firebase.google.com/project/studio-1269295870-5fde0/apphosting
+- Starting rollout(s) for backend(s) studio; this may take a few minutes. It's safe to exit now.
+
+⚠  apphosting: Rollout for backend studio failed.
+⬢  apphosting: Request to https://firebaseapphosting.googleapis.com/v1beta/projects/studio-1269295870-5fde0/locations/us-central1/backends/studio/builds?buildId=build-2025-09-28-006 had HTTP Error: 409, unable to queue the operation
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/studio-1269295870-5fde0/overview
+```
+
+Deployment failed because Firebase App Hosting returned HTTP 409 while queuing the rollout. No automated remediation was attempted.
