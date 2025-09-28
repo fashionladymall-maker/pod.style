@@ -44,23 +44,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [authLoading, setAuthLoading] = useState(true);
     const { toast } = useToast();
 
-    const migrateAndHandleResult = useCallback(async (anonymousUid: string | null, permanentUid: string | null) => {
+    type MigrationHandleStatus = 'success' | 'skipped' | 'failed';
+
+    const migrateAndHandleResult = useCallback(async (
+        anonymousUid: string | null,
+        permanentUid: string | null,
+    ): Promise<MigrationHandleStatus> => {
         if (!anonymousUid || !permanentUid || anonymousUid === permanentUid) {
-            return true;
+            return 'skipped';
         }
 
         try {
             const migrationResult = await migrateAnonymousDataAction(anonymousUid, permanentUid);
-            if (!migrationResult.success) {
-                console.warn('Anonymous data migration failed', migrationResult.error);
-                toast({
-                    variant: 'destructive',
-                    title: '数据合并失败',
-                    description: '无法迁移您的匿名创作历史，但您已成功登录。',
-                });
-                return false;
+            if (migrationResult.success) {
+                return migrationResult.skipped ? 'skipped' : 'success';
             }
-            return true;
+
+            if (migrationResult.error === 'admin-not-configured') {
+                toast({
+                    title: '匿名作品未合并',
+                    description: 'Firebase Admin 凭证尚未在 Firebase Studio 中配置，稍后完成配置后即可重新合并历史数据。',
+                });
+                return 'skipped';
+            }
+
+            console.warn('Anonymous data migration failed', migrationResult.error);
+            toast({
+                variant: 'destructive',
+                title: '数据合并失败',
+                description: '无法迁移您的匿名创作历史，但您已成功登录。',
+            });
+            return 'failed';
         } catch (error) {
             console.error('Anonymous data migration threw an error:', error);
             toast({
@@ -68,7 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 title: '数据合并失败',
                 description: '无法迁移您的匿名创作历史，但您已成功登录。',
             });
-            return false;
+            return 'failed';
         }
     }, [toast]);
 
@@ -130,9 +144,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             if (isUpgrading && anonymousUid && anonymousUid !== permanentUid) {
                 toast({ title: '登录成功', description: '正在合并您的匿名创作历史...' });
-                const migrationSucceeded = await migrateAndHandleResult(anonymousUid, permanentUid);
-                if (migrationSucceeded) {
+                const migrationStatus = await migrateAndHandleResult(anonymousUid, permanentUid);
+                if (migrationStatus === 'success') {
                     toast({ title: `欢迎回来, ${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
+                } else {
+                    toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });
                 }
             } else {
                  toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });

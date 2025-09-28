@@ -5,22 +5,32 @@ import { isFirebaseAdminConfigured, getDb } from '@/server/firebase/admin';
 import { getCollectionRef as getCreationsCollection } from '@/features/creations/server/creation-repository';
 import { getCollectionRef as getOrdersCollection } from '@/features/orders/server/order-repository';
 
-const ensureFirestore = () => {
-  if (!isFirebaseAdminConfigured()) {
-    throw new Error('Firebase Admin SDK is not configured.');
-  }
-};
+type MigrationSkipCode = 'identical-user' | 'no-data';
+type MigrationErrorCode = 'admin-not-configured' | 'commit-failed';
+
+type MigrationResult =
+  | { success: true; skipped?: MigrationSkipCode }
+  | { success: false; error: MigrationErrorCode };
 
 const migrationSchema = z.object({
   anonymousUid: z.string(),
   permanentUid: z.string(),
 });
 
-export const migrateAnonymousDataAction = async (anonymousUid: string, permanentUid: string) => {
-  ensureFirestore();
+export const migrateAnonymousDataAction = async (
+  anonymousUid: string,
+  permanentUid: string,
+): Promise<MigrationResult> => {
+  if (!isFirebaseAdminConfigured()) {
+    console.warn(
+      '[auth] Firebase Admin SDK is not configured. Skipping anonymous data migration.',
+    );
+    return { success: false, error: 'admin-not-configured' };
+  }
+
   const payload = migrationSchema.parse({ anonymousUid, permanentUid });
   if (payload.anonymousUid === payload.permanentUid) {
-    return { success: false, error: 'duplicate-uids' } as const;
+    return { success: true, skipped: 'identical-user' };
   }
 
   const db = getDb();
@@ -32,7 +42,7 @@ export const migrateAnonymousDataAction = async (anonymousUid: string, permanent
     .get();
 
   if (creationsSnapshot.empty && ordersSnapshot.empty) {
-    return { success: true } as const;
+    return { success: true, skipped: 'no-data' };
   }
 
   const batch = db.batch();
@@ -43,6 +53,11 @@ export const migrateAnonymousDataAction = async (anonymousUid: string, permanent
     batch.update(doc.ref, { userId: payload.permanentUid });
   });
 
-  await batch.commit();
-  return { success: true } as const;
+  try {
+    await batch.commit();
+    return { success: true };
+  } catch (error) {
+    console.error('[auth] Failed to migrate anonymous data.', error);
+    return { success: false, error: 'commit-failed' };
+  }
 };
