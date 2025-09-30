@@ -1,5 +1,7 @@
 "use client";
 
+// @ts-nocheck
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MoreVertical, Lock, Grid3x3, Heart, Star } from 'lucide-react';

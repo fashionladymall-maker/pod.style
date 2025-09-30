@@ -1,65 +1,51 @@
-/** @jest-environment jsdom */
-
 import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
-import { act } from 'react-dom/test-utils';
-import { createRoot } from 'react-dom/client';
-import React from 'react';
-import { useFeedRefresh } from '@/features/feed/hooks/use-feed-refresh';
+import { createFeedRefreshScheduler } from '@/features/feed/hooks/use-feed-refresh';
 
-const TestComponent = ({ enabled, fetchUpdates }: { enabled: boolean; fetchUpdates: () => Promise<number> }) => {
-  useFeedRefresh({ enabled, fetchUpdates, baseIntervalMs: 10, maxIntervalMs: 40 });
-  return null;
+const flushMicrotasks = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
 };
 
-describe('useFeedRefresh', () => {
-  let container: HTMLDivElement;
-  let root: ReturnType<typeof createRoot>;
+describe('createFeedRefreshScheduler', () => {
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.useFakeTimers();
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    root = createRoot(container);
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    act(() => {
-      root.unmount();
-    });
-    document.body.removeChild(container);
+    consoleErrorSpy.mockRestore();
     jest.useRealTimers();
   });
 
-  it('invokes fetchUpdates on schedule and backs off on failure', async () => {
+  it('resets interval after success and backs off on failure', async () => {
     const fetchUpdates = jest
       .fn(async () => 0)
       .mockResolvedValueOnce(0)
       .mockRejectedValueOnce(new Error('network'))
-      .mockResolvedValueOnce(1);
+      .mockResolvedValueOnce(2);
 
-    await act(async () => {
-      root.render(<TestComponent enabled fetchUpdates={fetchUpdates} />);
+    const scheduler = createFeedRefreshScheduler({
+      baseIntervalMs: 10,
+      maxIntervalMs: 80,
+      fetchUpdates,
     });
 
-    await act(async () => {
-      jest.advanceTimersByTime(10);
-      await Promise.resolve();
-    });
+    scheduler.start();
 
+    jest.advanceTimersByTime(10);
+    await flushMicrotasks();
     expect(fetchUpdates).toHaveBeenCalledTimes(1);
 
-    await act(async () => {
-      jest.advanceTimersByTime(10);
-      await Promise.resolve();
-    });
-
+    jest.advanceTimersByTime(10);
+    await flushMicrotasks();
     expect(fetchUpdates).toHaveBeenCalledTimes(2);
 
-    await act(async () => {
-      jest.advanceTimersByTime(20);
-      await Promise.resolve();
-    });
-
+    jest.advanceTimersByTime(20);
+    await flushMicrotasks();
     expect(fetchUpdates).toHaveBeenCalledTimes(3);
+
+    scheduler.stop();
   });
 });

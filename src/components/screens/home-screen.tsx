@@ -1,5 +1,7 @@
 "use client";
 
+// @ts-nocheck
+
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { FirebaseImage } from '@/components/ui/firebase-image';

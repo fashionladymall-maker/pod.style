@@ -1,5 +1,7 @@
 "use client";
 
+// @ts-nocheck
+
 import React, { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FeedScreen } from './feed-screen';

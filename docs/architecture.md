@@ -33,6 +33,7 @@ This document outlines the architectural approach for enhancing Pod.Style into a
 | --- | --- | --- | --- | --- |
 | 初始草稿 | 2025-01-12 | v0.1 | 基于现状分析与 PRD 生成的架构规划 | Winston (architect) |
 | Feed Ranking Telemetry | 2025-03-02 | v0.2 | 增加 feed 排名权重说明与分布/命中率监控指标 | James (dev) |
+| Feed Refresh Loop | 2025-03-02 | v0.3 | 引入增量刷新、轮询节流与刷新指标 | James (dev) |
 
 ## 2. Enhancement Scope and Integration Strategy
 - **Enhancement Type**: 社交电商重构（新功能 + 重大改造 + 多系统集成 + UI/UX 重做）
@@ -193,6 +194,7 @@ ew_feed entry + 创作版本记录
 - 引入 Feature Flags（Firestore/Remote Config）控制模块上线
 - Feed Beta 开关：默认读取 `NEXT_PUBLIC_ENABLE_FEED_BETA`，可用 `FEED_BETA_FORCE=true/false` 在部署后强制开启或关闭；关闭时 `/beta` rewrite 需撤销，打开前先在 Remote Config 灰度 5% 流量并监控指标。
 - Feed Ingestion 开关：通过 `NEXT_PUBLIC_ENABLE_FEED_INGESTION` + `FEED_INGESTION_FORCE` 控制新缓存管道；如需回滚，关闭开关后清理新增字段即可恢复 legacy 定时任务。
+- Feed Refresh 开关：使用 `NEXT_PUBLIC_ENABLE_FEED_REFRESH` + `FEED_REFRESH_FORCE` 控制客户端增量刷新；回滚时关闭开关并恢复手动加载即可。
 - 建立回滚脚本：撤回 Hosting rewrite、停用新 Cloud Function/Run 版本
 
 ### 7.4 Observability
@@ -200,6 +202,7 @@ ew_feed entry + 创作版本记录
 - 关键指标：Feed 延迟、AI 成功率、支付成功率、审核耗时、活跃用户数
 - Feed 仪表盘：追踪 `feed.service.latency`, `feed.service.cache_hit`, `feed.service.cache_miss`, `feed.service.fallback_used`；建立缓存命中率、首次渲染耗时、fallback 次数告警（24h 命中率 <60% 或 fallback 次数 > 阈值时通知 SRE）。
 - 排名监控：追踪 `feed.service.ranking.score_distribution`（min/max/avg）与 `feed.service.cache.hit_ratio`，设定评分异常（平均分骤降 >30%）或命中率 <50% 的警报。
+- 实时刷新：记录 `feed.service.refresh.frequency`、`feed.service.refresh.new_items`，监控连续失败或刷新无新内容情形（>10 次连续失败或 5 分钟无新增时告警）。
 - 设置报警：AI/支付失败率、队列积压、Functions 错误、Hosting 错误率
 
 ## 8. Testing Strategy

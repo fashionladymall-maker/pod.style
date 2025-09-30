@@ -113,6 +113,15 @@ node scripts/migrate-creation-fields.js
 4. 监控日志关键字 `feed.ingestion.success|failure|summary`，确认重建状况。
 5. 如需快速回滚，只需将 `FEED_INGESTION_FORCE` 或 `NEXT_PUBLIC_ENABLE_FEED_INGESTION` 置为 `false`，即可恢复到旧的定时缓存逻辑。
 
+#### 调整 Feed 实时刷新策略
+- 通过环境变量开启：
+  ```bash
+  NEXT_PUBLIC_ENABLE_FEED_REFRESH=true
+  FEED_REFRESH_FORCE=true
+  ```
+- 观察指标 `feed.service.refresh.frequency` 与 `feed.service.refresh.new_items`，确认刷新节奏符合预期。
+- 若需停用刷新，撤回上述开关即可，客户端会退回手动加载模式。
+
 #### 备份数据
 定期备份Firestore数据：
 ```bash
