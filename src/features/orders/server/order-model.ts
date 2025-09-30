@@ -31,10 +31,17 @@ export const orderDataSchema = z.object({
     phone: z.string(),
     email: z.string().email().optional(),
   }),
-  paymentSummary: paymentSummarySchema,
+  // Make paymentSummary optional with default values for backward compatibility
+  paymentSummary: paymentSummarySchema.optional().default({
+    tokenId: '',
+    brand: 'mock',
+    last4: '0000',
+    gateway: 'mock',
+    status: 'pending',
+  }),
   createdAt: z.instanceof(Timestamp),
   status: z.enum(['Processing', 'Shipped', 'Delivered', 'Cancelled']),
-  statusHistory: z.array(orderStatusEventSchema),
+  statusHistory: z.array(orderStatusEventSchema).default([]),
 });
 
 export type OrderDocument = z.infer<typeof orderDataSchema>;

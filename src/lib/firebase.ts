@@ -1,5 +1,11 @@
 
-import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import {
+  initializeApp,
+  getApps,
+  getApp,
+  type FirebaseApp,
+  type FirebaseOptions,
+} from "firebase/app";
 import {
   initializeAuth,
   indexedDBLocalPersistence,
@@ -14,14 +20,92 @@ interface AppCheckDebugWindow extends Window {
   FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean;
 }
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+type MaybeFirebaseConfig = Partial<FirebaseOptions> | null | undefined;
+
+const parseJson = <T>(value: string | undefined): T | null => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Failed to parse JSON environment variable", error);
+    }
+    return null;
+  }
+};
+
+const getFirebaseConfigFromDefaults = (): MaybeFirebaseConfig => {
+  const defaults = parseJson<Record<string, unknown>>(process.env["__FIREBASE_DEFAULTS__"]);
+  if (!defaults) {
+    return null;
+  }
+
+  if (typeof defaults.config === "object" && defaults.config !== null) {
+    return defaults.config as Partial<FirebaseOptions>;
+  }
+
+  if (typeof defaults.firebaseConfig === "object" && defaults.firebaseConfig !== null) {
+    return defaults.firebaseConfig as Partial<FirebaseOptions>;
+  }
+
+  const possibleConfig = defaults as Partial<FirebaseOptions>;
+  if (possibleConfig.apiKey || possibleConfig.projectId) {
+    return possibleConfig;
+  }
+
+  return null;
+};
+
+const getFirebaseConfigFromFirebaseConfigEnv = (): MaybeFirebaseConfig => {
+  const config = parseJson<Partial<FirebaseOptions>>(process.env.FIREBASE_CONFIG);
+  if (config && (config.apiKey || config.projectId)) {
+    return config;
+  }
+  return null;
+};
+
+const firebaseDefaultsConfig = getFirebaseConfigFromDefaults();
+const firebaseConfigEnv = getFirebaseConfigFromFirebaseConfigEnv();
+
+const firebaseConfig: Partial<FirebaseOptions> = {
+  apiKey:
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ??
+    process.env.FIREBASE_API_KEY ??
+    firebaseDefaultsConfig?.apiKey ??
+    firebaseConfigEnv?.apiKey,
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ??
+    process.env.FIREBASE_AUTH_DOMAIN ??
+    firebaseDefaultsConfig?.authDomain ??
+    firebaseConfigEnv?.authDomain,
+  projectId:
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
+    process.env.FIREBASE_PROJECT_ID ??
+    firebaseDefaultsConfig?.projectId ??
+    firebaseConfigEnv?.projectId,
+  storageBucket:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ??
+    process.env.FIREBASE_STORAGE_BUCKET ??
+    firebaseDefaultsConfig?.storageBucket ??
+    firebaseConfigEnv?.storageBucket,
+  messagingSenderId:
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ??
+    process.env.FIREBASE_MESSAGING_SENDER_ID ??
+    firebaseDefaultsConfig?.messagingSenderId ??
+    firebaseConfigEnv?.messagingSenderId,
+  appId:
+    process.env.NEXT_PUBLIC_FIREBASE_APP_ID ??
+    process.env.FIREBASE_APP_ID ??
+    firebaseDefaultsConfig?.appId ??
+    firebaseConfigEnv?.appId,
+  measurementId:
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ??
+    process.env.FIREBASE_MEASUREMENT_ID ??
+    firebaseDefaultsConfig?.measurementId ??
+    firebaseConfigEnv?.measurementId,
 };
 
 let app: FirebaseApp | null = null;
@@ -29,10 +113,10 @@ let auth: Auth | null = null;
 let db: Firestore | null = null;
 
 const ensureFirebaseApp = (): FirebaseApp | null => {
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        "Firebase configuration is incomplete. Firebase services will be disabled. Please set up your .env.local file with all the required NEXT_PUBLIC_FIREBASE_... variables.",
+        "Firebase configuration is incomplete. Firebase services will be disabled. Please ensure your Firebase web app configuration is available via NEXT_PUBLIC_FIREBASE_* env vars or the Firebase Studio environment defaults.",
       );
     }
     return null;

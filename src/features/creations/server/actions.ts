@@ -144,14 +144,14 @@ export const toggleCreationPublicStatusAction = async (creationId: string, isPub
   return { success: true };
 };
 
-export const getPublicCreationsAction = async () => {
+export const getPublicCreationsAction = async (limit: number = 20) => {
   ensureFirestore();
-  return getPublicCreations();
+  return getPublicCreations(limit);
 };
 
-export const getTrendingCreationsAction = async () => {
+export const getTrendingCreationsAction = async (limit: number = 20) => {
   ensureFirestore();
-  return getTrendingCreations();
+  return getTrendingCreations(limit);
 };
 
 const toggleLikeSchema = z.object({

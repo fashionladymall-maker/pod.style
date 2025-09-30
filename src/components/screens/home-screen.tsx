@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { FirebaseImage } from '@/components/ui/firebase-image';
 import {
   Plus,
   Mic,
@@ -166,7 +167,7 @@ const CreationGrid = ({
             onClick={() => onSelect(creation, modelIndex)}
             className="aspect-[9/16] bg-secondary rounded-2xl overflow-hidden transform hover:scale-[1.02] transition duration-300 focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border border-transparent hover:border-blue-500"
           >
-            <Image
+            <FirebaseImage
               src={imageUrl}
               alt={altText}
               fill
@@ -192,7 +193,7 @@ const CreationGrid = ({
           onClick={() => onSelect(creation)}
           className="aspect-square bg-secondary rounded-2xl overflow-hidden transform hover:scale-[1.02] transition duration-300 focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary relative border border-transparent hover:border-blue-500"
         >
-          <Image
+          <FirebaseImage
             src={creation.previewPatternUri || creation.patternUri}
             alt={`公共创意 ${creation.id}`}
             fill
@@ -374,7 +375,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                           key={creation.id}
                           className="relative aspect-[9/16] rounded-3xl overflow-hidden border border-white/10 bg-white/5"
                         >
-                          <Image
+                          <FirebaseImage
                             src={preview}
                             alt={creation.prompt}
                             fill

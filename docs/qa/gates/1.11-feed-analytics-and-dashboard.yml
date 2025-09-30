@@ -1,0 +1,39 @@
+schema: 1
+story: '1.11'
+story_title: 'Feed Analytics & Dashboard'
+gate: PASS
+status_reason: 'Analytics story documentation normalized and Ready; dashboard work can start.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-28T02:16:00Z'
+
+top_issues: []
+
+nfr_validation:
+  security:
+    status: NOT_APPLICABLE
+    notes: 'Documentation-only review.'
+  performance:
+    status: NOT_APPLICABLE
+    notes: 'Documentation-only review.'
+  reliability:
+    status: NOT_APPLICABLE
+    notes: 'Documentation-only review.'
+  maintainability:
+    status: PASS
+    notes: 'References consistent; analysts can follow documentation.'
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 1
+  trace:
+    ac_covered: []
+    ac_gaps: [1, 2, 3, 4, 5]
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Ensure dashboard rollout includes alert simulations and access checks.'
+      refs:
+        - docs/stories/1.11.feed-analytics-and-dashboard.md
+waiver:
+  active: false

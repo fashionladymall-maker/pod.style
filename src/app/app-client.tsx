@@ -158,6 +158,18 @@ interface AppClientProps {
 
 const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClientProps) => {
     const { user, authLoading, signOut } = useContext(AuthContext);
+
+    useEffect(() => {
+        if (process.env.NODE_ENV !== 'development') return;
+
+        const disableOverlay = () => {
+            const overlay = (window as typeof window & { __NEXT_REACT_DEV_OVERLAY__?: { setIsEnabled?: (enabled: boolean) => void } }).__NEXT_REACT_DEV_OVERLAY__;
+            overlay?.setIsEnabled?.(false);
+        };
+
+        const intervalId = window.setInterval(disableOverlay, 1000);
+        return () => window.clearInterval(intervalId);
+    }, []);
     const hasActiveUser = !!user;
     const isAuthenticated = !!(user && !user.isAnonymous);
     const [step, setStep] = useState<AppStep>('home');
@@ -243,8 +255,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
           fetchCreations(user.uid),
           fetchOrders(user.uid)
         ]).then(() => {
-           // Only navigate away from login screen if user is no longer anonymous
-           if (step === 'login') {
+           // Only navigate away from login screen if user successfully upgraded from anonymous
+           // Don't navigate if user is still anonymous or if not on login screen
+           if (step === 'login' && !user.isAnonymous) {
              setStep('home');
            }
         });
@@ -332,12 +345,12 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
         try {
             setLoadingText('AI 正在创作图案...');
-            const styleValue = selectedStyle.split(' ')[0];
+            const styleValue = selectedStyle.split(' ')[0] || '无';
             const newCreation = await generatePatternAction({
                 userId: user.uid,
                 prompt,
-                inspirationImage: uploadedImage ?? undefined,
-                style: styleValue !== '无' ? styleValue : undefined,
+                referenceImage: uploadedImage ?? undefined,
+                style: styleValue,
             });
 
             setCreations(prev => [newCreation, ...prev]);
@@ -565,8 +578,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         logCreationInteractionAction({
           userId,
           creationId,
-          action: isLiked ? 'unlike' : 'like',
+          action: 'like',
           weight: isLiked ? -2 : 2,
+          metadata: { toggledOff: isLiked },
         });
         return result;
     }, []);
@@ -576,8 +590,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
         logCreationInteractionAction({
           userId,
           creationId,
-          action: isFavorited ? 'unfavorite' : 'favorite',
+          action: 'favorite',
           weight: isFavorited ? -3 : 3,
+          metadata: { toggledOff: isFavorited },
         });
         return result;
     }, []);
@@ -728,6 +743,9 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     }
     
     const AppHeader = () => {
+        if (step === 'home') {
+            return null;
+        }
         const title = 'POD.STYLE';
         let showBack = false;
         const canShowProfile = !!user;

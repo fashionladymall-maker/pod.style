@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
+import { FirebaseImage } from '@/components/ui/firebase-image';
 import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,10 +27,10 @@ const PatternPreviewScreen = ({
     >
       {generatedPattern ? (
           <div className="absolute inset-0 w-full h-full animate-scale-in">
-            <Image 
-              src={generatedPattern} 
-              alt="生成的创意图案" 
-              fill 
+            <FirebaseImage
+              src={generatedPattern}
+              alt="生成的创意图案"
+              fill
               className="object-cover"
               placeholder="blur"
               blurDataURL={IMAGE_PLACEHOLDER}

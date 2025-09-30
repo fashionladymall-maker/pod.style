@@ -172,17 +172,23 @@ service cloud.firestore {
     }
 
     match /creations/{creationId} {
+      // Allow read for signed-in users (including anonymous) if public or owned by user
       allow read: if isSignedIn() && (resource.data.isPublic == true || isOwner(resource.data.userId));
 
-      allow create: if isOwner(request.resource.data.userId)
+      // Allow create for any signed-in user (including anonymous)
+      allow create: if isSignedIn()
+        && isOwner(request.resource.data.userId)
         && validCreation(request.resource.data);
 
-      allow update: if isOwner(resource.data.userId)
+      // Allow update for owner (including anonymous)
+      allow update: if isSignedIn()
+        && isOwner(resource.data.userId)
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.createdAt == resource.data.createdAt
         && validCreation(request.resource.data);
 
-      allow delete: if isOwner(resource.data.userId);
+      // Allow delete for owner (including anonymous)
+      allow delete: if isSignedIn() && isOwner(resource.data.userId);
 
       match /comments/{commentId} {
         function parentCreationDoc() {

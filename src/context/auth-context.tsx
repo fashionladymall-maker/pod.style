@@ -121,21 +121,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             throw new Error("Auth not ready.");
         }
 
-        const isUpgrading = firebaseAuth.currentUser?.isAnonymous;
-        const anonymousUid = isUpgrading ? firebaseAuth.currentUser?.uid ?? null : null;
+        const currentUser = firebaseAuth.currentUser;
+        const isUpgrading = currentUser?.isAnonymous ?? false;
+        const anonymousUid = isUpgrading ? currentUser?.uid ?? null : null;
 
         try {
+            // Sign in with email and password
             const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
             const permanentUid = result.user.uid;
 
+            // If user was anonymous and now signed in to a different account, migrate data
             if (isUpgrading && anonymousUid && anonymousUid !== permanentUid) {
+                console.log('Migrating anonymous data from', anonymousUid, 'to', permanentUid);
                 toast({ title: '登录成功', description: '正在合并您的匿名创作历史...' });
+
                 const migrationSucceeded = await migrateAndHandleResult(anonymousUid, permanentUid);
+
                 if (migrationSucceeded) {
-                    toast({ title: `欢迎回来, ${result.user.displayName || result.user.email}!`, description: '所有历史创作都已保留。' });
+                    toast({
+                        title: `欢迎回来, ${result.user.displayName || result.user.email}!`,
+                        description: '所有历史创作都已保留。'
+                    });
+                } else {
+                    toast({
+                        title: `欢迎回来, ${result.user.displayName || result.user.email}!`,
+                        description: '登录成功，但部分数据合并失败。'
+                    });
                 }
             } else {
-                 toast({ title: `登录成功, ${result.user.displayName || result.user.email}!` });
+                // Normal login without migration
+                toast({ title: `欢迎回来, ${result.user.displayName || result.user.email}!` });
             }
         } catch (error) {
             console.error("Sign-in or migration error:", error);

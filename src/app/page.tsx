@@ -1,33 +1,28 @@
-
-import { getPublicCreationsAction, getTrendingCreationsAction } from '@/server/actions';
-import AppClient from './app-client';
-import type { Creation } from '@/lib/types';
 import { AuthProvider } from '@/context/auth-context';
+import TikTokClient from '@/app/tiktok-client';
+import { getPublicCreationsAction, getTrendingCreationsAction } from '@/server/actions';
+import type { Creation } from '@/lib/types';
 
-// This is now a React Server Component (RSC)
+// TikTok风格的主页面（已替换原版）
 export default async function Page() {
-    
-  // Fetch initial public data on the server.
-  // This makes the initial load much faster as the data is part of the server-rendered HTML.
+  // 服务端获取初始数据
   let publicCreations: Creation[] = [];
   let trendingCreations: Creation[] = [];
 
   try {
-      [publicCreations, trendingCreations] = await Promise.all([
-          getPublicCreationsAction(),
-          getTrendingCreationsAction()
-      ]);
+    [publicCreations, trendingCreations] = await Promise.all([
+      getPublicCreationsAction(20), // 只加载20个
+      getTrendingCreationsAction(20),
+    ]);
   } catch (error) {
-      console.error("Failed to fetch initial server data:", error);
-      // On error, we will render with empty arrays to prevent crashing the page.
+    console.error("Failed to fetch initial server data:", error);
   }
-
 
   return (
     <AuthProvider>
-      <AppClient 
-        initialPublicCreations={publicCreations} 
-        initialTrendingCreations={trendingCreations} 
+      <TikTokClient
+        initialPublicCreations={publicCreations}
+        initialTrendingCreations={trendingCreations}
       />
     </AuthProvider>
   );

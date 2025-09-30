@@ -21,3 +21,6 @@ functions/node_modules
 .DS_Store
 key.json
 key.json
+# BMAD (local only)
+.bmad-core/
+.bmad-*/

@@ -197,7 +197,7 @@ export const generatePattern = async (input: GeneratePatternInput): Promise<Crea
   const payload: GenerateTShirtPatternWithStyleInput = {
     prompt: generationPrompt,
     style,
-    referenceImage: referenceImage ?? undefined,
+    inspirationImage: referenceImage ?? undefined,
     model: userModel.modelName,
   };
 
@@ -219,7 +219,8 @@ export const generatePattern = async (input: GeneratePatternInput): Promise<Crea
     style,
     summary: summary?.summary,
     patternUri: publicUrl,
-    previewPatternUri: patternResult.generatedImage,
+    // Use the public URL instead of Data URI to avoid Firestore size limit
+    previewPatternUri: publicUrl,
     models: [],
     createdAt: nowTimestamp(),
     isPublic: false,
@@ -260,9 +261,12 @@ export const generateModel = async (
     throw new Error('Creation not found');
   }
 
+  const modelPublicUrl = await uploadDataUriToStorage(result.modelImageUri, input.userId);
+
   const newModel: Model = {
-    uri: await uploadDataUriToStorage(result.modelImageUri, input.userId),
-    previewUri: result.modelImageUri,
+    uri: modelPublicUrl,
+    // Use the public URL instead of Data URI to avoid Firestore size limit
+    previewUri: modelPublicUrl,
     category: input.category,
     isPublic: true,
   };
@@ -420,8 +424,8 @@ export const logInteraction = async ({
   );
 };
 
-export const getPersonalizedFeeds = async (userId: string | null) => {
-  const creations = await listPublicCreations();
+export const getPersonalizedFeeds = async (userId: string | null, limit: number = 20) => {
+  const creations = await listPublicCreations(limit);
 
   if (!creations.length) {
     return {
@@ -471,13 +475,13 @@ export const toggleCreationPublicStatus = async (creationId: string, isPublic: b
   return updateCreation(creationId, { isPublic } as Partial<CreationData>);
 };
 
-export const getPublicCreations = async (): Promise<Creation[]> => {
-  const creations = await listPublicCreations();
+export const getPublicCreations = async (limit: number = 20): Promise<Creation[]> => {
+  const creations = await listPublicCreations(limit);
   return creations;
 };
 
-export const getTrendingCreations = async (): Promise<Creation[]> => {
-  const creations = await listPublicCreations();
+export const getTrendingCreations = async (limit: number = 20): Promise<Creation[]> => {
+  const creations = await listPublicCreations(limit);
   return rankCreations(creations, null, 'trending');
 };
 

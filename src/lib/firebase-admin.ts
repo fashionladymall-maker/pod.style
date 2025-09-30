@@ -118,7 +118,19 @@ function getInitializedApp(): admin.app.App {
 
 export const getDb = (): admin.firestore.Firestore => {
   if (!firestoreInstance) {
-    firestoreInstance = getFirestore(getInitializedApp());
+    const app = getInitializedApp();
+    firestoreInstance = getFirestore(app);
+
+    // Configure Firestore settings before first use
+    try {
+      firestoreInstance.settings({
+        ignoreUndefinedProperties: true,
+        preferRest: false,
+      });
+    } catch (error) {
+      // Settings already configured, ignore error
+      console.warn('Firestore settings already configured:', error);
+    }
   }
   return firestoreInstance;
 };

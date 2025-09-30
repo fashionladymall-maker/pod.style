@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
+import { FirebaseImage } from '@/components/ui/firebase-image';
 import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,11 +38,11 @@ const MockupScreen = ({
     >
       <div className="flex-grow relative">
         {modelImage ? (
-            <Image 
-              src={modelImage} 
-              alt="商品效果图" 
-              fill 
-              className="object-cover animate-fade-in" 
+            <FirebaseImage
+              src={modelImage}
+              alt="商品效果图"
+              fill
+              className="object-cover animate-fade-in"
               priority
               placeholder="blur"
               blurDataURL={IMAGE_PLACEHOLDER}

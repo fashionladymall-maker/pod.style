@@ -154,14 +154,16 @@ const ViewerScreen: React.FC<ViewerScreenProps> = ({
 
   useEffect(() => {
     if (!viewerState.isOpen || !currentCreation || !user?.uid || !hasActiveUser) return;
-    const action = isPatternView ? 'view_creation' : 'view_model';
     const modelUri = !isPatternView && currentModel ? currentModel.uri : undefined;
     logCreationInteractionAction({
       userId: user.uid,
       creationId: currentCreation.id,
       modelUri,
-      action,
+      action: 'view',
       weight: isPatternView ? 0.5 : 1,
+      metadata: {
+        viewType: isPatternView ? 'pattern' : 'model',
+      },
     });
   }, [viewerState.isOpen, currentCreation, user?.uid, isPatternView, currentModel, hasActiveUser]);
 

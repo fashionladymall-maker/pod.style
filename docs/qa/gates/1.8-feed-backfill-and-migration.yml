@@ -1,0 +1,39 @@
+schema: 1
+story: '1.8'
+story_title: 'Feed Backfill & Migration'
+gate: PASS
+status_reason: 'Backfill story normalized and Ready; tooling can be implemented.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-28T02:10:00Z'
+
+top_issues: []
+
+nfr_validation:
+  security:
+    status: NOT_APPLICABLE
+    notes: 'Documentation-only review.'
+  performance:
+    status: NOT_APPLICABLE
+    notes: 'Documentation-only review.'
+  reliability:
+    status: NOT_APPLICABLE
+    notes: 'Documentation-only review.'
+  maintainability:
+    status: PASS
+    notes: 'Documentation now consistent for operations team.'
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 1
+  trace:
+    ac_covered: []
+    ac_gaps: [1, 2, 3, 4, 5]
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Capture backfill completion metrics when implementing.'
+      refs:
+        - docs/stories/1.8.feed-backfill-and-migration.md
+waiver:
+  active: false

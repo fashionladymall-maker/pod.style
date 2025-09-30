@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
+import { FirebaseImage } from '@/components/ui/firebase-image';
 import { IMAGE_PLACEHOLDER } from '@/lib/image-placeholders';
 import { LogOut, User, Trash2, Loader2, AlertCircle, Globe, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -274,7 +274,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                         }}
                                         className={`aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary bg-secondary ${isSelected(creationKey(creation.id)) ? 'ring-2 ring-primary' : ''}`}
                                     >
-                                       <Image
+                                       <FirebaseImage
                                             src={creation.previewPatternUri || creation.patternUri}
                                            alt={`创意图案 ${creation.id}`}
                                            width={150}
@@ -344,7 +344,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                                           }}
                                           className={`aspect-square w-full overflow-hidden rounded-lg transform transition-transform focus:outline-none focus:ring-2 ring-offset-2 ring-offset-background ring-primary bg-secondary ${isSelected(modelKey(creation.id, model.uri)) ? 'ring-2 ring-primary' : ''}`}
                                       >
-                                        <Image
+                                        <FirebaseImage
                                              src={model.previewUri || model.uri}
                                             alt={`商品效果图 ${model.category}`}
                                             width={150}
@@ -393,7 +393,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         <div className="space-y-4">
                             {orders.map(order => (
                                 <div key={order.id} className="border rounded-lg p-3 flex gap-4 text-sm">
-                                    <Image
+                                    <FirebaseImage
                                       src={order.modelUri}
                                       alt={order.category}
                                       width={80}
