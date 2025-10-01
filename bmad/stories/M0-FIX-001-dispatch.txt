@@ -1,0 +1,25 @@
+角色：你是开发执行者。
+仓库：/Users/mike/pod.style
+故事：bmad/stories/M0-FIX-001-typescript-errors.md
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+DoD：构建+测试通过；文档更新；PR -> feature/M0-FIX-001；CI 全绿；性能预算达标。
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+
+任务：修复 18 个 TypeScript 类型错误
+
+当前错误：
+1. src/components/omg/follow-list-modal.tsx (3 个)
+2. src/components/omg/hashtag-input.tsx (1 个)
+3. src/components/omg/inbox-screen.tsx (4 个)
+4. src/components/omg/omg-app.tsx (7 个)
+5. src/components/omg/search-screen.tsx (2 个)
+6. src/features/feed/__tests__/use-feed-refresh.test.tsx (1 个)
+
+验收标准：
+- npm run typecheck 通过（0 错误）
+- npm run test 通过
+- 不破坏现有功能
+
+请开始执行。
+

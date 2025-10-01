@@ -1,0 +1,9 @@
+max_hours: 12
+interval_minutes: 8
+repo: "bmad-code-org/pod.style"
+branch_prefix: "feature"
+stories:
+  - id: "M0-FIX-002"
+    path: "bmad/stories/M0-FIX-002-eslint-config.md"
+  - id: "M1-FEED-001"
+    path: "bmad/stories/M1-FEED-001-omg-feed-mvp.md"

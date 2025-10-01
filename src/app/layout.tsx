@@ -1,12 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
-});
 
 const APP_NAME = "POD.STYLE";
 const APP_DEFAULT_TITLE = "POD.STYLE - 放飞思想，随心定制";
@@ -71,8 +65,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable}`}>
-      <body className="flex items-center justify-center bg-zinc-900">
+    <html lang="en">
+      <body className="flex items-center justify-center bg-zinc-900 font-sans">
         {children}
         <Toaster />
       </body>
