@@ -393,15 +393,28 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         <div className="space-y-4">
                             {orders.map(order => (
                                 <div key={order.id} className="border rounded-lg p-3 flex gap-4 text-sm">
-                                    <FirebaseImage
-                                      src={order.modelUri}
-                                      alt={order.category}
-                                      width={80}
-                                      height={80}
-                                      className="rounded-md aspect-square object-contain bg-black/5"
-                                      placeholder="blur"
-                                      blurDataURL={IMAGE_PLACEHOLDER}
-                                    />
+                                    {(() => {
+                                      const previewUri = order.modelUri ?? order.items?.[0]?.modelUri ?? '';
+                                      if (!previewUri) {
+                                        return (
+                                          <div className="rounded-md aspect-square w-20 h-20 bg-black/5 flex items-center justify-center text-muted-foreground">
+                                            无图
+                                          </div>
+                                        );
+                                      }
+
+                                      return (
+                                        <FirebaseImage
+                                          src={previewUri}
+                                          alt={order.category}
+                                          width={80}
+                                          height={80}
+                                          className="rounded-md aspect-square object-contain bg-black/5"
+                                          placeholder="blur"
+                                          blurDataURL={IMAGE_PLACEHOLDER}
+                                        />
+                                      );
+                                    })()}
                                     <div className="flex flex-col flex-grow">
                                         <span className="font-semibold">{order.category.split(" ")[0]}</span>
                                         <span className="text-muted-foreground">x{order.quantity}</span>

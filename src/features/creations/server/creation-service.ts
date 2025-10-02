@@ -10,7 +10,7 @@ import { generateModelMockup, type GenerateModelMockupInput } from '@/ai/flows/g
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
 import type {
   LegacyComment,
-  CommentData,
+  LegacyCommentData,
   Creation,
   CreationData,
   Model,
@@ -162,17 +162,20 @@ export interface ToggleFavoriteInput {
 
 export interface CommentInput {
   creationId: string;
-  commentData: Omit<CommentData, 'createdAt'>;
+  commentData: Omit<LegacyCommentData, 'createdAt'>;
 }
 
 const docToComment = (doc: DocumentSnapshot): LegacyComment => {
-  const data = doc.data() as CommentData;
+  const data = doc.data() as LegacyCommentData & { text?: string };
   const createdAt = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
+  const content = data.content ?? data.text ?? '';
+
   return {
     id: doc.id,
     userId: data.userId,
     userName: data.userName,
     userPhotoURL: data.userPhotoURL,
+    content,
     text: data.text,
     createdAt,
   };
@@ -618,7 +621,7 @@ export const incrementMetric = async (creationId: string, field: 'shareCount' | 
 
 export const addComment = async ({ creationId, commentData }: CommentInput): Promise<LegacyComment> => {
   const commentsCollection = getCollectionRef().doc(creationId).collection('comments');
-  const newComment: CommentData = {
+  const newComment: LegacyCommentData = {
     ...commentData,
     createdAt: nowTimestamp(),
   };

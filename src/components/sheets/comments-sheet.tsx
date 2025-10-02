@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { addCommentAction, getCommentsAction } from '@/server/actions';
-import type { Creation, Comment, FirebaseUser } from '@/lib/types';
+import type { Creation, LegacyComment, FirebaseUser } from '@/lib/types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,11 +19,11 @@ interface CommentsSheetProps {
     onOpenChange: (isOpen: boolean) => void;
     creation: Creation;
     user: FirebaseUser | null;
-    onCommentAdded: (comment: Comment) => void;
+    onCommentAdded: (comment: LegacyComment) => void;
 }
 
 const CommentsSheet = ({ isOpen, onOpenChange, creation, user, onCommentAdded }: CommentsSheetProps) => {
-    const [comments, setComments] = useState<Comment[]>([]);
+    const [comments, setComments] = useState<LegacyComment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +60,7 @@ const CommentsSheet = ({ isOpen, onOpenChange, creation, user, onCommentAdded }:
                 userId: user.uid,
                 userName: user.displayName || '匿名用户',
                 userPhotoURL: user.photoURL || '',
-                text: newComment.trim(),
+                content: newComment.trim(),
             };
             const addedComment = await addCommentAction(creation.id, commentData);
             setComments(prev => [addedComment, ...prev]);
@@ -102,12 +102,12 @@ const CommentsSheet = ({ isOpen, onOpenChange, creation, user, onCommentAdded }:
                                 comments.map(comment => (
                                     <div key={comment.id} className="flex gap-3 items-start">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src={comment.userPhotoURL} />
+                                            <AvatarImage src={comment.userPhotoURL || ''} />
                                             <AvatarFallback><UserIcon size={16} /></AvatarFallback>
                                         </Avatar>
                                         <div className="flex-grow">
                                             <p className="text-xs text-muted-foreground">{comment.userName}</p>
-                                            <p className="text-sm">{comment.text}</p>
+                                            <p className="text-sm">{comment.content ?? comment.text ?? ''}</p>
                                             <p className="text-xs text-muted-foreground mt-1">
                                                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: zhCN })}
                                             </p>

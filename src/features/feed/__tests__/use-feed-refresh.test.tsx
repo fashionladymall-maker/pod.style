@@ -7,7 +7,7 @@ const flushMicrotasks = async () => {
 };
 
 describe('createFeedRefreshScheduler', () => {
-  let consoleErrorSpy: jest.SpyInstance;
+  let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
   beforeEach(() => {
     jest.useFakeTimers();
