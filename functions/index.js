@@ -203,3 +203,9 @@ exports.reprocessFeedCache = functions.https.onRequest(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+const { createPaymentIntentHandler } = require('./lib/payment/create-intent');
+const { stripeWebhookHandler } = require('./lib/payment/webhook');
+
+exports.createPaymentIntent = createPaymentIntentHandler;
+exports.handleStripeWebhook = stripeWebhookHandler;
