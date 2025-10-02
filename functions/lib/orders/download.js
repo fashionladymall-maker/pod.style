@@ -1,0 +1,166 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.downloadOrderAsset = void 0;
+const admin = __importStar(require("firebase-admin"));
+const functions = __importStar(require("firebase-functions"));
+const zod_1 = require("zod");
+const db = admin.firestore();
+const storage = admin.storage();
+const querySchema = zod_1.z.object({
+    orderId: zod_1.z.string().min(1),
+    lineItemId: zod_1.z.string().min(1),
+});
+const parseToken = (authorization) => {
+    if (!authorization) {
+        return null;
+    }
+    const value = Array.isArray(authorization) ? authorization[0] : authorization;
+    if (!value) {
+        return null;
+    }
+    const parts = value.split(' ');
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+        return null;
+    }
+    return parts[1];
+};
+const parseGsUrl = (gsUrl) => {
+    if (gsUrl.startsWith('gs://')) {
+        const [, bucket, ...pathParts] = gsUrl.split('/');
+        return { bucket, path: pathParts.join('/') };
+    }
+    const storageHost = 'https://storage.googleapis.com/';
+    if (gsUrl.startsWith(storageHost)) {
+        const [, bucket, ...pathParts] = gsUrl.replace(storageHost, '').split('/');
+        return { bucket, path: pathParts.join('/') };
+    }
+    throw new Error('print asset URL must be a gs:// or storage.googleapis.com path');
+};
+exports.downloadOrderAsset = functions.https.onRequest(async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+    if (req.method !== 'GET') {
+        res.status(405).json({ error: 'method_not_allowed' });
+        return;
+    }
+    const rawOrderId = req.query.orderId;
+    const rawLineItemId = req.query.lineItemId;
+    const parseResult = querySchema.safeParse({
+        orderId: typeof rawOrderId === 'string' ? rawOrderId : undefined,
+        lineItemId: typeof rawLineItemId === 'string' ? rawLineItemId : undefined,
+    });
+    if (!parseResult.success) {
+        res.status(400).json({ error: 'invalid_params', details: parseResult.error.flatten() });
+        return;
+    }
+    const token = parseToken(req.headers.authorization);
+    if (!token) {
+        res.status(401).json({ error: 'unauthenticated' });
+        return;
+    }
+    let uid;
+    try {
+        const decoded = await admin.auth().verifyIdToken(token);
+        uid = decoded.uid;
+    }
+    catch (error) {
+        functions.logger.warn('orders.download.invalid_token', { error: error.message });
+        res.status(401).json({ error: 'invalid_token' });
+        return;
+    }
+    try {
+        const { orderId, lineItemId } = parseResult.data;
+        const orderRef = db.collection('orders').doc(orderId);
+        const orderSnapshot = await orderRef.get();
+        if (!orderSnapshot.exists) {
+            res.status(404).json({ error: 'order_not_found' });
+            return;
+        }
+        const orderData = orderSnapshot.data();
+        if (!orderData) {
+            res.status(404).json({ error: 'order_not_found' });
+            return;
+        }
+        const ownerUid = orderData.user ?? null;
+        if (!ownerUid || ownerUid !== uid) {
+            res.status(403).json({ error: 'forbidden' });
+            return;
+        }
+        const itemSnapshot = await orderRef.collection('items').doc(lineItemId).get();
+        if (!itemSnapshot.exists) {
+            res.status(404).json({ error: 'line_item_not_found' });
+            return;
+        }
+        const itemData = itemSnapshot.data();
+        const assetUrl = itemData?.printAsset?.url;
+        if (!assetUrl) {
+            res.status(409).json({ error: 'print_asset_unavailable' });
+            return;
+        }
+        const { bucket, path } = parseGsUrl(assetUrl);
+        const expiresAt = Date.now() + 60 * 60 * 1000;
+        const [signedUrl] = await storage
+            .bucket(bucket)
+            .file(path)
+            .getSignedUrl({
+            version: 'v4',
+            action: 'read',
+            expires: expiresAt,
+        });
+        functions.logger.info('orders.download.signed_url_issued', {
+            orderId,
+            lineItemId,
+            bucket,
+            path,
+            uid,
+        });
+        res.status(200).json({
+            url: signedUrl,
+            expiresAt: new Date(expiresAt).toISOString(),
+        });
+    }
+    catch (error) {
+        functions.logger.error('orders.download.failed', {
+            error: error.message,
+        });
+        res.status(500).json({ error: 'internal_error' });
+    }
+});

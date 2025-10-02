@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
+import { randomUUID } from 'node:crypto';
+import { prepareRenderTask, enqueueRenderTask } from '@/features/orders/server/order-rendering';
 import { getDb } from '@/server/firebase/admin';
 import { logger } from '@/utils/logger';
 
@@ -20,6 +22,7 @@ const requestSchema = z.object({
     .array(
       z.object({
         sku: z.string().min(1),
+        designId: z.string().min(1),
         name: z.string().optional(),
         variants: z.record(z.string().min(1)),
         quantity: z.number().int().positive(),
@@ -61,6 +64,13 @@ export async function POST(request: Request) {
       },
       createdAt: now,
       updatedAt: now,
+      statusHistory: [
+        {
+          status: 'paid',
+          occurredAt: now,
+          source: 'system',
+        },
+      ],
       metadata: {
         shippingMethod: payload.shipping.method,
       },
@@ -70,6 +80,66 @@ export async function POST(request: Request) {
       orderId: docRef.id,
       paymentIntentId: payload.paymentIntentId,
     });
+
+    for (const item of payload.items) {
+      const lineItemId = randomUUID();
+      const lineItemRef = docRef.collection('items').doc(lineItemId);
+
+      await lineItemRef.set({
+        lineItemId,
+        sku: item.sku,
+        designId: item.designId,
+        name: item.name ?? null,
+        variants: item.variants,
+        quantity: item.quantity,
+        price: item.price,
+        ownerUid: payload.userId ?? 'anonymous',
+        renderStatus: 'pending',
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      try {
+        const renderConfig = await prepareRenderTask({
+          designId: item.designId,
+          sku: item.sku,
+          orderId: docRef.id,
+          lineItemId,
+        });
+
+        await lineItemRef.set(
+          {
+            renderStatus: 'queued',
+            renderSpec: renderConfig.printSpec,
+            renderSafeArea: renderConfig.safeArea,
+            renderSource: renderConfig.source,
+            designOwner: renderConfig.designOwner ?? null,
+            designChecksum: renderConfig.designChecksum ?? null,
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true },
+        );
+
+        await enqueueRenderTask(renderConfig.payload);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'render_task_failed';
+        logger.error('orders.render.enqueue_failed', {
+          orderId: docRef.id,
+          lineItemId,
+          designId: item.designId,
+          error: message,
+        });
+
+        await lineItemRef.set(
+          {
+            renderStatus: 'failed',
+            renderError: message,
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true },
+        );
+      }
+    }
 
     return NextResponse.json({ orderId: docRef.id });
   } catch (error) {

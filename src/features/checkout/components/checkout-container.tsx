@@ -46,6 +46,12 @@ const CheckoutWorkflow = () => {
     setIsProcessing(true);
     setPaymentError(null);
 
+    const missingDesign = items.find((item) => !item.designId);
+    if (missingDesign) {
+      setPaymentError('所选商品缺少设计信息，无法生成打印文件。请重新选择或联系支持。');
+      return;
+    }
+
     try {
       const itemSubtotal = calculateItemSubtotal(items);
       const shippingCost = calculateShippingTotals(items, values.method);
@@ -124,6 +130,7 @@ const CheckoutWorkflow = () => {
           },
           items: items.map((item) => ({
             sku: item.sku,
+            designId: item.designId!,
             name: item.name,
             variants: item.variants,
             quantity: item.quantity,
