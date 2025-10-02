@@ -52,6 +52,6 @@ risk:
 - [x] `npm run typecheck` 通过（0 错误）
 - [x] `npm run test` 通过（关键路径）
 - [x] 创建分支 `feature/M4-COMPLIANCE-001`
-- [ ] 提交代码并推送
+- [x] 提交代码并推送
 - [x] 更新 `CHANGELOG.md`
 - [x] 更新 Story 文件标记完成
