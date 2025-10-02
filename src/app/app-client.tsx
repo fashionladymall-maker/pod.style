@@ -1,7 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useContext, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useMemo, useTransition, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import {
     generatePatternAction,
     generateModelAction,
@@ -20,6 +21,8 @@ import {
     incrementShareCountAction,
     incrementRemakeCountAction
 } from '@/server/actions';
+import { moderatePromptAction } from '@/features/prompt/server';
+import type { PromptModerationResponse } from '@/features/prompt/types';
 
 import { useToast } from "@/hooks/use-toast";
 import type { OrderDetails, ShippingInfo, PaymentSummary, Creation, Order } from '@/lib/types';
@@ -28,11 +31,9 @@ import { AuthContext } from '@/context/auth-context';
 
 import HomeScreen from '@/components/screens/home-screen';
 import LoadingScreen from '@/components/screens/loading-screen';
-import ShippingScreen from '@/components/screens/shipping-screen';
-import ConfirmationScreen from '@/components/screens/confirmation-screen';
-import ProfileScreen from '@/components/screens/profile-screen';
-import LoginScreen from '@/components/screens/login-screen';
-import ViewerScreen from '@/components/screens/viewer-screen';
+import { useServiceWorker } from '@/hooks/use-service-worker';
+import { usePerformanceMonitoring } from '@/hooks/use-performance-monitoring';
+import { logCustomPerformanceMetric } from '@/lib/performance/web-vitals';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -127,6 +128,30 @@ type PaymentFormState = {
   cvv: string;
 };
 
+const buildModerationDescription = (result: PromptModerationResponse) => {
+  const reasons: string[] = [];
+
+  if (result.text && result.text.matches.length > 0) {
+    const labels = result.text.matches.map((match) => match.label).slice(0, 3);
+    reasons.push(`文本触发规则：${labels.join('、')}`);
+  }
+
+  if (result.image && result.image.flags.length > 0) {
+    const categories = result.image.flags.map((flag) => flag.category).slice(0, 3);
+    reasons.push(`图像检测标记：${categories.join('、')}`);
+  }
+
+  if (result.status === 'warn' && reasons.length === 0) {
+    reasons.push('内容需要人工复审。');
+  }
+
+  if (result.status === 'reject' && reasons.length === 0) {
+    reasons.push('检测到平台禁止的内容。');
+  }
+
+  return reasons.join('；') || '内容未通过审核，请调整创意后重试。';
+};
+
 const detectCardBrand = (cardNumber: string) => {
   const normalized = cardNumber.replace(/\s+/g, '');
   if (normalized.startsWith('4')) return 'visa';
@@ -156,8 +181,42 @@ interface AppClientProps {
 }
 
 
+const withLoadingFallback = (text: string) => {
+  const Fallback = () => <LoadingScreen text={text} />;
+  Fallback.displayName = `LoadingFallback(${text})`;
+  return Fallback;
+};
+
+const ShippingScreen = dynamic(() => import('@/components/screens/shipping-screen'), {
+  loading: withLoadingFallback('准备结算体验...'),
+  ssr: false,
+});
+
+const ConfirmationScreen = dynamic(() => import('@/components/screens/confirmation-screen'), {
+  loading: withLoadingFallback('准备订单确认...'),
+  ssr: false,
+});
+
+const ProfileScreen = dynamic(() => import('@/components/screens/profile-screen'), {
+  loading: withLoadingFallback('载入个人主页...'),
+  ssr: false,
+});
+
+const LoginScreen = dynamic(() => import('@/components/screens/login-screen'), {
+  loading: withLoadingFallback('加载登录界面...'),
+  ssr: false,
+});
+
+const ViewerScreen = dynamic(() => import('@/components/screens/viewer-screen'), {
+  loading: withLoadingFallback('加载作品详情...'),
+  ssr: false,
+});
+
+
 const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClientProps) => {
     const { user, authLoading, signOut } = useContext(AuthContext);
+    useServiceWorker();
+    usePerformanceMonitoring();
 
     useEffect(() => {
         if (process.env.NODE_ENV !== 'development') return;
@@ -169,6 +228,19 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
 
         const intervalId = window.setInterval(disableOverlay, 1000);
         return () => window.clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        if (typeof performance === 'undefined') {
+            return;
+        }
+        const navigationEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+        if (navigationEntry) {
+            const hydrationTime = navigationEntry.domContentLoadedEventEnd - navigationEntry.startTime;
+            logCustomPerformanceMetric('app_hydration_complete', hydrationTime, {
+                path: window.location.pathname,
+            });
+        }
     }, []);
     const hasActiveUser = !!user;
     const isAuthenticated = !!(user && !user.isAnonymous);
@@ -192,6 +264,37 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
     const [selectedStyle, setSelectedStyle] = useState(artStyles[0]);
     const [lastOrderedCategory, setLastOrderedCategory] = useState('T恤');
     const { toast } = useToast();
+    const feedMetricsLoggedRef = useRef(false);
+
+    useEffect(() => {
+        const prefetchTimer = window.setTimeout(() => {
+            void Promise.all([
+                import('@/components/screens/profile-screen'),
+                import('@/components/screens/login-screen'),
+                import('@/components/screens/shipping-screen'),
+                import('@/components/screens/confirmation-screen'),
+                import('@/components/screens/viewer-screen'),
+            ]);
+        }, 600);
+
+        return () => window.clearTimeout(prefetchTimer);
+    }, []);
+
+    useEffect(() => {
+        if (feedMetricsLoggedRef.current) {
+            return;
+        }
+        if (!publicCreations.length && !trendingCreations.length) {
+            return;
+        }
+        feedMetricsLoggedRef.current = true;
+        if (typeof performance !== 'undefined') {
+            logCustomPerformanceMetric('initial_feed_ready', performance.now(), {
+                publicCount: publicCreations.length,
+                trendingCount: trendingCreations.length,
+            });
+        }
+    }, [publicCreations.length, trendingCreations.length]);
 
     const [viewerState, setViewerState] = useState<ViewerState>({
       isOpen: false,
@@ -340,10 +443,39 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             return;
         }
         setIsLoading(true);
-        setLoadingText('正在生成创意图案...');
         setStep('generating');
 
         try {
+            setLoadingText('正在执行内容合规检查...');
+            const moderation = await moderatePromptAction({
+              userId: user.uid,
+              text: prompt || undefined,
+              imageBase64: uploadedImage ?? undefined,
+              context: 'pattern-generation',
+              source: 'preview',
+              metadata: {
+                stage: 'client_precheck',
+              },
+            });
+
+            if (moderation.status === 'reject') {
+              toast({
+                variant: 'destructive',
+                title: '内容未通过审核',
+                description: buildModerationDescription(moderation),
+              });
+              setStep('home');
+              return;
+            }
+
+            if (moderation.status === 'warn') {
+              toast({
+                variant: 'default',
+                title: '内容需人工复审',
+                description: buildModerationDescription(moderation),
+              });
+            }
+
             setLoadingText('AI 正在创作图案...');
             const styleValue = selectedStyle.split(' ')[0] || '无';
             const newCreation = await generatePatternAction({
@@ -358,7 +490,10 @@ const AppClient = ({ initialPublicCreations, initialTrendingCreations }: AppClie
             setStep('home');
         } catch (err) {
             console.error(err);
-            const message = err instanceof Error ? err.message : '图案生成过程中发生网络错误。';
+            let message = err instanceof Error ? err.message : '图案生成过程中发生网络错误。';
+            if (err instanceof Error && /Moderation request failed|moderation_timeout/.test(err.message)) {
+              message = '内容审核服务暂时不可用，请稍后再试。';
+            }
             toast({
               variant: 'destructive',
               title: '图案生成失败',

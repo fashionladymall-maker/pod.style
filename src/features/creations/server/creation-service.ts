@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { v4 as uuidv4 } from 'uuid';
+import { revalidateTag, unstable_cache } from 'next/cache';
 import {
   generateTShirtPatternWithStyle,
   type GenerateTShirtPatternWithStyleInput,
@@ -8,7 +9,7 @@ import {
 import { generateModelMockup, type GenerateModelMockupInput } from '@/ai/flows/generate-model-mockup';
 import { summarizePrompt } from '@/ai/flows/summarize-prompt';
 import type {
-  Comment,
+  LegacyComment,
   CommentData,
   Creation,
   CreationData,
@@ -20,6 +21,7 @@ import {
   ensureUserFineTunedModel,
   markUserFineTunedModelAsUsed,
 } from '@/features/user-models/server/user-model-service';
+import { runPromptModeration } from '@/features/prompt/server/moderation-service';
 import {
   createCreation,
   deleteCreation as deleteCreationDoc,
@@ -32,6 +34,32 @@ import {
 import { nowTimestamp } from './creation-model';
 
 const HOURS_TO_MS = 60 * 60 * 1000;
+
+const CREATION_CACHE_TAGS = ['creations:list', 'creations:trending', 'creations:feeds'] as const;
+
+const invalidateCreationCaches = async () => {
+  await Promise.all(
+    CREATION_CACHE_TAGS.map(async (tag) => {
+      try {
+        await Promise.resolve(revalidateTag(tag));
+      } catch (error) {
+        logger.warn('Failed to revalidate cache tag', {
+          tag,
+          error: error instanceof Error ? error.message : error,
+        });
+      }
+    }),
+  );
+};
+
+const cachedPublicCreationList = unstable_cache(
+  async (limit: number) => listPublicCreations(limit),
+  ['creations', 'list'],
+  {
+    revalidate: 60,
+    tags: ['creations:list'],
+  },
+);
 
 const calculateRecencyBoost = (createdAt: string | undefined) => {
   if (!createdAt) return 0;
@@ -137,12 +165,15 @@ export interface CommentInput {
   commentData: Omit<CommentData, 'createdAt'>;
 }
 
-const docToComment = (doc: DocumentSnapshot): Comment => {
+const docToComment = (doc: DocumentSnapshot): LegacyComment => {
   const data = doc.data() as CommentData;
   const createdAt = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
   return {
     id: doc.id,
-    ...data,
+    userId: data.userId,
+    userName: data.userName,
+    userPhotoURL: data.userPhotoURL,
+    text: data.text,
     createdAt,
   };
 };
@@ -170,6 +201,46 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
 
 export const generatePattern = async (input: GeneratePatternInput): Promise<Creation> => {
   const { userId, prompt, style, referenceImage } = input;
+
+  let moderation;
+  try {
+    moderation = await runPromptModeration({
+      userId,
+      text: prompt,
+      imageBase64: referenceImage ?? undefined,
+      context: 'pattern-generation',
+      source: 'prepublish',
+      metadata: {
+        stage: 'generatePattern',
+        style,
+      },
+    });
+  } catch (error) {
+    logger.error('creations.generatePattern.moderation_failed', {
+      error: (error as Error).message,
+      userId,
+    });
+    throw new Error('内容审核服务暂时不可用，请稍后再试。');
+  }
+
+  if (moderation.status === 'reject') {
+    logger.warn('creations.generatePattern.rejected', {
+      recordId: moderation.recordId,
+      userId,
+      status: moderation.status,
+      textMatches: moderation.text?.matches.length ?? 0,
+      imageFlags: moderation.image?.flags.length ?? 0,
+    });
+    throw new Error('内容未通过审核，请调整创意后重试。');
+  }
+
+  if (moderation.status === 'warn') {
+    logger.info('creations.generatePattern.warn', {
+      recordId: moderation.recordId,
+      userId,
+    });
+  }
+
   const userModel = await ensureUserFineTunedModel(userId);
 
   const personalizationPrompts: string[] = [];
@@ -234,7 +305,9 @@ export const generatePattern = async (input: GeneratePatternInput): Promise<Crea
     remakeCount: 0,
   };
 
-  return createCreation(creation);
+  const createdCreation = await createCreation(creation);
+  await invalidateCreationCaches();
+  return createdCreation;
 };
 
 export const generateModel = async (
@@ -282,6 +355,7 @@ export const generateModel = async (
     throw new Error('Creation not found after adding model');
   }
   await markUserFineTunedModelAsUsed(input.userId);
+  await invalidateCreationCaches();
   return updated;
 };
 
@@ -318,7 +392,9 @@ export const forkCreation = async ({ sourceCreationId, userId }: ForkCreationInp
     remakeCount: 0,
   };
 
-  return createCreation(cloned);
+  const clonedCreation = await createCreation(cloned);
+  await invalidateCreationCaches();
+  return clonedCreation;
 };
 
 export const deleteModel = async ({ creationId, modelUri }: DeleteModelInput): Promise<Creation> => {
@@ -349,7 +425,9 @@ export const deleteModel = async ({ creationId, modelUri }: DeleteModelInput): P
   }
 
   const updatedModels = creation.models.filter((model) => model.uri !== modelUri);
-  return updateCreation(creationId, { models: updatedModels } as Partial<CreationData>);
+  const updatedCreation = await updateCreation(creationId, { models: updatedModels } as Partial<CreationData>);
+  await invalidateCreationCaches();
+  return updatedCreation;
 };
 
 export const toggleModelVisibility = async ({ creationId, modelUri, isPublic }: ToggleModelVisibilityInput): Promise<Creation> => {
@@ -424,20 +502,31 @@ export const logInteraction = async ({
   );
 };
 
-export const getPersonalizedFeeds = async (userId: string | null, limit: number = 20) => {
-  const creations = await listPublicCreations(limit);
+const cachedPersonalizedFeeds = unstable_cache(
+  async (userId: string | null, limit: number) => {
+    const creations = await cachedPublicCreationList(Math.max(limit * 2, 40));
 
-  if (!creations.length) {
+    if (!creations.length) {
+      return {
+        popular: [] as Creation[],
+        trending: [] as Creation[],
+      };
+    }
+
     return {
-      popular: [],
-      trending: [],
+      popular: rankCreations(creations, userId, 'popular').slice(0, limit),
+      trending: rankCreations(creations, userId, 'trending').slice(0, limit),
     };
-  }
+  },
+  ['creations', 'feeds'],
+  {
+    revalidate: 60,
+    tags: ['creations:feeds'],
+  },
+);
 
-  return {
-    popular: rankCreations(creations, userId, 'popular'),
-    trending: rankCreations(creations, userId, 'trending'),
-  };
+export const getPersonalizedFeeds = async (userId: string | null, limit: number = 20) => {
+  return cachedPersonalizedFeeds(userId, limit);
 };
 
 export const removeCreation = async (creationId: string): Promise<void> => {
@@ -469,20 +558,22 @@ export const removeCreation = async (creationId: string): Promise<void> => {
   );
 
   await deleteCreationDoc(creationId);
+  await invalidateCreationCaches();
 };
 
 export const toggleCreationPublicStatus = async (creationId: string, isPublic: boolean) => {
-  return updateCreation(creationId, { isPublic } as Partial<CreationData>);
+  const updatedCreation = await updateCreation(creationId, { isPublic } as Partial<CreationData>);
+  await invalidateCreationCaches();
+  return updatedCreation;
 };
 
 export const getPublicCreations = async (limit: number = 20): Promise<Creation[]> => {
-  const creations = await listPublicCreations(limit);
-  return creations;
+  return cachedPublicCreationList(limit);
 };
 
 export const getTrendingCreations = async (limit: number = 20): Promise<Creation[]> => {
-  const creations = await listPublicCreations(limit);
-  return rankCreations(creations, null, 'trending');
+  const creations = await cachedPublicCreationList(Math.max(limit * 2, 40));
+  return rankCreations(creations, null, 'trending').slice(0, limit);
 };
 
 export const toggleLike = async ({ creationId, userId, isLiked }: ToggleLikeInput) => {
@@ -497,6 +588,7 @@ export const toggleLike = async ({ creationId, userId, isLiked }: ToggleLikeInpu
   };
 
   await getCollectionRef().doc(creationId).set(update, { merge: true });
+  await invalidateCreationCaches();
   return { success: true };
 };
 
@@ -512,6 +604,7 @@ export const toggleFavorite = async ({ creationId, userId, isFavorited }: Toggle
   };
 
   await getCollectionRef().doc(creationId).set(update, { merge: true });
+  await invalidateCreationCaches();
   return { success: true };
 };
 
@@ -519,10 +612,11 @@ export const incrementMetric = async (creationId: string, field: 'shareCount' | 
   await getCollectionRef()
     .doc(creationId)
     .set({ [field]: admin.firestore.FieldValue.increment(1) }, { merge: true });
+  await invalidateCreationCaches();
   return { success: true };
 };
 
-export const addComment = async ({ creationId, commentData }: CommentInput): Promise<Comment> => {
+export const addComment = async ({ creationId, commentData }: CommentInput): Promise<LegacyComment> => {
   const commentsCollection = getCollectionRef().doc(creationId).collection('comments');
   const newComment: CommentData = {
     ...commentData,
@@ -533,10 +627,11 @@ export const addComment = async ({ creationId, commentData }: CommentInput): Pro
   await getCollectionRef()
     .doc(creationId)
     .set({ commentCount: admin.firestore.FieldValue.increment(1) }, { merge: true });
+  await invalidateCreationCaches();
   return docToComment(doc);
 };
 
-export const getComments = async (creationId: string): Promise<Comment[]> => {
+export const getComments = async (creationId: string): Promise<LegacyComment[]> => {
   const snapshot = await getCollectionRef()
     .doc(creationId)
     .collection('comments')

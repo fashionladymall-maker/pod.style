@@ -209,9 +209,11 @@ const { createPaymentIntentHandler } = require('./lib/payment/create-intent');
 const { stripeWebhookHandler } = require('./lib/payment/webhook');
 const { downloadOrderAsset } = require('./lib/orders/download');
 const { factoryStatusCallback } = require('./lib/orders/factory-callback');
+const { previewModerationHandler } = require('./lib/preview/http');
 
 exports.renderPrintReadyWorker = renderQueueWorker;
 exports.createPaymentIntent = createPaymentIntentHandler;
 exports.handleStripeWebhook = stripeWebhookHandler;
 exports.downloadOrderAsset = downloadOrderAsset;
 exports.factoryStatusCallback = factoryStatusCallback;
+exports.previewModeration = previewModerationHandler;

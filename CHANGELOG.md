@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Introduce moderation pipeline with Cloud Functions text/image checks, client precheck gating, and moderation record APIs for compliance (M4-COMPLIANCE-001).
 - Wire order placement to render queue tasks, bind print assets to order items, and expose download/factory HTTP endpoints for fulfillment integrations (M3-RENDER-002).
 - Implement Cloud Tasks-driven print-ready rendering with Sharp/pdfkit, Storage uploads, and Firestore `printAsset` updates for 300 DPI TIFF/PDF outputs (M3-RENDER-001).
 - Add flat-config `eslint.config.js` so `npm run lint` succeeds (M0-FIX-002).
