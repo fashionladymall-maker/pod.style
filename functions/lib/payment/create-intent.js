@@ -44,13 +44,20 @@ const getStripeSecret = () => {
     const configSecret = functions.config().stripe?.secret;
     return configSecret ?? process.env.STRIPE_SECRET_KEY ?? process.env.STRIPE_API_KEY;
 };
-const stripeSecret = getStripeSecret();
-if (!stripeSecret) {
-    throw new Error('Stripe secret key is not configured. Set functions config stripe.secret or STRIPE_SECRET_KEY.');
-}
-const stripe = new stripe_1.default(stripeSecret, {
-    apiVersion: '2025-09-30.clover',
-});
+// Lazy initialization to avoid deployment errors when Stripe key is not set
+let stripe = null;
+const getStripe = () => {
+    if (!stripe) {
+        const stripeSecret = getStripeSecret();
+        if (!stripeSecret) {
+            throw new Error('Stripe secret key is not configured. Set functions config stripe.secret or STRIPE_SECRET_KEY.');
+        }
+        stripe = new stripe_1.default(stripeSecret, {
+            apiVersion: '2023-10-16',
+        });
+    }
+    return stripe;
+};
 const payloadSchema = zod_1.z.object({
     amount: zod_1.z.number().int().positive(),
     currency: zod_1.z.string().min(1),
@@ -73,7 +80,8 @@ const payloadSchema = zod_1.z.object({
 });
 const createPaymentIntent = async (rawData) => {
     const data = payloadSchema.parse(rawData);
-    const intent = await stripe.paymentIntents.create({
+    const stripeClient = getStripe();
+    const intent = await stripeClient.paymentIntents.create({
         amount: data.amount,
         currency: data.currency,
         automatic_payment_methods: { enabled: true },

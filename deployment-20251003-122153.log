@@ -1,0 +1,62 @@
+🚀 开始部署 pod.style
+时间: Fri Oct  3 12:21:53 CST 2025
+日志文件: deployment-20251003-122153.log
+================================
+
+📦 [1/6] 安装 Functions 依赖...
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'functions@1.0.0',
+npm warn EBADENGINE   required: { node: '20' },
+npm warn EBADENGINE   current: { node: 'v22.20.0', npm: '10.9.3' }
+npm warn EBADENGINE }
+
+up to date, audited 253 packages in 2s
+
+32 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+✅ Functions 依赖安装完成
+
+🔨 [2/6] 构建 Functions...
+
+> functions@1.0.0 build
+> tsc
+
+✅ Functions 构建完成
+
+📋 [3/6] 部署 Firestore 规则...
+
+=== Deploying to 'studio-1269295870-5fde0'...
+
+i  deploying firestore
+i  firestore: reading indexes from firestore.indexes.json...
+i  cloud.firestore: checking firestore.rules for compilation errors...
+⚠  [W] 45:30 - Invalid function name: all.
+⚠  [W] 45:34 - Invalid variable name: key.
+⚠  [W] 45:50 - Invalid variable name: key.
+⚠  [W] 45:79 - Invalid variable name: key.
+⚠  [W] 80:24 - Invalid function name: all.
+⚠  [W] 80:28 - Invalid variable name: model.
+⚠  [W] 80:46 - Invalid variable name: model.
+⚠  [W] 91:62 - Invalid function name: all.
+⚠  [W] 91:66 - Invalid variable name: uid.
+⚠  [W] 91:71 - Invalid variable name: uid.
+⚠  [W] 92:70 - Invalid function name: all.
+⚠  [W] 92:74 - Invalid variable name: uid.
+⚠  [W] 92:79 - Invalid variable name: uid.
+⚠  [W] 167:31 - Invalid function name: all.
+⚠  [W] 167:35 - Invalid variable name: event.
+⚠  [W] 167:59 - Invalid variable name: event.
+✔  cloud.firestore: rules file firestore.rules compiled successfully
+i  firestore: latest version of firestore.rules already up to date, skipping upload...
+✔  firestore: released rules firestore.rules to cloud.firestore
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/studio-1269295870-5fde0/overview
+✅ Firestore 规则部署完成
+
+📦 [4/6] 部署 Storage 规则...
+
+Error: Cannot understand what targets to deploy/serve. No targets in firebase.json match '--only storage'.

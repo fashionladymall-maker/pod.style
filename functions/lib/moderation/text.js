@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.moderateText = void 0;
+exports.moderateText = exports.resetTextModerationCache = void 0;
 const functions = __importStar(require("firebase-functions"));
 const utils_1 = require("./utils");
 const DEFAULT_PATTERNS = [
@@ -59,6 +59,10 @@ const DEFAULT_PATTERNS = [
     },
 ];
 let cachedPatterns = null;
+const resetTextModerationCache = () => {
+    cachedPatterns = null;
+};
+exports.resetTextModerationCache = resetTextModerationCache;
 const compilePattern = (config) => {
     try {
         const source = config.isRegex ? config.pattern : (0, utils_1.escapeRegExp)(config.pattern);

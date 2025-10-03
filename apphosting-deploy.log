@@ -1,0 +1,27 @@
+
+=== Deploying to 'studio-1269295870-5fde0'...
+
+i  deploying apphosting
+i  apphosting: Found backend(s) studio
+[34m?[39m [1mstudio is linked to the remote repository at [22m
+[1mhttps://github.com/fashionladymall-maker/pod.style.git. Are you sure you want to[22m
+[1m deploy your local source?[22m [2m(Y/n)[22m
+[2A[161G[162G[2B[2K[1A[2K[1A[2K[1A[2K[G[34m?[39m [1mstudio is linked to the remote repository at [22m
+[1mhttps://github.com/fashionladymall-maker/pod.style.git. Are you sure you want to[22m
+[1m deploy your local source?[22m [2m(Y/n)[22m Y[2A[162G[161G[2B[2K[1A[2K[1A[2K[G[32m✔[39m [1mstudio is linked to the remote repository at [22m
+[1mhttps://github.com/fashionladymall-maker/pod.style.git. Are you sure you want to[22m
+[1m deploy your local source?[22m [36mYes[39m[1A[158G[1B
+[?25h✔  Wrote /Users/mike/pod.style/firebase.json
+i  apphosting: On future invocations of "firebase deploy", your local source will be deployed to studio. You can edit this setting in your firebase.json at any time.
+i  apphosting: Uploading source code at /Users/mike/pod.style for backend studio...
+i  apphosting: Source code uploaded at gs://firebaseapphosting-sources-204491544475-us-central1/studio--52168-hUj55Hq5hwSR-.zip
+i  apphosting: You may also track the rollout(s) at:
+	https://console.firebase.google.com/project/studio-1269295870-5fde0/apphosting
+- Starting rollout(s) for backend(s) studio; this may take a few minutes. It's safe to exit now.
+
+⚠  apphosting: Rollout for backend studio failed.
+⬢  apphosting: Request to https://firebaseapphosting.googleapis.com/v1beta/projects/studio-1269295870-5fde0/locations/us-central1/backends/studio/builds?buildId=build-2025-10-03-017 had HTTP Error: 409, unable to queue the operation
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/studio-1269295870-5fde0/overview

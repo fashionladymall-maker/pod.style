@@ -44,14 +44,23 @@ const getStripeSecret = () => {
     const configSecret = functions.config().stripe?.secret;
     return configSecret ?? process.env.STRIPE_SECRET_KEY ?? process.env.STRIPE_API_KEY;
 };
-const stripeSecret = getStripeSecret();
-if (!stripeSecret) {
-    throw new Error('Stripe secret key is not configured.');
-}
-const stripe = new stripe_1.default(stripeSecret, {
-    apiVersion: '2025-09-30.clover',
-});
-const webhookSecret = functions.config().stripe?.webhook ?? process.env.STRIPE_WEBHOOK_SECRET;
+// Lazy initialization to avoid deployment errors
+let stripe = null;
+const getStripe = () => {
+    if (!stripe) {
+        const stripeSecret = getStripeSecret();
+        if (!stripeSecret) {
+            throw new Error('Stripe secret key is not configured.');
+        }
+        stripe = new stripe_1.default(stripeSecret, {
+            apiVersion: '2023-10-16',
+        });
+    }
+    return stripe;
+};
+const getWebhookSecret = () => {
+    return functions.config().stripe?.webhook ?? process.env.STRIPE_WEBHOOK_SECRET;
+};
 const updateOrderStatus = async (paymentIntentId, status, paidAt) => {
     const db = firebase_admin_1.default.firestore();
     const snapshot = await db
@@ -86,13 +95,15 @@ exports.stripeWebhookHandler = functions.https.onRequest(async (req, res) => {
     }
     let event;
     try {
+        const webhookSecret = getWebhookSecret();
         if (webhookSecret) {
             const signature = req.headers['stripe-signature'];
             if (!signature) {
                 res.status(400).send('Missing Stripe signature');
                 return;
             }
-            event = stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
+            const stripeClient = getStripe();
+            event = stripeClient.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
         }
         else {
             event = req.body;
