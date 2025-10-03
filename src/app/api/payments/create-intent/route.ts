@@ -4,11 +4,7 @@ import { z } from 'zod';
 import { logger } from '@/utils/logger';
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
-const stripe = stripeSecret
-  ? new Stripe(stripeSecret, {
-      apiVersion: '2025-09-30.clover',
-    })
-  : null;
+const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
 const requestSchema = z.object({
   amount: z.number().int().positive(),

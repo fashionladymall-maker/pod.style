@@ -16,9 +16,7 @@ const getStripe = (): Stripe => {
     if (!stripeSecret) {
       throw new Error('Stripe secret key is not configured.');
     }
-    stripe = new Stripe(stripeSecret, {
-      apiVersion: '2023-10-16',
-    });
+    stripe = new Stripe(stripeSecret);
   }
   return stripe;
 };
