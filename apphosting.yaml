@@ -1,7 +1,62 @@
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
+# Environment variables for Firebase configuration
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyAr_uiyZThmAYRDigXt0g_0Y2am2ojc8I0
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: studio-1269295870-5fde0.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: studio-1269295870-5fde0
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: studio-1269295870-5fde0.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "204491544475"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:204491544475:web:dadc0d6d650572156db33e
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GCLOUD_PROJECT
+    value: studio-1269295870-5fde0
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: studio-1269295870-5fde0.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+
 runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
-  maxInstances: 1
+  maxInstances: 10
+  minInstances: 0
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+  timeoutSeconds: 60
