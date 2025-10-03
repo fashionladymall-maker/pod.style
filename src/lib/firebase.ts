@@ -115,7 +115,8 @@ const firebaseConfig: Partial<FirebaseOptions> = {
     process.env.NEXT_PUBLIC_FIREBASE_APP_ID ??
     process.env.FIREBASE_APP_ID ??
     firebaseDefaultsConfig?.appId ??
-    firebaseConfigEnv?.appId,
+    firebaseConfigEnv?.appId ??
+    PRODUCTION_FIREBASE_CONFIG.appId,
   measurementId:
     process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ??
     process.env.FIREBASE_MEASUREMENT_ID ??
