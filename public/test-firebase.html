@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase 诊断工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .status-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+            background: white;
+        }
+        .status-item.success { border-left-color: #28a745; }
+        .status-item.error { border-left-color: #dc3545; }
+        .status-item.warning { border-left-color: #ffc107; }
+        .status-item.info { border-left-color: #17a2b8; }
+        .status-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .user-info h3 {
+            margin-bottom: 10px;
+        }
+        .user-info p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Firebase 诊断工具</h1>
+            <p>检测 Firebase 配置和认证状态</p>
+        </div>
+        
+        <div class="content">
+            <!-- 配置状态 -->
+            <div class="section">
+                <h2>📋 配置状态</h2>
+                <div id="config-status"></div>
+            </div>
+
+            <!-- 认证状态 -->
+            <div class="section">
+                <h2>🔐 认证状态</h2>
+                <div id="auth-status"></div>
+                <div id="user-info"></div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="section">
+                <h2>🎮 测试操作</h2>
+                <div class="btn-group">
+                    <button onclick="testAnonymousSignIn()">匿名登录</button>
+                    <button onclick="testEmailSignUp()">邮箱注册</button>
+                    <button onclick="testEmailSignIn()">邮箱登录</button>
+                    <button onclick="testSignOut()">退出登录</button>
+                    <button onclick="refreshPage()">刷新页面</button>
+                </div>
+            </div>
+
+            <!-- 日志 -->
+            <div class="section">
+                <h2>📝 操作日志</h2>
+                <div class="code-block" id="logs">等待操作...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAr_uiyZThmAYRDigXt0g_0Y2am2ojc8I0",
+            authDomain: "studio-1269295870-5fde0.firebaseapp.com",
+            projectId: "studio-1269295870-5fde0",
+            storageBucket: "studio-1269295870-5fde0.firebasestorage.app",
+            messagingSenderId: "204491544475",
+            appId: "1:204491544475:web:dadc0d6d650572156db33e"
+        };
+
+        let app, auth;
+        const logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            logs.unshift(entry);
+            document.getElementById('logs').textContent = logs.slice(0, 20).join('\n');
+            console.log(entry);
+        }
+
+        function createStatusItem(message, type = 'info', icon = '•') {
+            return `<div class="status-item ${type}">
+                <span class="status-icon">${icon}</span>
+                ${message}
+            </div>`;
+        }
+
+        // 初始化 Firebase
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            
+            document.getElementById('config-status').innerHTML = createStatusItem(
+                `✅ Firebase 初始化成功<br>
+                <small>项目ID: ${firebaseConfig.projectId}</small><br>
+                <small>认证域名: ${firebaseConfig.authDomain}</small>`,
+                'success',
+                '✅'
+            );
+            log('Firebase 初始化成功');
+        } catch (error) {
+            document.getElementById('config-status').innerHTML = createStatusItem(
+                `❌ Firebase 初始化失败: ${error.message}`,
+                'error',
+                '❌'
+            );
+            log(`Firebase 初始化失败: ${error.message}`, 'error');
+        }
+
+        // 监听认证状态
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-status').innerHTML = createStatusItem(
+                    '✅ 用户已登录',
+                    'success',
+                    '✅'
+                );
+                
+                document.getElementById('user-info').innerHTML = `
+                    <div class="user-info">
+                        <h3>👤 用户信息</h3>
+                        <p><strong>用户ID:</strong> ${user.uid}</p>
+                        <p><strong>邮箱:</strong> ${user.email || '未设置'}</p>
+                        <p><strong>匿名用户:</strong> ${user.isAnonymous ? '是' : '否'}</p>
+                        <p><strong>认证提供商:</strong> ${user.providerData.map(p => p.providerId).join(', ') || '匿名'}</p>
+                        <p><strong>创建时间:</strong> ${new Date(user.metadata.creationTime).toLocaleString()}</p>
+                        <p><strong>最后登录:</strong> ${new Date(user.metadata.lastSignInTime).toLocaleString()}</p>
+                    </div>
+                `;
+                
+                log(`用户已登录: ${user.uid} (匿名: ${user.isAnonymous})`);
+            } else {
+                document.getElementById('auth-status').innerHTML = createStatusItem(
+                    '⚠️ 未登录',
+                    'warning',
+                    '⚠️'
+                );
+                document.getElementById('user-info').innerHTML = '';
+                log('用户未登录');
+            }
+        });
+
+        // 测试函数
+        window.testAnonymousSignIn = async () => {
+            try {
+                log('🔄 正在进行匿名登录...');
+                const result = await signInAnonymously(auth);
+                log(`✅ 匿名登录成功: ${result.user.uid}`);
+            } catch (error) {
+                log(`❌ 匿名登录失败: ${error.code} - ${error.message}`);
+                alert(`错误: ${error.message}\n\n请检查:\n1. Firebase 控制台是否启用了匿名登录\n2. 当前域名是否在授权域名列表中`);
+            }
+        };
+
+        window.testEmailSignUp = async () => {
+            const email = prompt('请输入邮箱地址:');
+            if (!email) return;
+            const password = prompt('请输入密码 (至少6位):');
+            if (!password) return;
+
+            try {
+                log(`🔄 正在注册邮箱账号: ${email}...`);
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                log(`✅ 邮箱注册成功: ${result.user.uid}`);
+            } catch (error) {
+                log(`❌ 邮箱注册失败: ${error.code} - ${error.message}`);
+                alert(`错误: ${error.message}`);
+            }
+        };
+
+        window.testEmailSignIn = async () => {
+            const email = prompt('请输入邮箱地址:');
+            if (!email) return;
+            const password = prompt('请输入密码:');
+            if (!password) return;
+
+            try {
+                log(`🔄 正在登录邮箱账号: ${email}...`);
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                log(`✅ 邮箱登录成功: ${result.user.uid}`);
+            } catch (error) {
+                log(`❌ 邮箱登录失败: ${error.code} - ${error.message}`);
+                alert(`错误: ${error.message}`);
+            }
+        };
+
+        window.testSignOut = async () => {
+            try {
+                log('🔄 正在退出登录...');
+                await signOut(auth);
+                log('✅ 退出登录成功');
+            } catch (error) {
+                log(`❌ 退出登录失败: ${error.code} - ${error.message}`);
+                alert(`错误: ${error.message}`);
+            }
+        };
+
+        window.refreshPage = () => {
+            location.reload();
+        };
+
+        // 页面加载完成
+        log('📱 诊断工具已加载，等待认证状态...');
+        log(`🌐 当前域名: ${window.location.hostname}`);
+        log(`🔗 完整URL: ${window.location.href}`);
+    </script>
+</body>
+</html>
+

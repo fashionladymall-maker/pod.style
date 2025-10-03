@@ -1,0 +1,49 @@
+角色：你是开发执行者。
+仓库：https://github.com/fashionladymall-maker/pod.style
+故事：bmad/stories/M4-COMPLIANCE-001-moderation.md
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+
+## 任务目标
+实现内容合规审核系统，确保用户上传的文本和图像符合平台规范。
+
+## 核心需求
+1. 文本审核（敏感词过滤）
+2. 图像审核（违规内容检测）
+3. 审核记录与申诉流程
+4. 分级处理机制
+
+## 实现步骤
+
+### Step 1: 文本审核模块
+- 创建 `functions/src/moderation/text.ts`
+- 实现敏感词库匹配（支持正则）
+- 返回审核结果：通过/警告/拒绝
+
+### Step 2: 图像审核模块
+- 创建 `functions/src/moderation/image.ts`
+- 集成第三方 API（如 Google Vision API）
+- 检测：暴力/色情/政治敏感内容
+
+### Step 3: 审核流程集成
+- 在 `functions/src/preview/http.ts` 中调用审核
+- 在 `src/features/prompt/` 中前端预检
+- 审核失败时返回明确错误信息
+
+### Step 4: 审核记录与申诉
+- Firestore 集合：`moderations/{id}`
+- 记录：内容哈希、审核结果、时间戳、申诉状态
+- 管理后台占位接口
+
+## DoD（Definition of Done）
+- [ ] `npm run build` 通过（0 错误）
+- [ ] `npm run lint` 通过（0 错误）
+- [ ] `npm run typecheck` 通过（0 错误）
+- [ ] `npm run test` 通过（关键路径）
+- [ ] 创建分支 `feature/M4-COMPLIANCE-001`
+- [ ] 提交代码并推送
+- [ ] 更新 `CHANGELOG.md`
+- [ ] 更新 Story 文件标记完成
+
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+

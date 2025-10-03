@@ -1,0 +1,250 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.513Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.8.feed-backfill-and-migration.md"
+  },
+  "story": {
+    "id": "1.8",
+    "title": "Feed Backfill & Migration",
+    "status": "Ready",
+    "userStory": "**As a** platform operator,\n**I want** to backfill existing creations into the new feed cache and migrate legacy data without downtime,\n**so that** users immediately see rich feed content when the new experience launches.",
+    "acceptanceCriteria": [
+      "Provide a backfill script or Cloud Function job that scans existing `creations` documents, computes ranking signals, and populates `personalized_feed_cache` / `feed_entries` with default values while respecting rate limits.",
+      "Migration tooling must be idempotent, resumable, and able to run in batches to avoid hitting Firestore quotas; failures logged with actionable errors.",
+      "Rollout strategy includes a “backfill complete” check, linking to dashboards/metrics verifying coverage before enabling the new feed flag for all users.",
+      "Regression/sanity checks confirm legacy pages continue to function during backfill (no data corruption or downtime).",
+      "Testing covers backfill scripts (e.g., emulator tests), migration dry-run scenarios, and rollback instructions."
+    ],
+    "tasks": [
+      {
+        "title": "Backfill implementation (AC: 1,2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Implement script/Function to iterate `creations`, calculate ranking defaults, write to cache collections.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Support pagination/batching to respect Firestore limits; log progress and errors.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Idempotency & resilience (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Ensure reruns skip existing entries or update as needed without duplication.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Capture failure logs with actionable details; provide resume capability.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Rollout readiness (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Document steps to verify backfill completion (metrics, dashboard checks).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Gate new feed rollout until verification passes.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Regression/compatibility (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Run regression tests ensuring legacy `/` remains operational during backfill.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Include manual checklist for verifying data integrity.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing & rollback (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emulator tests simulating backfill.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document rollback procedure (e.g., remove new fields, disable flag).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "Build on ingestion pipeline (Story 1.4) and experiments (1.7) to ensure data layers ready before GA rollout."
+      ],
+      "Data Models": [
+        "Use `rankingSignals`, `region`, `personaVector`, etc., as defined; ensure defaults when not present.",
+        "`[Source: architecture.md#5-data-architecture]`"
+      ],
+      "API & Service Specifications": [
+        "The backfill interacts with the same collections consumed by feed service; align with ingestion pipeline to avoid conflicting writes.",
+        "`[Source: architecture.md#4-application-architecture]`"
+      ],
+      "Component Specifications": [
+        "No UI change; ensure operations tooling/CLI accessible to run backfill.",
+        "`[Source: architecture-brownfield.md#10-migration--rollout-strategy]`"
+      ],
+      "File Locations & Project Structure": [
+        "Scripts placed under `scripts/feed/` or Cloud Function within `functions/` depending on approach.",
+        "`[Source: architecture.md#41-components--responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Emulator tests for batch backfill; manual dry-run instructions for staging.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Respect Firestore quotas and maintain optional fields compatibility.",
+        "`[Source: architecture.md#2-Enhancement-Scope-and-Integration-Strategy]`",
+        "Provide monitoring to detect incomplete backfill.",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Emulator tests for backfill tool. `[Source: architecture.md#8-testing-strategy]`",
+      "Manual dry-run and regression plan documented. `[Source: architecture.md#73-deployment-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Provide a backfill script or Cloud Function job that scans existing `creations` documents, computes ranking signals, and populates `personalized_feed_cache` / `feed_entries` with default values while respecting rate limits."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Migration tooling must be idempotent, resumable, and able to run in batches to avoid hitting Firestore quotas; failures logged with actionable errors."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Rollout strategy includes a “backfill complete” check, linking to dashboards/metrics verifying coverage before enabling the new feed flag for all users."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Regression/sanity checks confirm legacy pages continue to function during backfill (no data corruption or downtime)."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Testing covers backfill scripts (e.g., emulator tests), migration dry-run scenarios, and rollback instructions."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Backfill implementation (AC: 1,2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Implement script/Function to iterate `creations`, calculate ranking defaults, write to cache collections.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Support pagination/batching to respect Firestore limits; log progress and errors.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Idempotency & resilience (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Ensure reruns skip existing entries or update as needed without duplication.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Capture failure logs with actionable details; provide resume capability.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Rollout readiness (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Document steps to verify backfill completion (metrics, dashboard checks).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Gate new feed rollout until verification passes.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Regression/compatibility (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Run regression tests ensuring legacy `/` remains operational during backfill.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Include manual checklist for verifying data integrity.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing & rollback (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emulator tests simulating backfill.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document rollback procedure (e.g., remove new fields, disable flag).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Emulator tests for backfill tool. `[Source: architecture.md#8-testing-strategy]`",
+        "Manual dry-run and regression plan documented. `[Source: architecture.md#73-deployment-strategy]`"
+      ]
+    }
+  }
+}

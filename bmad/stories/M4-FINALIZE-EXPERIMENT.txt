@@ -1,0 +1,26 @@
+完成 M4-EXPERIMENT-001 A/B 测试框架任务
+
+## 前置条件
+等待 M4-TYPEFIX-001 完成后执行。
+
+## 任务
+1. 验证所有 A/B 测试代码已就绪
+2. 运行 npm run typecheck（应该通过）
+3. 运行 npm run build（应该通过）
+4. 运行 npm run lint
+5. 运行 npm run test
+6. 更新 CHANGELOG.md
+7. 提交当前分支的更改
+8. 推送到远程
+
+## 已完成的实现
+- src/lib/experiments.ts（用户分组算法）
+- src/hooks/use-feature-flag.ts（React Hook）
+- src/lib/__tests__/experiments.test.ts（测试套件）
+- tsconfig.json 和 eslint.config.js 更新
+
+## 提交命令
+git add .
+git commit -m "feat(M4-EXPERIMENT-001): implement A/B testing framework with Firebase Remote Config"
+git push origin feature/M4-EXPERIMENT-001
+

@@ -1,0 +1,225 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.576Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/5.3.moderation-dashboard-and-reporting.md"
+  },
+  "story": {
+    "id": "5.3",
+    "title": "Moderation Dashboard & Reporting",
+    "status": "Draft",
+    "userStory": "**As a** moderation lead,\n**I want** dashboards and reports that track moderation backlog, outcomes, and reviewer performance,\n**so that** we can maintain quality and meet SLAs.",
+    "acceptanceCriteria": [
+      "Build a moderation dashboard (Looker Studio or equivalent) pulling data from `moderation_flags`, `moderation_tasks`, and audit logs, showing backlog, resolution times, false positives, and appeals outcomes.",
+      "Provide weekly/monthly reports (exportable) summarizing moderation metrics by category, reviewer, and region, highlighting SLA adherence.",
+      "Integrate alerts for backlog thresholds, API failure spikes, and repeated false positives to notify moderation team.",
+      "Ensure data privacy: dashboards restrict access to authorized roles and anonymize reporter/appeal identifiers where needed.",
+      "Tests/verification include data accuracy checks, dashboard refresh validation, and alert simulation."
+    ],
+    "tasks": [
+      {
+        "title": "Dashboard creation (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Set up dashboard with key KPIs and drilldowns.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Confirm data refresh frequency and access controls.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Reporting exports (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create export scripts/queries for weekly/monthly summaries.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document distribution process.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Alerts (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Configure alerts for backlog thresholds, false positives.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Test alert triggers.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Privacy controls (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Enforce role-based access; anonymize sensitive fields.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Verification (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Manual spot checks of dashboard data vs raw sources.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Simulate alerts; validate export accuracy.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Sources": [
+        "Use data from `moderation_flags`, `moderation_tasks`, audit logs.",
+        "`[Source: architecture-brownfield.md#5.3-Data-Model]`"
+      ],
+      "Tooling": [
+        "Dashboard instructions in architecture (analytics pipeline).",
+        "`[Source: architecture.md#7.4-Observability]`"
+      ],
+      "Security": [
+        "Role-based access; ensure compliance with privacy policies.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ],
+      "Testing Requirements": [
+        "Manual verification, automated queries, alert testing.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    },
+    "testing": [
+      "Spot checks and scripted validation for dashboard/report accuracy."
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Build a moderation dashboard (Looker Studio or equivalent) pulling data from `moderation_flags`, `moderation_tasks`, and audit logs, showing backlog, resolution times, false positives, and appeals outcomes."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide weekly/monthly reports (exportable) summarizing moderation metrics by category, reviewer, and region, highlighting SLA adherence."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Integrate alerts for backlog thresholds, API failure spikes, and repeated false positives to notify moderation team."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Ensure data privacy: dashboards restrict access to authorized roles and anonymize reporter/appeal identifiers where needed."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests/verification include data accuracy checks, dashboard refresh validation, and alert simulation."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Dashboard creation (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Set up dashboard with key KPIs and drilldowns.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Confirm data refresh frequency and access controls.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Reporting exports (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create export scripts/queries for weekly/monthly summaries.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document distribution process.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Alerts (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Configure alerts for backlog thresholds, false positives.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Test alert triggers.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Privacy controls (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Enforce role-based access; anonymize sensitive fields.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Verification (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Manual spot checks of dashboard data vs raw sources.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Simulate alerts; validate export accuracy.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Spot checks and scripted validation for dashboard/report accuracy."
+      ]
+    }
+  }
+}

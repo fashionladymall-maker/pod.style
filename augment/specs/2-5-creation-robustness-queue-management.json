@@ -1,0 +1,257 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.520Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/2.5.creation-robustness.md"
+  },
+  "story": {
+    "id": "2.5",
+    "title": "Creation Robustness & Queue Management",
+    "status": "Draft",
+    "userStory": "**As a** creator relying on Pod.Style studio,\n**I want** generation requests to handle failures gracefully and retry safely,\n**so that** I trust the system even when AI providers or storage have hiccups.",
+    "acceptanceCriteria": [
+      "Introduce a queue or job management system for creation requests (e.g., Cloud Tasks/Pub/Sub) so long-running AI jobs are processed asynchronously with retry policies.",
+      "Implement retry logic with exponential backoff for AI generation, storage uploads, and summary creation; failures surface user-friendly messages and log errors with correlation IDs.",
+      "Provide status monitoring (pending, in progress, failed, completed) for generation jobs in Firestore, allowing UI to poll/apprise users.",
+      "Build graceful fallback paths (e.g., offer to retry later, link to support) when repeated failures occur, and ensure no orphaned data remains.",
+      "Tests cover queue dispatch/processing, retry behavior, job status updates, and UI handling under failure scenarios."
+    ],
+    "tasks": [
+      {
+        "title": "Queue setup (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Integrate Cloud Tasks or Pub/Sub queue for creation jobs.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update server actions to enqueue jobs instead of running synchronously.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Retry/backoff (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Configure retry policies for AI flows, storage uploads, summaries.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Log errors with correlation IDs (`studio.job.{id}`) and present user-friendly feedback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Job status tracking (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Store job states in Firestore (pending/in-progress/failed/completed).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide API for UI polling (`getJobStatus`).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Fallback & cleanup (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Remove partial assets on failure; present retry options.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document support escalation paths.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for queue handlers & retries.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright/emulator tests simulating failure -> retry -> success.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring retries don’t duplicate records.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models & Services": [
+        "Job status documents should align with architecture guidelines (e.g., `generation_jobs` collection).",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "Queue integration must follow infrastructure plan (Cloud Tasks/Pub/Sub).",
+        "`[Source: architecture.md#7.2-Infrastructure-Changes]`"
+      ],
+      "Component Specs": [
+        "UI should show job status indicator and allow reattempts.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Queue handlers in `src/features/creations/server/job-handler.ts` or Cloud Functions.",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "Job status API under `studio-actions`.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Integration tests for queue + Firestore updates.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Ensure retry policies respect provider rate limits.",
+        "`[Source: architecture.md#6-Integration-Architecture]`",
+        "Security: job queue must enforce auth & avoid exposing PII.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for queue handlers/retries. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright/emulator tests for failure/retry flow. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Introduce a queue or job management system for creation requests (e.g., Cloud Tasks/Pub/Sub) so long-running AI jobs are processed asynchronously with retry policies."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Implement retry logic with exponential backoff for AI generation, storage uploads, and summary creation; failures surface user-friendly messages and log errors with correlation IDs."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Provide status monitoring (pending, in progress, failed, completed) for generation jobs in Firestore, allowing UI to poll/apprise users."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Build graceful fallback paths (e.g., offer to retry later, link to support) when repeated failures occur, and ensure no orphaned data remains."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover queue dispatch/processing, retry behavior, job status updates, and UI handling under failure scenarios."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Queue setup (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Integrate Cloud Tasks or Pub/Sub queue for creation jobs.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update server actions to enqueue jobs instead of running synchronously.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Retry/backoff (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Configure retry policies for AI flows, storage uploads, summaries.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Log errors with correlation IDs (`studio.job.{id}`) and present user-friendly feedback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Job status tracking (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Store job states in Firestore (pending/in-progress/failed/completed).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide API for UI polling (`getJobStatus`).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Fallback & cleanup (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Remove partial assets on failure; present retry options.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document support escalation paths.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for queue handlers & retries.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright/emulator tests simulating failure -> retry -> success.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring retries don’t duplicate records.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for queue handlers/retries. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright/emulator tests for failure/retry flow. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.589Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/story-1.4-database-setup.md"
+  },
+  "story": {
+    "id": "1.4",
+    "title": "PostgreSQL 数据库设置与 Prisma 集成",
+    "status": "",
+    "userStory": "",
+    "acceptanceCriteria": [
+      "✅ 创建 Prisma schema 文件，定义 User 模型（id、email、password、role、createdAt、updatedAt）",
+      "✅ 配置 Prisma 连接到 PostgreSQL 数据库",
+      "✅ 创建数据库迁移脚本",
+      "✅ 生成 Prisma Client",
+      "✅ 在 API 中创建数据库连接模块",
+      "✅ 实现数据库连接健康检查",
+      "✅ 添加 seed 脚本用于开发环境数据初始化",
+      "✅ 数据库迁移可以成功执行",
+      "✅ 可以通过 Prisma Client 查询数据库 ---"
+    ],
+    "tasks": [],
+    "devNotes": {},
+    "testing": []
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "✅ 创建 Prisma schema 文件，定义 User 模型（id、email、password、role、createdAt、updatedAt）"
+        },
+        {
+          "name": "AC-2",
+          "goal": "✅ 配置 Prisma 连接到 PostgreSQL 数据库"
+        },
+        {
+          "name": "AC-3",
+          "goal": "✅ 创建数据库迁移脚本"
+        },
+        {
+          "name": "AC-4",
+          "goal": "✅ 生成 Prisma Client"
+        },
+        {
+          "name": "AC-5",
+          "goal": "✅ 在 API 中创建数据库连接模块"
+        },
+        {
+          "name": "AC-6",
+          "goal": "✅ 实现数据库连接健康检查"
+        },
+        {
+          "name": "AC-7",
+          "goal": "✅ 添加 seed 脚本用于开发环境数据初始化"
+        },
+        {
+          "name": "AC-8",
+          "goal": "✅ 数据库迁移可以成功执行"
+        },
+        {
+          "name": "AC-9",
+          "goal": "✅ 可以通过 Prisma Client 查询数据库 ---"
+        }
+      ],
+      "implementation": [],
+      "qa": []
+    }
+  }
+}

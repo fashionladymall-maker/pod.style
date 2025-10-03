@@ -1,0 +1,228 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.557Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/4.5.social-remix-collaboration.md"
+  },
+  "story": {
+    "id": "4.5",
+    "title": "Remix Attribution & Collaboration Flow",
+    "status": "Draft",
+    "userStory": "**As a** creator remixing existing designs,\n**I want** my remixes to credit the original creator and notify collaborators,\n**so that** collaboration is encouraged and attribution is preserved.",
+    "acceptanceCriteria": [
+      "Extend remix server action to record lineage (original creation ID, creatorId) in `creations` and update `engagement_events` with remix events.",
+      "Feed and profile UI display attribution badges (e.g., “Remix of @creator”), linking to the source creation; original creators receive notifications.",
+      "Collaboration settings allow original creators to opt in/out of remix notifications and revenue-sharing (placeholder for future payouts).",
+      "Observability logs remix volumes, attribution integrity, and anomalies (e.g., missing source).",
+      "Tests cover remix lineage recording, UI attribution display, notification delivery, and regression when collaboration toggle disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Lineage tracking (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update remix actions to write lineage metadata and events.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure feed ranking accounts for remix engagement.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI attribution (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Display attribution badge on feed cards and creation viewer.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Link to original creation profile.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Collaboration settings (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add profile settings for remix notifications/revenue sharing.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Respect settings when sending notifications.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`social.remix.count`, `social.remix.attributionMissing`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Configure alerts for anomalies.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for remix action & settings.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for attribution UI.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression when remix features disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {},
+    "testing": [
+      "Unit + integration tests per testing strategy. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Extend remix server action to record lineage (original creation ID, creatorId) in `creations` and update `engagement_events` with remix events."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Feed and profile UI display attribution badges (e.g., “Remix of @creator”), linking to the source creation; original creators receive notifications."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Collaboration settings allow original creators to opt in/out of remix notifications and revenue-sharing (placeholder for future payouts)."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs remix volumes, attribution integrity, and anomalies (e.g., missing source)."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover remix lineage recording, UI attribution display, notification delivery, and regression when collaboration toggle disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Lineage tracking (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update remix actions to write lineage metadata and events.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure feed ranking accounts for remix engagement.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI attribution (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Display attribution badge on feed cards and creation viewer.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Link to original creation profile.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Collaboration settings (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add profile settings for remix notifications/revenue sharing.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Respect settings when sending notifications.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`social.remix.count`, `social.remix.attributionMissing`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Configure alerts for anomalies.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for remix action & settings.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for attribution UI.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression when remix features disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Unit + integration tests per testing strategy. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

@@ -1,0 +1,54 @@
+角色：你是开发执行者。
+仓库：https://github.com/fashionladymall-maker/pod.style
+故事：bmad/stories/M4-EXPERIMENT-001-ab-testing.md
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+
+## 任务目标
+实现 A/B 测试框架，支持功能开关与实验配置。
+
+## 核心需求
+1. Firebase Remote Config 集成
+2. 实验配置管理（JSON Schema）
+3. 用户分组逻辑（一致性哈希）
+4. 实验数据收集与分析
+
+## 实现步骤
+
+### Step 1: Remote Config 集成
+- 初始化 Firebase Remote Config
+- 定义配置参数（feature flags、实验变体）
+- 实现配置获取与缓存
+
+### Step 2: 实验框架
+- 创建 `src/lib/experiments.ts`
+- 实现用户分组算法（基于 uid 哈希）
+- 支持多变体实验（A/B/C/D）
+
+### Step 3: 功能开关
+- 实现 `useFeatureFlag` Hook
+- 支持服务端与客户端判断
+- 默认值与降级策略
+
+### Step 4: 数据收集
+- 实验曝光埋点（Firebase Analytics）
+- 转化事件追踪
+- 实验报告生成（占位）
+
+## DoD（Definition of Done）
+- [ ] `npm run build` 通过（0 错误）
+- [ ] `npm run lint` 通过（0 错误）
+- [ ] `npm run typecheck` 通过（0 错误）
+- [ ] `npm run test` 通过（关键路径）
+- [ ] 创建分支 `feature/M4-EXPERIMENT-001`
+- [ ] 提交代码并推送
+- [ ] 更新 `CHANGELOG.md`
+- [ ] 更新 Story 文件标记完成
+
+## 重要提示
+- 使用 `--dangerously-bypass-approvals-and-sandbox` 模式运行
+- 所有 git 操作自动批准
+- 遇到问题先尝试修复，不要停止
+
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+

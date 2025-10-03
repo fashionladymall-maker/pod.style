@@ -13,7 +13,7 @@ import {
   getAuth,
   type Auth,
 } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { getFirestore, type Firestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 interface AppCheckDebugWindow extends Window {
@@ -111,6 +111,7 @@ const firebaseConfig: Partial<FirebaseOptions> = {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let firestorePersistencePromise: Promise<void> | null = null;
 
 const ensureFirebaseApp = (): FirebaseApp | null => {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
@@ -170,6 +171,27 @@ if (firebaseApp) {
 
   if (typeof window !== "undefined") {
     auth = getFirebaseAuth();
+
+    if (db && !firestorePersistencePromise) {
+      firestorePersistencePromise = enableIndexedDbPersistence(db).catch((error: unknown) => {
+        const code = (error as { code?: string | undefined }).code;
+        const message = error instanceof Error ? error.message : String(error);
+
+        if (code === "failed-precondition" || message.includes("Multiple tabs")) {
+          console.warn("Firestore persistence disabled because multiple tabs share the same app instance.");
+          return;
+        }
+
+        if (code === "unimplemented" || message.includes("Failed to open IndexedDB")) {
+          console.warn("IndexedDB persistence is not available. Falling back to network-only Firestore mode.");
+          return;
+        }
+
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Failed to enable Firestore persistence", error);
+        }
+      });
+    }
 
     // Initialize App Check and handle errors gracefully
     if (process.env.NODE_ENV === "development") {

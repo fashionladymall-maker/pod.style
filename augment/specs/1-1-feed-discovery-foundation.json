@@ -1,0 +1,262 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.494Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.1.feed-foundation.md"
+  },
+  "story": {
+    "id": "1.1",
+    "title": "Feed Discovery Foundation",
+    "status": "Ready for Review",
+    "userStory": "**As a** guest or returning creator browsing Pod.Style,\n**I want** to access a dedicated feed experience that loads curated creations quickly from modular services,\n**so that** I can explore trending content without being blocked by legacy page structure.",
+    "acceptanceCriteria": [
+      "A new Next.js route group `(feed)` exposes a server-rendered landing page that retrieves at least 10 feed entries via a dedicated feed server action while keeping the current `/` experience unchanged behind a feature flag.",
+      "`src/features/feed/server/actions.ts` provides typed server actions for initial feed load and cursor-based pagination that read from `personalized_feed_cache` when entries exist and fall back to public creations data without runtime errors.",
+      "Feed data access is centralized in `src/features/feed/server/feed-service.ts` (or equivalent) with Firestore queries constrained to configurable region/language parameters, respecting optional new fields `region`, `personaVector`, and `rankingSignals`.",
+      "The build introduces Remote Config (or env-driven) gating so the new feed can be enabled for `/beta` traffic without affecting the current homepage, and includes telemetry hooks to log feed latency metrics."
+    ],
+    "tasks": [
+      {
+        "title": "Establish feed module scaffolding (AC: 1,2)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Create `src/features/feed/server/feed-service.ts` with functions for initial load and paginated fetch referencing Firestore `creations` / `personalized_feed_cache`.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Add `src/features/feed/server/actions.ts` exporting server actions that call the service with Zod-validated inputs.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Implement Next.js feed route (AC: 1)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Add `(feed)/layout.tsx` and `(feed)/page.tsx` using existing providers (`AuthProvider`, `Toaster`) and rendering a new `FeedScreen` component.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Create `src/components/screens/feed-screen.tsx` consuming server-provided props and handling client pagination.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Configure feature flag + legacy fallback (AC: 1,4)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Add configuration to toggle feed route exposure (e.g., `NEXT_PUBLIC_ENABLE_FEED_BETA` + Remote Config note) and document rollout steps.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure `/` retains current `AppClient` while `/beta` rewrites to new feed when flag enabled.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Data access & caching rules (AC: 2,3)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Query `personalized_feed_cache` for current user/locale; implement fallback to `getPublicCreations` on empty results.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Model Firestore query constraints for optional fields (`region`, `rankingSignals`) and prepare typed responses.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability & testing (AC: 4)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Emit feed latency metric via existing logging utilities and document expected dashboard hook.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Add Jest unit tests for feed service (success + fallback cases) and integration test stub exercising `(feed)` page rendering.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "No earlier stories; this is the foundation for the feed epic."
+      ],
+      "Data Models": [
+        "`personalized_feed_cache` entries require extension fields `region`, `personaVector`, `updatedAt`, and `rankingSignals`; service should tolerate missing fields while preparing for future population.",
+        "`[Source: architecture.md#2-enhancement-scope-and-integration-strategy]`",
+        "Legacy `creations` collection remains the fallback data source and must remain read-compatible.",
+        "`[Source: architecture.md#5-data-architecture]`"
+      ],
+      "API & Service Specifications": [
+        "Introduce `feed-service` as described, responsible for aggregation, pagination, and cache refresh triggers.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Cloud Function `updatePersonalizedFeedCache` currently writes trending data; service should align with its document shape and avoid altering scheduler behavior.",
+        "`[Source: architecture-brownfield.md#52-backend-services]`"
+      ],
+      "Component Specifications": [
+        "New modular feed UI should reside in `src/components/screens/feed-screen.tsx`, leveraging existing Tailwind/Radix primitives to match design guidelines.",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`",
+        "Maintain legacy `AppClient` for `/` while offering `/beta` entry point; do not delete existing screens yet.",
+        "`[Source: architecture.md#11-next-steps]`"
+      ],
+      "File Locations & Project Structure": [
+        "Feature code belongs under `src/features/feed` (service/actions/repository pattern).",
+        "`[Source: architecture.md#41-components--responsibilities]`",
+        "Route group: `src/app/(feed)/page.tsx` (Server Component) with supporting layout/client transitions.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Configuration/feature flag documentation should live in `docs/architecture.md` change log after implementation."
+      ],
+      "Testing Requirements": [
+        "Unit tests: Jest + ts-jest, located in `src/features/feed/__tests__/feed-service.test.ts`, covering cached vs fallback paths.",
+        "`[Source: architecture.md#8-testing-strategy]`",
+        "Integration: Add Playwright (or emulator) scenario ensuring `/beta` renders feed data without impacting `/`. Place under `tests/integration/feed.spec.ts`.",
+        "`[Source: architecture.md#8-testing-strategy]`",
+        "Regression: Update smoke checklist to include feed load + legacy page check.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Ensure all new Firestore reads maintain backward compatibility: new fields must be optional and typed defensively.",
+        "`[Source: architecture.md#2-enhancement-scope-and-integration-strategy]`",
+        "Implement feature gating so rollout can be controlled via `/beta` rewrite and Remote Config toggles.",
+        "`[Source: architecture-brownfield.md#10-migration--rollout-strategy]`",
+        "Instrument feed latency and success metrics for observability dashboards.",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for feed service (cache + fallback).  `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright integration test ensuring `/beta` feed page renders and pagination works.  `[Source: architecture.md#8-testing-strategy]`",
+      "Manual regression: Verify legacy `/` homepage unaffected when feed flag disabled.  `[Source: architecture.md#73-deployment-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "A new Next.js route group `(feed)` exposes a server-rendered landing page that retrieves at least 10 feed entries via a dedicated feed server action while keeping the current `/` experience unchanged behind a feature flag."
+        },
+        {
+          "name": "AC-2",
+          "goal": "`src/features/feed/server/actions.ts` provides typed server actions for initial feed load and cursor-based pagination that read from `personalized_feed_cache` when entries exist and fall back to public creations data without runtime errors."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Feed data access is centralized in `src/features/feed/server/feed-service.ts` (or equivalent) with Firestore queries constrained to configurable region/language parameters, respecting optional new fields `region`, `personaVector`, and `rankingSignals`."
+        },
+        {
+          "name": "AC-4",
+          "goal": "The build introduces Remote Config (or env-driven) gating so the new feed can be enabled for `/beta` traffic without affecting the current homepage, and includes telemetry hooks to log feed latency metrics."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Establish feed module scaffolding (AC: 1,2)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Create `src/features/feed/server/feed-service.ts` with functions for initial load and paginated fetch referencing Firestore `creations` / `personalized_feed_cache`.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Add `src/features/feed/server/actions.ts` exporting server actions that call the service with Zod-validated inputs.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Implement Next.js feed route (AC: 1)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Add `(feed)/layout.tsx` and `(feed)/page.tsx` using existing providers (`AuthProvider`, `Toaster`) and rendering a new `FeedScreen` component.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Create `src/components/screens/feed-screen.tsx` consuming server-provided props and handling client pagination.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Configure feature flag + legacy fallback (AC: 1,4)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Add configuration to toggle feed route exposure (e.g., `NEXT_PUBLIC_ENABLE_FEED_BETA` + Remote Config note) and document rollout steps.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure `/` retains current `AppClient` while `/beta` rewrites to new feed when flag enabled.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Data access & caching rules (AC: 2,3)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Query `personalized_feed_cache` for current user/locale; implement fallback to `getPublicCreations` on empty results.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Model Firestore query constraints for optional fields (`region`, `rankingSignals`) and prepare typed responses.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability & testing (AC: 4)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Emit feed latency metric via existing logging utilities and document expected dashboard hook.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Add Jest unit tests for feed service (success + fallback cases) and integration test stub exercising `(feed)` page rendering.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for feed service (cache + fallback).  `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration test ensuring `/beta` feed page renders and pagination works.  `[Source: architecture.md#8-testing-strategy]`",
+        "Manual regression: Verify legacy `/` homepage unaffected when feed flag disabled.  `[Source: architecture.md#73-deployment-strategy]`"
+      ]
+    }
+  }
+}

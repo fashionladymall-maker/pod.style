@@ -1,0 +1,266 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.511Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.7.feed-ab-testing.md"
+  },
+  "story": {
+    "id": "1.7",
+    "title": "Feed Experimentation & A/B Testing",
+    "status": "Ready",
+    "userStory": "**As a** growth/product analyst on Pod.Style,\n**I want** the feed experience to support configurable experiments (e.g., ranking tweaks, UI variants),\n**so that** we can evaluate engagement improvements without destabilizing the live experience.",
+    "acceptanceCriteria": [
+      "Introduce an experimentation framework within the feed module that can target cohorts (e.g., region/language) and toggle ranking weight parameters or UI treatments via Remote Config/feature flags.",
+      "Server actions surface experiment metadata (variant id, parameter overrides) to the client, while default behavior remains unchanged when experiments are off.",
+      "Client FeedScreen reads experiment metadata and applies corresponding UI adjustments (e.g., highlight trending badge) only for active variants.",
+      "Observability captures experiment assignments, key metrics (feed latency, engagement events) segmented by variant, and ensures dashboards/alerts work with variant breakdown.",
+      "Tests verify experiment configuration logic, server/client variant handling, and backwards compatibility when experiments disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Experiment configuration (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Define experiment config structure (variant IDs, weight multipliers) using Remote Config/env.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update feed service to read experiment settings per request (based on user locale/segment).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Server-side variant handling (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Modify server actions to include experiment metadata in responses (e.g., `variant`, `weightOverrides`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure fallback to control variant when experiments disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Client adjustments (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "FeedScreen consumes variant metadata and applies UI cues (e.g., trending badge).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide graceful handling when variant data missing.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics segmented by variant (`feed.experiment.variant.{id}`) and log assignments.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards/alerting updates for experiment monitoring.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest unit tests for experiment config resolution and service adjustments.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright integration test verifying variant-specific UI behavior.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring control experience unaffected when experiments off.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "Stories 1.1–1.6 provided feed foundation, ranking, ingestion, real-time refresh, search. Experiments must overlay this infrastructure without regressions."
+      ],
+      "Data Models": [
+        "Experiment parameters may adjust `rankingSignals` weights; ensure updates only affect selected cohorts and default to control values.",
+        "`[Source: architecture.md#5-data-architecture]`"
+      ],
+      "API & Service Specifications": [
+        "Feed service should accept experiment overrides for scoring logic while maintaining control behavior.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Observability requires variant-level metrics/logs.",
+        "`[Source: architecture.md#74-observability]`"
+      ],
+      "Component Specifications": [
+        "UI adjustments minimal (e.g., badges, micro animations) and must be feature-flagged to avoid disrupting control group.",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Experiment configuration helper in `src/features/feed/experiments.ts` or similar.",
+        "`[Source: architecture.md#41-components--responsibilities]`",
+        "Client variant consumption in `FeedScreen` (or dedicated component).",
+        "`[Source: architecture.md#4-application-architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit tests for experiment config & scoring adjustments; integration tests for UI variant behavior.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flags/Remote Config must control experiments; rollback procedure should disable variants instantly.",
+        "`[Source: architecture-brownfield.md#10-migration--rollout-strategy]`",
+        "Ensure privacy compliance (no logging of personally identifiable segmentation data).",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for experiment resolution. `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright integration test verifying UI variant behavior. `[Source: architecture.md#8-testing-strategy]`",
+      "Manual regression ensuring control experience unaffected. `[Source: architecture.md#7.3-Deployment-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Introduce an experimentation framework within the feed module that can target cohorts (e.g., region/language) and toggle ranking weight parameters or UI treatments via Remote Config/feature flags."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Server actions surface experiment metadata (variant id, parameter overrides) to the client, while default behavior remains unchanged when experiments are off."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Client FeedScreen reads experiment metadata and applies corresponding UI adjustments (e.g., highlight trending badge) only for active variants."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability captures experiment assignments, key metrics (feed latency, engagement events) segmented by variant, and ensures dashboards/alerts work with variant breakdown."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests verify experiment configuration logic, server/client variant handling, and backwards compatibility when experiments disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Experiment configuration (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Define experiment config structure (variant IDs, weight multipliers) using Remote Config/env.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update feed service to read experiment settings per request (based on user locale/segment).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Server-side variant handling (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Modify server actions to include experiment metadata in responses (e.g., `variant`, `weightOverrides`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure fallback to control variant when experiments disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Client adjustments (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "FeedScreen consumes variant metadata and applies UI cues (e.g., trending badge).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide graceful handling when variant data missing.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics segmented by variant (`feed.experiment.variant.{id}`) and log assignments.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards/alerting updates for experiment monitoring.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest unit tests for experiment config resolution and service adjustments.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright integration test verifying variant-specific UI behavior.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring control experience unaffected when experiments off.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for experiment resolution. `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration test verifying UI variant behavior. `[Source: architecture.md#8-testing-strategy]`",
+        "Manual regression ensuring control experience unaffected. `[Source: architecture.md#7.3-Deployment-Strategy]`"
+      ]
+    }
+  }
+}

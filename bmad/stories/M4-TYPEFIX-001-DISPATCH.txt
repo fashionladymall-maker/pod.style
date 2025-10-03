@@ -1,0 +1,78 @@
+角色：你是开发执行者。
+仓库：https://github.com/fashionladymall-maker/pod.style
+故事：修复 TypeScript 类型错误（M4-TYPEFIX-001）
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+
+## 任务目标
+修复所有 TypeScript 类型错误，确保 `npm run typecheck` 和 `npm run build` 通过。
+
+## 核心需求
+1. 修复 OMG 组件类型定义（Comment、Follow、Hashtag、ShippingInfo 等）
+2. 修复测试文件中的重复声明错误
+3. 确保所有类型导出正确
+
+## 实现步骤
+
+### Step 1: 修复 Comment 接口
+在 `src/lib/types.ts` 中添加缺失字段：
+- `content: string` (替代 `text`)
+- `isLiked: boolean`
+- `likeCount: number`
+- `replyCount: number`
+- `replies?: Comment[]`
+
+### Step 2: 添加缺失的类型导出
+在 `src/lib/types.ts` 中添加：
+- `export interface Follow { ... }`
+- `export interface Hashtag { ... }`
+- `export interface ViewHistory { ... }`
+- `export interface Notification { ... }`
+- `export type NotificationType = ...`
+
+### Step 3: 修复 ShippingInfo 接口
+添加缺失字段：
+- `fullName: string`
+- `city: string`
+- `state: string`
+- `zipCode: string`
+- `country: string`
+
+### Step 4: 修复 Order 接口
+添加：
+- `paymentInfo?: { ... }`
+
+### Step 5: 修复 Creation 接口
+添加：
+- `isLiked: boolean`
+- `userName: string`
+
+### Step 6: 修复 Model 接口
+添加：
+- `modelUri: string`
+
+### Step 7: 修复 OrderStatus 类型
+确保包含：
+- `"pending" | "processing" | "completed" | ...`
+
+### Step 8: 修复测试文件重复声明
+在 `src/app/api/orders/place/route.test.ts` 和 `src/app/api/payments/create-intent/route.test.ts` 中：
+- 将 `const loadRoute` 改为 `let loadRoute` 或使用不同的变量名
+
+## DoD（Definition of Done）
+- [ ] `npm run typecheck` 通过（0 错误）
+- [ ] `npm run build` 通过（0 错误）
+- [ ] `npm run lint` 通过
+- [ ] `npm run test` 通过
+- [ ] 创建分支 `feature/M4-TYPEFIX-001`
+- [ ] 提交代码并推送
+- [ ] 更新 `CHANGELOG.md`
+
+## 重要提示
+- 使用 `--dangerously-bypass-approvals-and-sandbox` 模式运行
+- 所有 git 操作自动批准
+- 遇到问题先尝试修复，不要停止
+- 优先修复类型定义，然后验证构建
+
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+

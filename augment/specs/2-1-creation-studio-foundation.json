@@ -1,0 +1,253 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.515Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/2.1.creation-studio-foundation.md"
+  },
+  "story": {
+    "id": "2.1",
+    "title": "Creation Studio Foundation",
+    "status": "Draft",
+    "userStory": "**As a** creator launching Pod.Style,\n**I want** a dedicated creation studio route where I can compose prompts, see generated patterns, and configure product options,\n**so that** I can produce shareable creations without dealing with raw backend flows.",
+    "acceptanceCriteria": [
+      "Add a new Next.js route group `(studio)` with an entry page that renders the creation workflow, wrapped with `AuthProvider` to ensure only authenticated users access generation features.",
+      "UI presents prompt input, optional inspiration image upload, style selection, and displays generation results returned from server actions powering AI pipelines (initial stubs accepted).",
+      "Integrate existing Genkit flows (`generateTShirtPatternWithStyle`, `generateModelMockup`) via server actions, respecting feature flags/local dev configuration, and deliver results to the UI seamlessly.",
+      "Provide product configuration form (size, color, quantity) and prepare payload structures to persist creations; actual persistence can be stubbed but must be structured to integrate with future stories.",
+      "Observability and testing: log generation requests/results, provide quick fallback messages on failure, and add unit/integration tests covering core workflow and feature flag behavior."
+    ],
+    "tasks": [
+      {
+        "title": "Studio route scaffolding (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create `(studio)/layout.tsx` & `(studio)/page.tsx` using existing providers.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Redirect unauthenticated users to login or prompt to sign in.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI workflow (AC: 2,4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Build `CreationStudioScreen` with sections for prompt input, inspiration upload, style selector, generation preview, product config.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Handle loading/error states; display placeholder when no generation yet.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Server actions integration (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create `src/features/creations/server/studio-actions.ts` calling Genkit flows with proper validation (Zod).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure feature flag allows toggling AI generation (use env/Remote Config).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability & stubs (AC: 3,5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Log generation requests/results (`studio.generate.*`) using logger utilities.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide stubbed persistence function (to be implemented later) returning structured payload.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for server actions (happy path + error).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright test covering basic studio flow under feature flag; ensure fallback message when disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models & Context": [
+        "Creations schema includes prompt, style, patternUri, models, etc.; ensure result structure aligns with `Creation` interface.",
+        "`[Source: architecture.md#5-Data-Architecture]`",
+        "Personalization requires hooking into user models (future stories); this story sets groundwork.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "Use existing Genkit flows (`generateTShirtPatternWithStyle`, `generateModelMockup`) for generation pipeline.",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "Server actions must validate input and handle feature flags / env keys.",
+        "`[Source: architecture.md#6-Integration-Architecture]`"
+      ],
+      "Component Specs": [
+        "UI should follow design tokens (Tailwind + Radix).",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Place components under `src/components/screens/creation-studio.tsx` or similar.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`",
+        "Server actions under `src/features/creations/server/`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit + integration tests as detailed.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flags required; ensure genkit keys loaded via env.",
+        "`[Source: architecture-brownfield.md#10-Migration-&-Rollout-Strategy]`",
+        "Ensure App Check/Auth gating ensures only authenticated users run generation.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for server actions. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright test for UI flow. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Add a new Next.js route group `(studio)` with an entry page that renders the creation workflow, wrapped with `AuthProvider` to ensure only authenticated users access generation features."
+        },
+        {
+          "name": "AC-2",
+          "goal": "UI presents prompt input, optional inspiration image upload, style selection, and displays generation results returned from server actions powering AI pipelines (initial stubs accepted)."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Integrate existing Genkit flows (`generateTShirtPatternWithStyle`, `generateModelMockup`) via server actions, respecting feature flags/local dev configuration, and deliver results to the UI seamlessly."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Provide product configuration form (size, color, quantity) and prepare payload structures to persist creations; actual persistence can be stubbed but must be structured to integrate with future stories."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Observability and testing: log generation requests/results, provide quick fallback messages on failure, and add unit/integration tests covering core workflow and feature flag behavior."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Studio route scaffolding (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create `(studio)/layout.tsx` & `(studio)/page.tsx` using existing providers.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Redirect unauthenticated users to login or prompt to sign in.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI workflow (AC: 2,4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Build `CreationStudioScreen` with sections for prompt input, inspiration upload, style selector, generation preview, product config.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Handle loading/error states; display placeholder when no generation yet.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Server actions integration (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create `src/features/creations/server/studio-actions.ts` calling Genkit flows with proper validation (Zod).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure feature flag allows toggling AI generation (use env/Remote Config).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability & stubs (AC: 3,5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Log generation requests/results (`studio.generate.*`) using logger utilities.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide stubbed persistence function (to be implemented later) returning structured payload.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for server actions (happy path + error).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright test covering basic studio flow under feature flag; ensure fallback message when disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for server actions. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright test for UI flow. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

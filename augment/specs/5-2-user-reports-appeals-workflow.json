@@ -1,0 +1,257 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.565Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/5.2.moderation-reports-and-appeals.md"
+  },
+  "story": {
+    "id": "5.2",
+    "title": "User Reports & Appeals Workflow",
+    "status": "Draft",
+    "userStory": "**As a** Pod.Style user concerned about content,\n**I want** to report creations and allow creators to appeal moderation decisions,\n**so that** the platform stays safe while giving fair review opportunities.",
+    "acceptanceCriteria": [
+      "Implement user-facing report flow (on feed/creation detail) with reasons (IP violation, harassment, spam, etc.), storing reports in `moderation_flags` (linked to creation + reporter) and notifying moderators.",
+      "Provide moderators with report queue filtering by reason/severity; allow merging duplicate reports and adding resolution notes.",
+      "Introduce creator appeal flow (dashboard entry or email link) letting creators request review; appeals create tasks in moderation queue and track outcome.",
+      "Observability logs report volume, resolution time, appeal success rate, and alerts when backlog grows or SLA breached.",
+      "Tests cover reporting, moderator workflows, appeal handling, and regression ensuring feature flag controls availability."
+    ],
+    "tasks": [
+      {
+        "title": "User report UI (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add report button/modal on creation/Feed viewer.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Validate input and store in `moderation_flags` with status `pending_review`.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Moderator tools (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Extend admin moderation queue to show reports grouped by reason; support merge/resolution notes.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Notify moderators via existing channels.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Appeals (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create creator-facing appeal entry (profile or email link).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Track appeals, update moderation status when resolved.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`moderation.report.count`, `moderation.appeal.success`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document alerts for backlog/SLA.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for report/appeal actions.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for UI flows (report & appeal).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring flags control availability.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`moderation_flags` stores reports, statuses, notes; appeals add additional fields.",
+        "`[Source: architecture-brownfield.md#5.3-Data-Model]`"
+      ],
+      "Services": [
+        "Moderation workflows integrate with feed removal; ensure appeals can reinstate content.",
+        "`[Source: architecture-brownfield.md#6-Workflows]`"
+      ],
+      "UI": [
+        "Report modal must clarify reasons and next steps; appeals UI should list status/history.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Structure": [
+        "Report actions in `src/features/moderation/server/report-actions.ts`; UI components under feed/Creator views.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit/integration tests ensure reliability; manual review for policy compliance.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag for report/appeal availability; ensure privacy (reporter identity access limited).",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Security: prevent abuse of appeals; rate-limit reports.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for report/appeal actions. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for UI flows. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Implement user-facing report flow (on feed/creation detail) with reasons (IP violation, harassment, spam, etc.), storing reports in `moderation_flags` (linked to creation + reporter) and notifying moderators."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide moderators with report queue filtering by reason/severity; allow merging duplicate reports and adding resolution notes."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Introduce creator appeal flow (dashboard entry or email link) letting creators request review; appeals create tasks in moderation queue and track outcome."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs report volume, resolution time, appeal success rate, and alerts when backlog grows or SLA breached."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover reporting, moderator workflows, appeal handling, and regression ensuring feature flag controls availability."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "User report UI (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add report button/modal on creation/Feed viewer.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Validate input and store in `moderation_flags` with status `pending_review`.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Moderator tools (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Extend admin moderation queue to show reports grouped by reason; support merge/resolution notes.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Notify moderators via existing channels.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Appeals (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create creator-facing appeal entry (profile or email link).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Track appeals, update moderation status when resolved.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`moderation.report.count`, `moderation.appeal.success`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document alerts for backlog/SLA.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for report/appeal actions.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for UI flows (report & appeal).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring flags control availability.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for report/appeal actions. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for UI flows. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

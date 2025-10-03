@@ -1,0 +1,257 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.525Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/3.6.checkout-reconciliation-and-backoffice.md"
+  },
+  "story": {
+    "id": "3.6",
+    "title": "Checkout Reconciliation & Backoffice Tools",
+    "status": "Draft",
+    "userStory": "**As an** operations/finance team member,\n**I want** dashboards and backoffice tools to reconcile payments, refunds, and orders,\n**so that** I can maintain accurate records and resolve customer issues efficiently.",
+    "acceptanceCriteria": [
+      "Build admin/backoffice views showing recent orders, payment status, refund records, allowing filtering by provider, status, region.",
+      "Provide reconciliation exports (CSV/BigQuery queries) summarizing daily payments/refunds, highlighting mismatches between provider and internal records.",
+      "Implement audit logs for backoffice actions (manual overrides, refunds, shipment adjustments) and ensure logs are easily accessible.",
+      "Observability integrates payments/fulfillment metrics into operations dashboards with alerts for discrepancies or backlog.",
+      "Tests cover admin view access, reconciliation export accuracy, audit log integrity, and regression for legacy (mock) checkout when admin tools disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Backoffice UI (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add admin route (e.g., `/admin/commerce`) displaying order/payment/refund summaries.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement filters & detail views.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Reconciliation exports (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create scripts/queries generating daily summaries.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document export process for finance.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Audit logging (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Record admin actions in audit log collection, with metadata (user, action, timestamp).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide UI/CLI to view logs.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Extend dashboards/alerts to cover payment discrepancies and backlog.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document escalation procedures.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Playwright tests for admin UI (role-based access).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Automated checks for export data integrity.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring admin tools hidden when disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "Use `orders`, `payments`, audit log collections; ensure consistent schemas.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "Services": [
+        "Admin/backoffice flows described in architecture (commerce operations).",
+        "`[Source: architecture-brownfield.md#5.2-Backend-Services]`"
+      ],
+      "UI Considerations": [
+        "Admin UI should respect access control; follow design tokens but can be utilitarian.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations": [
+        "Admin pages under `(admin)/commerce`; services under `src/features/orders/server/operations-service.ts`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Ensure admin features behind auth/roles; tests for data accuracy.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flags to control rollout; ensure compliance with financial regulations.",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Security: audit logs immutable; only authorized roles can access.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Playwright tests for admin UI permissions. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Automated checks for reconciliation exports. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Build admin/backoffice views showing recent orders, payment status, refund records, allowing filtering by provider, status, region."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide reconciliation exports (CSV/BigQuery queries) summarizing daily payments/refunds, highlighting mismatches between provider and internal records."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Implement audit logs for backoffice actions (manual overrides, refunds, shipment adjustments) and ensure logs are easily accessible."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability integrates payments/fulfillment metrics into operations dashboards with alerts for discrepancies or backlog."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover admin view access, reconciliation export accuracy, audit log integrity, and regression for legacy (mock) checkout when admin tools disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Backoffice UI (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add admin route (e.g., `/admin/commerce`) displaying order/payment/refund summaries.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement filters & detail views.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Reconciliation exports (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create scripts/queries generating daily summaries.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document export process for finance.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Audit logging (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Record admin actions in audit log collection, with metadata (user, action, timestamp).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide UI/CLI to view logs.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Extend dashboards/alerts to cover payment discrepancies and backlog.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document escalation procedures.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Playwright tests for admin UI (role-based access).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Automated checks for export data integrity.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring admin tools hidden when disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Playwright tests for admin UI permissions. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Automated checks for reconciliation exports. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

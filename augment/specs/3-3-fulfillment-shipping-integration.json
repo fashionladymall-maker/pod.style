@@ -1,0 +1,259 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.522Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/3.3.checkout-fulfillment-shipping.md"
+  },
+  "story": {
+    "id": "3.3",
+    "title": "Fulfillment & Shipping Integration",
+    "status": "Draft",
+    "userStory": "**As a** buyer awaiting delivery,\n**I want** checkout to coordinate with shipping providers for rates, labels, and tracking,\n**so that** I know when my custom creation will arrive.",
+    "acceptanceCriteria": [
+      "Integrate with logistics provider (e.g., EasyPost/ShipBob) to fetch rates during checkout based on destination, product attributes, and region; display options (standard/express) with costs.",
+      "Upon order creation (Story 3.1/3.2), enqueue fulfillment job that requests shipping label/tracking info and updates `orders` with `fulfillmentStatus`, tracking IDs, and shipment events.",
+      "UI displays shipping selection during checkout and shows tracking status post-purchase (on orders page), respecting feature flags.",
+      "Observability logs fulfillment requests/responses, tracks failure rates, and alerts on fulfillment job errors.",
+      "Tests cover rate fetching, order-fulfillment pipeline, UI display of shipping choices/tracking, and regression when logistics integration disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Rate lookup (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Implement `shipping-service` to query provider for rate options.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update checkout UI to present rates and store selection.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Fulfillment job (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Queue job to generate shipping label and update order with tracking details.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Handle status updates (Processing/Shipped/Delivered).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI updates (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Show shipping options in checkout; reflect chosen option in order summary.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Display tracking status on order detail page.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Log fulfillment interactions (`fulfillment.request.*`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Set up alerts on fulfillment failures or delays.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for shipping service & fulfillment job.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests verifying checkout options + tracking display.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression for fallback when integration disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`orders` include shippingInfo, status history; extend with tracking IDs/events.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "Fulfillment pipeline described in architecture; integrate with shipping provider via Cloud Functions/Run.",
+        "`[Source: architecture-brownfield.md#5.2-Backend-Services]`"
+      ],
+      "Component Specs": [
+        "Checkout UI must display rate options; order detail pages show tracking timeline.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Shipping service in `src/features/orders/server/shipping-service.ts`.",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "Fulfillment job logic in queue handler (reuse queue from Story 2.5).",
+        "`[Source: architecture.md#7.2-Infrastructure-Changes]`"
+      ],
+      "Testing Requirements": [
+        "Emulator/mocked tests for shipping provider; integration tests for UI.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag must allow disabling logistics integration.",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Ensure compliance with shipping provider requirements (address validation, rate limits).",
+        "`[Source: prd.md#5.4-Commerce-&-Fulfillment]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for shipping service & fulfillment job. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for UI flows. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Integrate with logistics provider (e.g., EasyPost/ShipBob) to fetch rates during checkout based on destination, product attributes, and region; display options (standard/express) with costs."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Upon order creation (Story 3.1/3.2), enqueue fulfillment job that requests shipping label/tracking info and updates `orders` with `fulfillmentStatus`, tracking IDs, and shipment events."
+        },
+        {
+          "name": "AC-3",
+          "goal": "UI displays shipping selection during checkout and shows tracking status post-purchase (on orders page), respecting feature flags."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs fulfillment requests/responses, tracks failure rates, and alerts on fulfillment job errors."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover rate fetching, order-fulfillment pipeline, UI display of shipping choices/tracking, and regression when logistics integration disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Rate lookup (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Implement `shipping-service` to query provider for rate options.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update checkout UI to present rates and store selection.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Fulfillment job (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Queue job to generate shipping label and update order with tracking details.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Handle status updates (Processing/Shipped/Delivered).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI updates (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Show shipping options in checkout; reflect chosen option in order summary.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Display tracking status on order detail page.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Log fulfillment interactions (`fulfillment.request.*`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Set up alerts on fulfillment failures or delays.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for shipping service & fulfillment job.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests verifying checkout options + tracking display.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression for fallback when integration disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for shipping service & fulfillment job. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for UI flows. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

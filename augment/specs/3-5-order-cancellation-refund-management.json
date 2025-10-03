@@ -1,0 +1,259 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.523Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/3.5.checkout-cancel-and-refund.md"
+  },
+  "story": {
+    "id": "3.5",
+    "title": "Order Cancellation & Refund Management",
+    "status": "Draft",
+    "userStory": "**As a** buyer who changed their mind or encountered an issue,\n**I want** to cancel orders within an allowed window and receive refunds promptly,\n**so that** I feel confident purchasing custom creations on Pod.Style.",
+    "acceptanceCriteria": [
+      "Provide customer-facing cancellation flow (in orders page) that respects cancellation window (configurable per region/product), updates order status to `Cancelled`, and triggers refund via the appropriate payment provider.",
+      "Record refund transactions in `payments` collection (with provider reference, amount, timestamp), ensuring idempotency if the flow is retried.",
+      "Notify fulfillment pipeline to halt/shutdown shipments if order is cancelled before Shipped; if already shipped, instruct support to handle manually (log the exception).",
+      "Observability logs cancellations/refunds, monitors failure rates, and alerts when refunds fail or exceed thresholds.",
+      "Tests cover cancellation constraints, refund processing per provider, observability hooks, and regression with legacy mock checkout when feature flag disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Cancellation UI/flow (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add cancellation button in order detail with confirmation dialog referencing policy.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Validate cancellation window and handle errors gracefully.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Refund logic (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Extend `payments-service` to issue refunds via provider API.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Record refund entries with idempotent handling.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Fulfillment coordination (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update fulfillment queue to stop shipments or log manual escalation if shipped.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Notify operations/support team of exceptions.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability & alerts (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Log `checkout.refund.*` metrics; configure alerting for failures/excess.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards and escalation steps.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for cancellation/refund logic.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for UI flow.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring feature flag fallback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`payments` should capture refund metadata; `orders` status history must record cancellation event.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "Services": [
+        "Payment service handles provider-specific refunds; ensure security/compliance.",
+        "`[Source: architecture.md#6-Integration-Architecture]`",
+        "Fulfillment pipeline must respect cancellation signals.",
+        "`[Source: architecture-brownfield.md#5.2-Backend-Services]`"
+      ],
+      "UI Considerations": [
+        "Cancellation UI must communicate policy (time window, shipping status).",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Structure": [
+        "Refund logic under `src/features/payments/server/`; UI in `(shop)/orders`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing": [
+        "Unit tests for cancellation/refund logic; integration tests for UI.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag for refund flow; compliance with provider policies.",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Security: ensure secure handling of refund operations.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest/Integration tests for cancellation & refund. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Regression for legacy mock fallback. `[Source: architecture.md#7.3-Deployment-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Provide customer-facing cancellation flow (in orders page) that respects cancellation window (configurable per region/product), updates order status to `Cancelled`, and triggers refund via the appropriate payment provider."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Record refund transactions in `payments` collection (with provider reference, amount, timestamp), ensuring idempotency if the flow is retried."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Notify fulfillment pipeline to halt/shutdown shipments if order is cancelled before Shipped; if already shipped, instruct support to handle manually (log the exception)."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs cancellations/refunds, monitors failure rates, and alerts when refunds fail or exceed thresholds."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover cancellation constraints, refund processing per provider, observability hooks, and regression with legacy mock checkout when feature flag disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Cancellation UI/flow (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add cancellation button in order detail with confirmation dialog referencing policy.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Validate cancellation window and handle errors gracefully.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Refund logic (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Extend `payments-service` to issue refunds via provider API.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Record refund entries with idempotent handling.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Fulfillment coordination (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update fulfillment queue to stop shipments or log manual escalation if shipped.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Notify operations/support team of exceptions.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability & alerts (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Log `checkout.refund.*` metrics; configure alerting for failures/excess.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards and escalation steps.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for cancellation/refund logic.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for UI flow.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring feature flag fallback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest/Integration tests for cancellation & refund. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Regression for legacy mock fallback. `[Source: architecture.md#7.3-Deployment-Strategy]`"
+      ]
+    }
+  }
+}

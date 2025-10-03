@@ -1,0 +1,263 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.519Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/2.4.creation-versioning-and-publish.md"
+  },
+  "story": {
+    "id": "2.4",
+    "title": "Creation Version History & Publish Flow",
+    "status": "Draft",
+    "userStory": "**As a** creator iterating on designs,\n**I want** each generation to be versioned and a clear publish flow to move drafts live,\n**so that** I can compare variations, revert if needed, and share finished creations confidently.",
+    "acceptanceCriteria": [
+      "When saving generation results, append entries to a `versions` subcollection (or embedded array) capturing prompt, style, assets, personalization settings, timestamps, and flags for favorites.",
+      "Provide UI for viewing version history, selecting a primary variant, and promoting it to “Ready to publish” state; allow reverting to previous versions.",
+      "Publishing the selected version updates the main `Creation` document (set `isPublic`, `publishedAt`, etc.), triggers ingestion pipeline (Story 1.4), and enforces moderation pre-check (mark status pending).",
+      "Rollback path allows unpublishing (reverting to draft) while retaining version history and optionally cleaning feed entries.",
+      "Tests cover version creation/reversion, publish/unpublish transitions, Firestore data integrity, and UI interactions under feature flag control."
+    ],
+    "tasks": [
+      {
+        "title": "Version recording (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update storage logic to write entries to `creations/{id}/versions` with necessary metadata.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure data structure aligns with architecture and supports favorites.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Version history UI (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add version management UI in CreationStudioScreen (list, select, mark favorite).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement actions to revert/select primary variant.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Publish flow (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create publish server action to mark creation public, trigger ingestion, set moderation status.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update status/respective fields in Firestore.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Rollback/unpublish (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Provide action to revert to draft, remove feed entry (if exists), maintain version history.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document rollback behavior and logs.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for version writes and state transitions.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for UI flow (view history, publish, revert).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring moderation pipeline invoked correctly.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`versions` structure described in architecture; keep fields consistent (`prompt`, `style`, `patternUri`, `previewPatternUri`, etc.).",
+        "`[Source: architecture.md#5-Data-Architecture]`",
+        "`Creation` doc fields include `isPublic`, `publishedAt`, `moderationStatus`.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "Publishing should call ingestion pipeline so feed updates.",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "Moderation pre-check required before final exposure.",
+        "`[Source: architecture.md#6-Integration-Architecture]`"
+      ],
+      "Component Specs": [
+        "Version UI respects design tokens; actions go through server actions for consistency.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Version logic within `creation-service`; server actions in `studio-actions`.",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "UI components in studio screen or dedicated `creation-history` component.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Unit/integration tests for version/publish flows; manual regression for ingestion + moderation interplay.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Publishing must be idempotent and safe for retries.",
+        "`[Source: architecture.md#2-Enhancement-Scope-and-Integration-Strategy]`",
+        "Respect feature flags/moderation checks to avoid unapproved content.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for versioning/publish logic. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for version UI and publish flow. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "When saving generation results, append entries to a `versions` subcollection (or embedded array) capturing prompt, style, assets, personalization settings, timestamps, and flags for favorites."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide UI for viewing version history, selecting a primary variant, and promoting it to “Ready to publish” state; allow reverting to previous versions."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Publishing the selected version updates the main `Creation` document (set `isPublic`, `publishedAt`, etc.), triggers ingestion pipeline (Story 1.4), and enforces moderation pre-check (mark status pending)."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Rollback path allows unpublishing (reverting to draft) while retaining version history and optionally cleaning feed entries."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover version creation/reversion, publish/unpublish transitions, Firestore data integrity, and UI interactions under feature flag control."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Version recording (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update storage logic to write entries to `creations/{id}/versions` with necessary metadata.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure data structure aligns with architecture and supports favorites.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Version history UI (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add version management UI in CreationStudioScreen (list, select, mark favorite).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement actions to revert/select primary variant.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Publish flow (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create publish server action to mark creation public, trigger ingestion, set moderation status.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update status/respective fields in Firestore.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Rollback/unpublish (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Provide action to revert to draft, remove feed entry (if exists), maintain version history.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document rollback behavior and logs.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for version writes and state transitions.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for UI flow (view history, publish, revert).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring moderation pipeline invoked correctly.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for versioning/publish logic. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for version UI and publish flow. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

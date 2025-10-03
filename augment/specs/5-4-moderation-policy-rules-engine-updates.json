@@ -1,0 +1,218 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.578Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/5.4.moderation-policy-rules-engine.md"
+  },
+  "story": {
+    "id": "5.4",
+    "title": "Moderation Policy & Rules Engine Updates",
+    "status": "Draft",
+    "userStory": "**As a** policy manager,\n**I want** to update moderation rules and thresholds quickly,\n**so that** the system adapts to new content risks without code changes.",
+    "acceptanceCriteria": [
+      "Introduce a rules configuration file (stored in Firestore/Config) defining banned keywords, severity scores, thresholds for auto-reject vs review; allow policy team to edit via admin UI.",
+      "Moderation pipeline reads rules configuration dynamically and reloads when changes detected, applying them before calling external APIs.",
+      "Provide audit trail of rule changes (who, when, what) with rollback capability to previous versions.",
+      "Observability tracks rule hits (counts per rule), false positives/negatives, and alerts when rules produce excessive rejections.",
+      "Tests cover rules parsing, pipeline behavior with updated rules, admin editing flow, and regression ensuring old rules remain usable if new config fails."
+    ],
+    "tasks": [
+      {
+        "title": "Rules configuration (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Define Firestore collection or Config entry for rules.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Build admin UI/editor with validation.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Pipeline integration (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update moderation job to load rules and apply before external API call.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure hot reload or schedule updates.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Audit & rollback (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Record rule change history; enable rollback to prior version.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`moderation.rule.hit.{id}`) and false positive tracking.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Configure alerts.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for rules engine.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright/admin tests for rule editor.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression when config invalid.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {},
+    "testing": [
+      "Unit + integration tests per testing strategy."
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Introduce a rules configuration file (stored in Firestore/Config) defining banned keywords, severity scores, thresholds for auto-reject vs review; allow policy team to edit via admin UI."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Moderation pipeline reads rules configuration dynamically and reloads when changes detected, applying them before calling external APIs."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Provide audit trail of rule changes (who, when, what) with rollback capability to previous versions."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability tracks rule hits (counts per rule), false positives/negatives, and alerts when rules produce excessive rejections."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover rules parsing, pipeline behavior with updated rules, admin editing flow, and regression ensuring old rules remain usable if new config fails."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Rules configuration (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Define Firestore collection or Config entry for rules.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Build admin UI/editor with validation.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Pipeline integration (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update moderation job to load rules and apply before external API call.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure hot reload or schedule updates.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Audit & rollback (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Record rule change history; enable rollback to prior version.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`moderation.rule.hit.{id}`) and false positive tracking.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Configure alerts.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for rules engine.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright/admin tests for rule editor.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression when config invalid.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Unit + integration tests per testing strategy."
+      ]
+    }
+  }
+}

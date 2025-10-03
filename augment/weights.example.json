@@ -1,0 +1,9 @@
+{
+  "criticalWeight": 5,
+  "sections": {
+    "Testing": {
+      "weight": 7,
+      "goal": "Ensure end-to-end coverage"
+    }
+  }
+}

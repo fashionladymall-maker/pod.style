@@ -1,0 +1,271 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.508Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.5.feed-realtime-refresh.md"
+  },
+  "story": {
+    "id": "1.5",
+    "title": "Feed Real-Time Refresh & Interaction Hooks",
+    "status": "Ready for Review",
+    "userStory": "**As a** user browsing the Pod.Style feed,\n**I want** newly generated or remixed creations to appear promptly without manual reloads,\n**so that** I stay engaged with fresh content and see social signals update in near real time.",
+    "acceptanceCriteria": [
+      "Implement a client-side refresh mechanism for the `(feed)` experience that periodically refetches (or subscribes to) new feed entries when the feature flag is enabled, without disrupting the existing legacy homepage.",
+      "Integrate a lightweight polling or listener approach that respects Firestore usage limits (e.g., poll every 30 seconds with exponential backoff) and updates the UI with new entries at the top while preserving pagination state.",
+      "Update feed services to expose a “since” or cursor endpoint allowing incremental loads; fallback behavior must still function when real-time refresh is disabled.",
+      "Emitting metrics/logs for refresh frequency, new item counts, and user interactions resulting from refreshes, ensuring observability dashboards capture these signals.",
+      "Tests cover the refetch logic, pagination integrity, and backwards compatibility with legacy `/` when the feature is toggled off."
+    ],
+    "tasks": [
+      {
+        "title": "Client refresh hook (AC: 1,2)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Add polling mechanism（React hook util）触发定时 refetch，并带指数退避。",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Update `FeedScreen` 顶部合并新条目，维持分页状态。",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Server endpoint support (AC: 3)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Extend feed service to接受 `updatedAfter` 增量加载。",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure fallback path returns complete page when incremental data unavailable.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`feed.service.refresh.frequency`, `feed.service.refresh.new_items`) 并记录刷新错误。",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards/alerts for refresh staleness and failures.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Feature flag & compatibility (AC: 1,3,5)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Wrap new refresh behavior behind Remote Config/env flag; confirm `/` legacy experience unaffected.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Provide rollback instructions (disable flag, revert to manual refresh).",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Jest tests for polling utilities and service incremental endpoint。",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright integration test verifying refresh attribute without breaking pagination。",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression confirming legacy experience unchanged when flag off。",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "1.1 introduced feed route; 1.2–1.4 implemented cache, ranking, and ingestion pipeline.",
+        "This story adds real-time-like refresh for the feed while preserving compatibility."
+      ],
+      "Data Models": [
+        "No new fields required; rely on timestamps (`updatedAt`) and ranking signals added previously.",
+        "`[Source: architecture.md#5-data-architecture]`"
+      ],
+      "API & Service Specifications": [
+        "Feed service should support incremental fetch (since timestamp/cursor) to power refresh.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Cloud Function ingestion already updates cache entries; refresh simply consumes those updates.",
+        "`[Source: architecture-brownfield.md#6-workflows]`"
+      ],
+      "Component Specifications": [
+        "Client `FeedScreen` handles new entries gracefully, preserving scroll/pagination state.",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Client logic under `src/components/screens/feed-screen.tsx` or dedicated hook `src/features/feed/hooks/useFeedRefresh.ts`.",
+        "`[Source: architecture.md#41-components--responsibilities]`",
+        "Service updates under `src/features/feed/server/feed-service.ts`.",
+        "`[Source: architecture.md#4-application-architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit tests: polling hook, incremental service logic (`src/features/feed/__tests__/use-feed-refresh.test.ts`).",
+        "`[Source: architecture.md#8-testing-strategy]`",
+        "Integration: Playwright verifying `/beta` auto-refresh vs legacy `/`.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag gating remains; refresh behavior should be disabled when flag off.",
+        "`[Source: architecture.md#11-next-steps]`",
+        "Respect Firestore quotas; polling frequency/backoff must prevent excessive reads.",
+        "`[Source: architecture-brownfield.md#8-performance--scalability]`",
+        "Observability metrics integrate with prior feed telemetry.",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for polling scheduler 与增量服务。 `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright integration test 验证 `/beta` 启用刷新时属性存在且分页正常。 `[Source: architecture.md#8-testing-strategy]`",
+      "Manual regression：关闭 flag 时确认 legacy `/` 体验不变。 `[Source: architecture.md#73-deployment-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Implement a client-side refresh mechanism for the `(feed)` experience that periodically refetches (or subscribes to) new feed entries when the feature flag is enabled, without disrupting the existing legacy homepage."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Integrate a lightweight polling or listener approach that respects Firestore usage limits (e.g., poll every 30 seconds with exponential backoff) and updates the UI with new entries at the top while preserving pagination state."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Update feed services to expose a “since” or cursor endpoint allowing incremental loads; fallback behavior must still function when real-time refresh is disabled."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Emitting metrics/logs for refresh frequency, new item counts, and user interactions resulting from refreshes, ensuring observability dashboards capture these signals."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover the refetch logic, pagination integrity, and backwards compatibility with legacy `/` when the feature is toggled off."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Client refresh hook (AC: 1,2)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Add polling mechanism（React hook util）触发定时 refetch，并带指数退避。",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Update `FeedScreen` 顶部合并新条目，维持分页状态。",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Server endpoint support (AC: 3)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Extend feed service to接受 `updatedAfter` 增量加载。",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure fallback path returns complete page when incremental data unavailable.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`feed.service.refresh.frequency`, `feed.service.refresh.new_items`) 并记录刷新错误。",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards/alerts for refresh staleness and failures.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Feature flag & compatibility (AC: 1,3,5)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Wrap new refresh behavior behind Remote Config/env flag; confirm `/` legacy experience unaffected.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Provide rollback instructions (disable flag, revert to manual refresh).",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Jest tests for polling utilities and service incremental endpoint。",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright integration test verifying refresh attribute without breaking pagination。",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression confirming legacy experience unchanged when flag off。",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for polling scheduler 与增量服务。 `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration test 验证 `/beta` 启用刷新时属性存在且分页正常。 `[Source: architecture.md#8-testing-strategy]`",
+        "Manual regression：关闭 flag 时确认 legacy `/` 体验不变。 `[Source: architecture.md#73-deployment-strategy]`"
+      ]
+    }
+  }
+}

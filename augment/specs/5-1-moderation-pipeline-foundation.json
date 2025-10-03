@@ -1,0 +1,257 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.562Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/5.1.moderation-pipeline-foundation.md"
+  },
+  "story": {
+    "id": "5.1",
+    "title": "Moderation Pipeline Foundation",
+    "status": "Draft",
+    "userStory": "**As a** trust & safety engineer,\n**I want** a reliable moderation pipeline that scans creations and tracks outcomes,\n**so that** flagged content is caught before reaching the feed or checkout.",
+    "acceptanceCriteria": [
+      "Implement automatic moderation job triggered on creation publish (or upload), integrating third-party APIs (e.g., Google Content Safety) and internal rule checks, writing results to `moderation_flags` with status (pending/approved/rejected).",
+      "Provide admin moderation queue UI listing pending flags, allowing reviewers to approve/reject, add notes, and trigger feed removal or reinstatement as needed.",
+      "Update feed and creation services to respect moderation outcomes (approved only visible), logging audit trail for every status change.",
+      "Observability logs moderation throughput, false positives, and backlog; alerts when backlog exceeds threshold or API errors occur.",
+      "Tests cover automatic moderation integration, admin decisions, feed visibility changes, and regression ensuring manual overrides persisted."
+    ],
+    "tasks": [
+      {
+        "title": "Automatic moderation integration (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add Cloud Function/job to call moderation APIs on new creation.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Record results in `moderation_flags`.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Admin queue UI (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Build `/admin/moderation` interface for reviewers.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Enable approve/reject with notes, update status.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Feed/creation synchronization (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Ensure feed service filters based on moderation status (already referenced in Story 1.9).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Trigger feed updates/reinstatement on status change.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`moderation.queue.size`, `moderation.api.errors`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Set up alerts/dashboard.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for moderation job, admin actions.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for admin UI flow.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring feed respects moderation decisions.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`moderation_flags` schema includes reason, status, reviewer notes.",
+        "`[Source: architecture-brownfield.md#5.3-Data-Model]`"
+      ],
+      "Services": [
+        "Moderation workflow captured in architecture; integrate with feed pipeline.",
+        "`[Source: architecture-brownfield.md#6-Workflows]`"
+      ],
+      "UI": [
+        "Admin moderation UI should be efficient, highlight pending tasks.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Structure": [
+        "Moderation logic under `src/features/moderation`; admin UI under `(admin)/moderation`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit/integration tests per architecture.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag to roll out moderation pipeline; ensure audit logs retained.",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Compliance: store moderation outcomes securely, respect privacy.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for moderation automation & admin queue. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for admin moderation UI. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Implement automatic moderation job triggered on creation publish (or upload), integrating third-party APIs (e.g., Google Content Safety) and internal rule checks, writing results to `moderation_flags` with status (pending/approved/rejected)."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide admin moderation queue UI listing pending flags, allowing reviewers to approve/reject, add notes, and trigger feed removal or reinstatement as needed."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Update feed and creation services to respect moderation outcomes (approved only visible), logging audit trail for every status change."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs moderation throughput, false positives, and backlog; alerts when backlog exceeds threshold or API errors occur."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover automatic moderation integration, admin decisions, feed visibility changes, and regression ensuring manual overrides persisted."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Automatic moderation integration (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add Cloud Function/job to call moderation APIs on new creation.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Record results in `moderation_flags`.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Admin queue UI (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Build `/admin/moderation` interface for reviewers.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Enable approve/reject with notes, update status.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Feed/creation synchronization (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Ensure feed service filters based on moderation status (already referenced in Story 1.9).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Trigger feed updates/reinstatement on status change.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`moderation.queue.size`, `moderation.api.errors`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Set up alerts/dashboard.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for moderation job, admin actions.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for admin UI flow.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring feed respects moderation decisions.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for moderation automation & admin queue. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for admin moderation UI. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

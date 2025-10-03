@@ -1,0 +1,31 @@
+完成 M4-PERFORMANCE-001 性能优化任务
+
+## 前置条件
+等待 M4-TYPEFIX-001 完成后执行。
+
+## 任务
+1. 验证所有性能优化代码已就绪
+2. 运行 npm run typecheck（应该通过）
+3. 运行 npm run build（应该通过）
+4. 运行 npm run lint
+5. 运行 npm run test
+6. 更新 CHANGELOG.md（如果未更新）
+7. 创建分支 feature/M4-PERFORMANCE-001
+8. 提交并推送
+
+## 已完成的优化
+- 替换 <img> 为 Next.js Image（6 个文件）
+- 添加 LQIP blur placeholders
+- 动态导入 modals/drawers
+- requestIdleCallback 预加载
+- Service Worker stale-while-revalidate
+- Firestore IndexedDB persistence
+- Web Vitals 监控
+- 自定义性能指标
+
+## 提交命令
+git checkout -b feature/M4-PERFORMANCE-001
+git add .
+git commit -m "feat(M4-PERFORMANCE-001): optimize frontend performance with image optimization, code splitting, and caching"
+git push origin feature/M4-PERFORMANCE-001
+

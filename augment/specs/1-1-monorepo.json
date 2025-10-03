@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.587Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/story-1.1-project-init.md"
+  },
+  "story": {
+    "id": "1.1",
+    "title": "项目初始化与 Monorepo 设置",
+    "status": "",
+    "userStory": "",
+    "acceptanceCriteria": [
+      "✅ 创建 Turborepo monorepo 结构，包含 `apps/web`、`apps/api`、`packages/shared`、`packages/config` 目录",
+      "✅ 配置 TypeScript，所有包共享统一的 tsconfig 基础配置",
+      "✅ 配置 ESLint 和 Prettier，确保代码风格一致",
+      "✅ 配置 Husky 和 lint-staged，实现 pre-commit 代码检查",
+      "✅ 创建 package.json scripts：`dev`、`build`、`lint`、`test`",
+      "✅ 添加 README.md，包含项目说明和开发指南",
+      "✅ 初始化 Git 仓库并创建 .gitignore 文件",
+      "✅ 项目可以成功运行 `npm run dev` 启动开发环境 ---"
+    ],
+    "tasks": [],
+    "devNotes": {},
+    "testing": []
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "✅ 创建 Turborepo monorepo 结构，包含 `apps/web`、`apps/api`、`packages/shared`、`packages/config` 目录"
+        },
+        {
+          "name": "AC-2",
+          "goal": "✅ 配置 TypeScript，所有包共享统一的 tsconfig 基础配置"
+        },
+        {
+          "name": "AC-3",
+          "goal": "✅ 配置 ESLint 和 Prettier，确保代码风格一致"
+        },
+        {
+          "name": "AC-4",
+          "goal": "✅ 配置 Husky 和 lint-staged，实现 pre-commit 代码检查"
+        },
+        {
+          "name": "AC-5",
+          "goal": "✅ 创建 package.json scripts：`dev`、`build`、`lint`、`test`"
+        },
+        {
+          "name": "AC-6",
+          "goal": "✅ 添加 README.md，包含项目说明和开发指南"
+        },
+        {
+          "name": "AC-7",
+          "goal": "✅ 初始化 Git 仓库并创建 .gitignore 文件"
+        },
+        {
+          "name": "AC-8",
+          "goal": "✅ 项目可以成功运行 `npm run dev` 启动开发环境 ---"
+        }
+      ],
+      "implementation": [],
+      "qa": []
+    }
+  }
+}

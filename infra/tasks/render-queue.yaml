@@ -1,0 +1,11 @@
+queue:
+  name: renderQueue
+  location: us-central1
+  rateLimits:
+    maxDispatchesPerSecond: 2
+    maxConcurrentDispatches: 1
+  retryConfig:
+    maxAttempts: 5
+    minBackoff: 10s
+    maxBackoff: 600s
+    maxDoublings: 3
