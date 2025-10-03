@@ -70,32 +70,47 @@ const getFirebaseConfigFromFirebaseConfigEnv = (): MaybeFirebaseConfig => {
 const firebaseDefaultsConfig = getFirebaseConfigFromDefaults();
 const firebaseConfigEnv = getFirebaseConfigFromFirebaseConfigEnv();
 
+// Production fallback configuration (public, non-sensitive)
+const PRODUCTION_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAr_uiyZThmAYRDigXt0g_0Y2am2ojc8I0",
+  authDomain: "studio-1269295870-5fde0.firebaseapp.com",
+  projectId: "studio-1269295870-5fde0",
+  storageBucket: "studio-1269295870-5fde0.firebasestorage.app",
+  messagingSenderId: "204491544475",
+  appId: "1:204491544475:web:dadc0d6d650572156db33e",
+};
+
 const firebaseConfig: Partial<FirebaseOptions> = {
   apiKey:
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY ??
     process.env.FIREBASE_API_KEY ??
     firebaseDefaultsConfig?.apiKey ??
-    firebaseConfigEnv?.apiKey,
+    firebaseConfigEnv?.apiKey ??
+    PRODUCTION_FIREBASE_CONFIG.apiKey,
   authDomain:
     process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ??
     process.env.FIREBASE_AUTH_DOMAIN ??
     firebaseDefaultsConfig?.authDomain ??
-    firebaseConfigEnv?.authDomain,
+    firebaseConfigEnv?.authDomain ??
+    PRODUCTION_FIREBASE_CONFIG.authDomain,
   projectId:
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
     process.env.FIREBASE_PROJECT_ID ??
     firebaseDefaultsConfig?.projectId ??
-    firebaseConfigEnv?.projectId,
+    firebaseConfigEnv?.projectId ??
+    PRODUCTION_FIREBASE_CONFIG.projectId,
   storageBucket:
     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ??
     process.env.FIREBASE_STORAGE_BUCKET ??
     firebaseDefaultsConfig?.storageBucket ??
-    firebaseConfigEnv?.storageBucket,
+    firebaseConfigEnv?.storageBucket ??
+    PRODUCTION_FIREBASE_CONFIG.storageBucket,
   messagingSenderId:
     process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ??
     process.env.FIREBASE_MESSAGING_SENDER_ID ??
     firebaseDefaultsConfig?.messagingSenderId ??
-    firebaseConfigEnv?.messagingSenderId,
+    firebaseConfigEnv?.messagingSenderId ??
+    PRODUCTION_FIREBASE_CONFIG.messagingSenderId,
   appId:
     process.env.NEXT_PUBLIC_FIREBASE_APP_ID ??
     process.env.FIREBASE_APP_ID ??
