@@ -151,12 +151,35 @@ Please ensure your Firebase web app configuration is available via NEXT_PUBLIC_F
 
 ## 📊 Bug 统计
 
-- **发现**: 3 个
-- **已修复**: 2 个
-- **待验证**: 1 个
-- **待修复**: 0 个
+- **发现**: 4 个
+- **已修复**: 3 个
+- **待验证**: 0 个
+- **待修复**: 1 个 (低优先级警告)
 
 ---
 
-**更新时间**: 2025-10-03 13:20
+## 🆕 新发现的问题
+
+### 问题 4: Firestore settings 重复配置警告 ⚠️
+**严重程度**: 🟡 Low (不影响功能)
+**环境**: 本地开发
+**警告信息**:
+```
+Firestore settings already configured: Error: Firestore has already been initialized.
+You can only call settings() once, and only before calling any other methods on a Firestore object.
+```
+
+**位置**: `src/lib/firebase-admin.ts:126`
+
+**根本原因**:
+- Firestore 实例在多次调用时重复配置 settings
+- 需要添加标志位防止重复调用
+
+**优先级**: P3 (低优先级，仅警告)
+
+**状态**: ⏳ 待修复
+
+---
+
+**更新时间**: 2025-10-03 13:50
 
