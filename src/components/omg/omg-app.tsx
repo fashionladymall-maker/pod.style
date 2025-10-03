@@ -700,20 +700,37 @@ export function OMGApp({
             exit={{ opacity: 0 }}
             className="absolute inset-0"
           >
-            <FeedScreen
-              creations={creations}
-              currentIndex={currentIndex}
-              currentUserId={userId}
-              onIndexChange={setCurrentIndex}
-              onLike={handleLike}
-              onComment={handleComment}
-              onFavorite={handleFavorite}
-              onShare={handleShare}
-              onUserClick={handleUserClick}
-              onCreationClick={handleCreationClick}
-              onModelClick={handleModelClick}
-              onLoginRequired={() => setShowLoginModal(true)}
-            />
+            {creations.length > 0 ? (
+              <FeedScreen
+                creations={creations}
+                currentIndex={currentIndex}
+                currentUserId={userId}
+                onIndexChange={setCurrentIndex}
+                onLike={handleLike}
+                onComment={handleComment}
+                onFavorite={handleFavorite}
+                onShare={handleShare}
+                onUserClick={handleUserClick}
+                onCreationClick={handleCreationClick}
+                onModelClick={handleModelClick}
+                onLoginRequired={() => setShowLoginModal(true)}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center p-6 bg-zinc-900">
+                <div className="max-w-md">
+                  <h2 className="text-2xl font-bold text-white mb-4">欢迎来到 POD.STYLE</h2>
+                  <p className="text-gray-400 mb-8">
+                    还没有创作内容。点击下方"+"按钮开始创作，或者登录查看更多内容。
+                  </p>
+                  <button
+                    onClick={() => setShowCreateScreen(true)}
+                    className="px-6 py-3 bg-blue-500 text-white rounded-full font-medium hover:bg-blue-600 transition-colors"
+                  >
+                    开始创作
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
