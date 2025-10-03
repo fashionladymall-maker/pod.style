@@ -1,0 +1,261 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.520Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/3.1.checkout-foundation.md"
+  },
+  "story": {
+    "id": "3.1",
+    "title": "Checkout Foundation & Stripe Integration",
+    "status": "Draft",
+    "userStory": "**As a** buyer on Pod.Style,\n**I want** a guided checkout experience supported by a real payment provider,\n**so that** I can purchase custom creations confidently and securely.",
+    "acceptanceCriteria": [
+      "Create a dedicated `(shop)` route group (e.g., cart/checkout pages) that consumes creation data (selected variant, product options) and renders a responsive checkout form.",
+      "Integrate Stripe payment intents via secure server actions (`payments-service`), storing only tokenized data (`payments` collection) and ensuring no raw card data touches Firestore.",
+      "Support both guest checkout (email + minimal info) and authenticated user checkout (prefill saved addresses/payments when available).",
+      "Implement order creation (`orders` collection) upon successful payment intent confirmation, capturing line items, shipping info, payment summary, and status history.",
+      "Observability & testing: log payment attempts/results, provide error feedback, add unit/integration tests covering checkout flow and feature flag fallback."
+    ],
+    "tasks": [
+      {
+        "title": "Checkout routes & UI (AC: 1,3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add `(shop)/cart/page.tsx` and `(shop)/checkout/page.tsx` with shared layout.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement forms for shipping + payment, with guest/auth flows.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Stripe integration (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create `src/features/payments/server/stripe-service.ts` to handle payment intents.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Expose server actions for creating/confirming payments.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Order creation (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Implement order persistence (using `order-service`) upon payment success.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Link orders to user/guest and include status history.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability & error handling (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Log payment attempts (`checkout.payment.*`), handle errors gracefully, and display user-friendly messages.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document rollback procedure (remove tokens, cancel orders).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for payment/order server actions (mock Stripe).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for checkout UI (guest/auth flows).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression for legacy mock path when flag disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`orders` schema includes paymentSummary, shippingInfo, status history; ensure compatibility with mock flow.",
+        "`[Source: architecture.md#5-Data-Architecture]`",
+        "`payments` collection stores tokenized info only.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "Stripe integration as defined; use Cloud Functions/Run if needed for secret handling.",
+        "`[Source: architecture.md#6-Integration-Architecture]`",
+        "Ensure compliance: no raw card data stored.",
+        "`[Source: prd.md#Constraints]`"
+      ],
+      "Component Specs": [
+        "Checkout UI must follow design tokens, responsive layout.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Payment logic under `src/features/payments/server/`; checkout UI under `(shop)` and `src/components/screens/checkout-screen.tsx`.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Stripe mocking for unit tests; integration tests for UI flow.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag enabling real Stripe; fallback to mock when disabled.",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Security: ensure server actions require auth/context where needed.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for payment/order logic. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for checkout flow. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Create a dedicated `(shop)` route group (e.g., cart/checkout pages) that consumes creation data (selected variant, product options) and renders a responsive checkout form."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Integrate Stripe payment intents via secure server actions (`payments-service`), storing only tokenized data (`payments` collection) and ensuring no raw card data touches Firestore."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Support both guest checkout (email + minimal info) and authenticated user checkout (prefill saved addresses/payments when available)."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Implement order creation (`orders` collection) upon successful payment intent confirmation, capturing line items, shipping info, payment summary, and status history."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Observability & testing: log payment attempts/results, provide error feedback, add unit/integration tests covering checkout flow and feature flag fallback."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Checkout routes & UI (AC: 1,3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add `(shop)/cart/page.tsx` and `(shop)/checkout/page.tsx` with shared layout.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement forms for shipping + payment, with guest/auth flows.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Stripe integration (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create `src/features/payments/server/stripe-service.ts` to handle payment intents.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Expose server actions for creating/confirming payments.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Order creation (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Implement order persistence (using `order-service`) upon payment success.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Link orders to user/guest and include status history.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability & error handling (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Log payment attempts (`checkout.payment.*`), handle errors gracefully, and display user-friendly messages.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document rollback procedure (remove tokens, cancel orders).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for payment/order server actions (mock Stripe).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for checkout UI (guest/auth flows).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression for legacy mock path when flag disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for payment/order logic. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for checkout flow. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

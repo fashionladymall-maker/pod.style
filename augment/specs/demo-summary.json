@@ -1,0 +1,160 @@
+{
+  "generatedAt": "2025-10-01T03:02:10.519Z",
+  "options": {
+    "tokens": [
+      "1.1"
+    ],
+    "formats": [
+      "json"
+    ],
+    "outDir": "augment/specs",
+    "storiesDir": "docs/stories",
+    "manifest": true,
+    "statusFilters": [],
+    "dryRun": true,
+    "strict": false,
+    "stats": false,
+    "quiet": false,
+    "requiredSections": [
+      "Story",
+      "Acceptance Criteria",
+      "Tasks / Subtasks",
+      "Dev Notes",
+      "Testing"
+    ],
+    "missingOnly": false,
+    "summaryFormat": "json",
+    "topMissingSections": 0
+  },
+  "stats": {
+    "processed": 4,
+    "exported": 4,
+    "skipped": 0,
+    "formats": [
+      "json"
+    ],
+    "acceptanceCriteria": 22,
+    "tasks": 15,
+    "tasksTopLevel": 15,
+    "tasksTotal": 47,
+    "statuses": {
+      "ready for review": 1,
+      "ready": 2,
+      "": 1
+    },
+    "missingSections": {
+      "Story": 1,
+      "Tasks / Subtasks": 1,
+      "Dev Notes": 1,
+      "Testing": 1
+    },
+    "missingSectionsBySeverity": {
+      "critical": 4,
+      "optional": 0
+    },
+    "missingScoreTotal": 22,
+    "statusWarnings": [],
+    "topMissingSections": []
+  },
+  "sectionMetadata": {
+    "Story": {
+      "severity": "critical",
+      "weight": 5,
+      "goal": null
+    },
+    "Tasks / Subtasks": {
+      "severity": "critical",
+      "weight": 5,
+      "goal": null
+    },
+    "Dev Notes": {
+      "severity": "critical",
+      "weight": 5,
+      "goal": null
+    },
+    "Testing": {
+      "severity": "critical",
+      "weight": 7,
+      "goal": "Ensure end-to-end coverage"
+    }
+  },
+  "entries": [
+    {
+      "storyId": "1.1",
+      "title": "Feed Discovery Foundation",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-1-feed-discovery-foundation.json",
+      "files": [
+        "augment/specs/1-1-feed-discovery-foundation.json"
+      ],
+      "source": "docs/stories/1.1.feed-foundation.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.10",
+      "title": "Feed Notifications & Share Hooks",
+      "status": "Ready",
+      "file": "augment/specs/1-10-feed-notifications-share-hooks.json",
+      "files": [
+        "augment/specs/1-10-feed-notifications-share-hooks.json"
+      ],
+      "source": "docs/stories/1.10.feed-notifications-and-sharing.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.11",
+      "title": "Feed Analytics & Dashboard",
+      "status": "Ready",
+      "file": "augment/specs/1-11-feed-analytics-dashboard.json",
+      "files": [
+        "augment/specs/1-11-feed-analytics-dashboard.json"
+      ],
+      "source": "docs/stories/1.11.feed-analytics-and-dashboard.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.1",
+      "title": "项目初始化与 Monorepo 设置",
+      "status": "",
+      "file": "augment/specs/1-1-monorepo.json",
+      "files": [
+        "augment/specs/1-1-monorepo.json"
+      ],
+      "source": "docs/stories/story-1.1-project-init.md",
+      "missingSections": [
+        "Story",
+        "Tasks / Subtasks",
+        "Dev Notes",
+        "Testing"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Story",
+          "severity": "critical",
+          "weight": 5,
+          "goal": null
+        },
+        {
+          "section": "Tasks / Subtasks",
+          "severity": "critical",
+          "weight": 5,
+          "goal": null
+        },
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 5,
+          "goal": null
+        },
+        {
+          "section": "Testing",
+          "severity": "critical",
+          "weight": 7,
+          "goal": "Ensure end-to-end coverage"
+        }
+      ],
+      "missingScore": 22
+    }
+  ],
+  "delta": null
+}

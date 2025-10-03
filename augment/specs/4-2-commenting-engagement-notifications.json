@@ -1,0 +1,253 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.527Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/4.2.social-comments-and-notifications.md"
+  },
+  "story": {
+    "id": "4.2",
+    "title": "Commenting & Engagement Notifications",
+    "status": "Draft",
+    "userStory": "**As a** community member,\n**I want** to comment on creations and receive notifications when others engage,\n**so that** I can participate in discussions and stay informed about activity around my work.",
+    "acceptanceCriteria": [
+      "Implement comment server actions using existing `creations/{id}/comments` collection, validating input, enforcing moderation (no banned content), and updating comment counts/engagement metrics.",
+      "UI comment drawer (existing component) integrates with server actions, supporting pagination, optimistic updates, and moderation-safe error handling.",
+      "Notification service sends alerts when new comments/replies occur, respecting user preferences and moderation status; feed ranking updates reflect comment engagement signals.",
+      "Observability logs comment volume, notification success/failure, and moderation-related removals; dashboards highlight spikes or anomalies.",
+      "Tests cover comment creation/deletion, notification triggers, UI flows, and regression ensuring features disabled cleanly when social flag off."
+    ],
+    "tasks": [
+      {
+        "title": "Comment actions (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Implement server actions for add/delete comments with moderation checks.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update engagement metrics and rerun feed ranking adjustments.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI integration (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Wire `CommentsSheet` to new server actions; handle optimistic updates and errors.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Support pagination/load more.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Notifications (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Connect notification pipeline to comment events, respecting user settings/moderation.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide digest or single notifications as defined.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`social.comment.count`, `social.comment.notification`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards/alerts.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for comment actions & moderation fallback.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for comment UI flow.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression when social features disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`creations/{id}/comments` stores comment data; ensure compliance with moderation and Firestore rules.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "Services": [
+        "Notification service integration; feed ranking uses comment signals.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "UI": [
+        "Comments UI already exists; ensure state management and design tokens consistent.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations": [
+        "Server actions in `src/features/creations/server/actions.ts`; notification logic in `social-service`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit/integration tests per architecture guidance.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag to disable social features; ensure moderation/notification interplay respects safety rules.",
+        "`[Source: architecture-brownfield.md#5.5-Moderation-&-Safety]`"
+      ]
+    },
+    "testing": [
+      "Jest/Playwright tests for commenting & notifications. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Implement comment server actions using existing `creations/{id}/comments` collection, validating input, enforcing moderation (no banned content), and updating comment counts/engagement metrics."
+        },
+        {
+          "name": "AC-2",
+          "goal": "UI comment drawer (existing component) integrates with server actions, supporting pagination, optimistic updates, and moderation-safe error handling."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Notification service sends alerts when new comments/replies occur, respecting user preferences and moderation status; feed ranking updates reflect comment engagement signals."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs comment volume, notification success/failure, and moderation-related removals; dashboards highlight spikes or anomalies."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover comment creation/deletion, notification triggers, UI flows, and regression ensuring features disabled cleanly when social flag off."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Comment actions (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Implement server actions for add/delete comments with moderation checks.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update engagement metrics and rerun feed ranking adjustments.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI integration (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Wire `CommentsSheet` to new server actions; handle optimistic updates and errors.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Support pagination/load more.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Notifications (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Connect notification pipeline to comment events, respecting user settings/moderation.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide digest or single notifications as defined.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`social.comment.count`, `social.comment.notification`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards/alerts.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for comment actions & moderation fallback.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for comment UI flow.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression when social features disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest/Playwright tests for commenting & notifications. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

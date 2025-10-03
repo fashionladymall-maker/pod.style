@@ -1,0 +1,268 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.509Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.6.feed-search-and-discovery.md"
+  },
+  "story": {
+    "id": "1.6",
+    "title": "Feed Search & Discovery",
+    "status": "Ready",
+    "userStory": "**As a** user exploring Pod.Style content,\n**I want** to search feed entries by keyword and hashtags with localized filtering,\n**so that** I can quickly discover creations relevant to my interests without losing the curated experience.",
+    "acceptanceCriteria": [
+      "Feed server actions expose a search entry point (`searchFeed`) that accepts query text, optional hashtag filters, and region parameters, returning ranked results consistent with Stories 1.2–1.4 scoring rules.",
+      "Firestore queries leverage indexed fields on `personalized_feed_cache` / `feed_entries` (e.g., `hashtags`, `caption`, `region`, `rankingSignals`) and gracefully fall back to legacy `creations` when cache misses occur.",
+      "The `(feed)` client provides a search UI (search bar + optional filter chips) that invokes the search action, shows results, and allows users to clear the query to return to the default feed.",
+      "Observability records search usage, query performance, and fallback counts, ensuring dashboards can monitor search latency and hit rates.",
+      "Tests cover search service logic, Firestore index usage, and UI flow, including cases with no results and with flag disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Server-side search API (AC: 1,2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Implement `searchFeed` in `src/features/feed/server/actions.ts` delegating to service logic with Zod validation.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Extend `feed-service` with search query function applying ranking + fallback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Firestore indexing / fallback (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Ensure composite indexes exist for `hashtags` + `region` + `updatedAt`; document required index config.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement fallback to `creations` when cache query empty or index unavailable.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Client UI integration (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add search bar plus filter UI (e.g., hashtag chips) in `FeedScreen`.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Handle loading, empty state, and clearing search results gracefully.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`feed.search.latency`, `feed.search.cacheHit`) and log query metadata (with privacy considerations).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update documentation describing dashboards/alerts for search performance.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest unit tests for search service (cache hit, fallback, no-results).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright integration test verifying search UI flow on `/beta`.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression confirming legacy `/` unaffected when flag off.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "Stories 1.1–1.5 delivered feed route, pagination, ranking, ingestion, and refresh. Search must reuse those services."
+      ],
+      "Data Models": [
+        "`personalized_feed_cache` / `feed_entries` contain captions, hashtags, region info; ensure queries respect optional fields.",
+        "`[Source: architecture.md#5-data-architecture]`",
+        "`creations` retains metadata for fallback; avoid unindexed scans.",
+        "`[Source: architecture-brownfield.md#53-data-model]`"
+      ],
+      "API & Service Specifications": [
+        "Feed service handles aggregation and ranking; extend to support search queries with same ranking factors.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Search/discovery listed as feed requirement in PRD.",
+        "`[Source: prd.md#51-content--feed]`"
+      ],
+      "Component Specifications": [
+        "Search UI integrates into `(feed)` experience; maintain feature flag gating (`/beta`).",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Server logic: `src/features/feed/server/`; client UI: `src/components/screens/feed-screen.tsx` or a dedicated search component under `src/components/feed`.",
+        "`[Source: architecture.md#41-components--responsibilities]`",
+        "Index configuration notes should be placed in deployment docs.",
+        "`[Source: architecture.md#73-deployment-strategy]`"
+      ],
+      "Testing Requirements": [
+        "Unit tests for search service covering cache hit/fallback; integration tests for UI; regression for legacy fallback.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag gating remains; search should be disabled when new feed off.",
+        "`[Source: architecture.md#11-next-steps]`",
+        "Ensure privacy compliance: avoid logging full user queries where not allowed; anonymize metrics.",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for search service. `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright integration test for search UI and fallback. `[Source: architecture.md#8-testing-strategy]`",
+      "Manual regression verifying legacy `/` unaffected. `[Source: architecture.md#73-deployment-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Feed server actions expose a search entry point (`searchFeed`) that accepts query text, optional hashtag filters, and region parameters, returning ranked results consistent with Stories 1.2–1.4 scoring rules."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Firestore queries leverage indexed fields on `personalized_feed_cache` / `feed_entries` (e.g., `hashtags`, `caption`, `region`, `rankingSignals`) and gracefully fall back to legacy `creations` when cache misses occur."
+        },
+        {
+          "name": "AC-3",
+          "goal": "The `(feed)` client provides a search UI (search bar + optional filter chips) that invokes the search action, shows results, and allows users to clear the query to return to the default feed."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability records search usage, query performance, and fallback counts, ensuring dashboards can monitor search latency and hit rates."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover search service logic, Firestore index usage, and UI flow, including cases with no results and with flag disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Server-side search API (AC: 1,2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Implement `searchFeed` in `src/features/feed/server/actions.ts` delegating to service logic with Zod validation.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Extend `feed-service` with search query function applying ranking + fallback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Firestore indexing / fallback (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Ensure composite indexes exist for `hashtags` + `region` + `updatedAt`; document required index config.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement fallback to `creations` when cache query empty or index unavailable.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Client UI integration (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add search bar plus filter UI (e.g., hashtag chips) in `FeedScreen`.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Handle loading, empty state, and clearing search results gracefully.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`feed.search.latency`, `feed.search.cacheHit`) and log query metadata (with privacy considerations).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update documentation describing dashboards/alerts for search performance.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest unit tests for search service (cache hit, fallback, no-results).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright integration test verifying search UI flow on `/beta`.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression confirming legacy `/` unaffected when flag off.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for search service. `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration test for search UI and fallback. `[Source: architecture.md#8-testing-strategy]`",
+        "Manual regression verifying legacy `/` unaffected. `[Source: architecture.md#73-deployment-strategy]`"
+      ]
+    }
+  }
+}

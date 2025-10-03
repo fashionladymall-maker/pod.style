@@ -1,0 +1,259 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.517Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/2.2.creation-personalization.md"
+  },
+  "story": {
+    "id": "2.2",
+    "title": "Creation Personalization & User Models",
+    "status": "Draft",
+    "userStory": "**As a** returning creator with unique preferences,\n**I want** the creation studio to leverage my personalization model when generating patterns,\n**so that** the outputs reflect my style and save iterative prompt tweaking.",
+    "acceptanceCriteria": [
+      "Auto-detect or ensure existence of a `userFineTunedModel` for the authenticated user; if missing, initialize with defaults as described in architecture (strength, tags).",
+      "Server actions (`studio-actions`) pass personalization parameters (strength, tags, preferred styles) into Genkit flows (`generateTShirtPatternWithStyle`, `generateModelMockup`) so the generation prompt adjusts accordingly.",
+      "Provide UI controls allowing creators to adjust personalization weight and tags before generation, respecting any backend limits.",
+      "Logging and observability capture personalization usage (model name, strength applied) for analytics while protecting sensitive data.",
+      "Tests confirm personalized generation calls, default initialization when missing, and UI adjustments; ensure fallback to non-personalized flow if feature flag disabled."
+    ],
+    "tasks": [
+      {
+        "title": "User model handling (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Extend studio server actions to call `ensureUserFineTunedModel` (reuse existing service).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Handle default creation if personalization model missing.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Personalization integration (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Adjust Genkit flow inputs to include personalization prompts/strength.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Respect architecture’s personalization rules (tags, styles).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI controls (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add controls (slider/tags) in CreationStudioScreen for personalization adjustments.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Validate inputs and persist selections across session (optional).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Log personalization usage (`studio.personalization.*`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure no sensitive data leaked; document analytics queries.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for server actions verifying personalized payload.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright test adjusting personalization slider.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual fallback test when personalization disabled.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models & Context": [
+        "`userFineTunedModel` includes strength, tags, preferred styles; defaults provided if not present.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "`ensureUserFineTunedModel` ensures personalization available; integrate with Genkit flow prompts.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Component Specs": [
+        "UI should provide user-friendly controls (Radix slider, tag inputs) matching design tokens.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Personalization logic in `src/features/user-models/server/`; studio actions call into it.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`",
+        "UI adjustments in `CreationStudioScreen`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit/integration tests ensuring personalization path functional.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag gating (if personalization not ready) must be respected.",
+        "`[Source: architecture.md#Next-Steps]`",
+        "Ensure prompts avoid leaking user personal data; follow security guidelines.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for personalization logic. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright test for UI controls. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Auto-detect or ensure existence of a `userFineTunedModel` for the authenticated user; if missing, initialize with defaults as described in architecture (strength, tags)."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Server actions (`studio-actions`) pass personalization parameters (strength, tags, preferred styles) into Genkit flows (`generateTShirtPatternWithStyle`, `generateModelMockup`) so the generation prompt adjusts accordingly."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Provide UI controls allowing creators to adjust personalization weight and tags before generation, respecting any backend limits."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Logging and observability capture personalization usage (model name, strength applied) for analytics while protecting sensitive data."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests confirm personalized generation calls, default initialization when missing, and UI adjustments; ensure fallback to non-personalized flow if feature flag disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "User model handling (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Extend studio server actions to call `ensureUserFineTunedModel` (reuse existing service).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Handle default creation if personalization model missing.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Personalization integration (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Adjust Genkit flow inputs to include personalization prompts/strength.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Respect architecture’s personalization rules (tags, styles).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI controls (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add controls (slider/tags) in CreationStudioScreen for personalization adjustments.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Validate inputs and persist selections across session (optional).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Log personalization usage (`studio.personalization.*`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure no sensitive data leaked; document analytics queries.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for server actions verifying personalized payload.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright test adjusting personalization slider.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual fallback test when personalization disabled.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for personalization logic. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright test for UI controls. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

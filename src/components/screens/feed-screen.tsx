@@ -1,16 +1,19 @@
 'use client';
 
-import { useMemo, useState, useTransition, useEffect, useRef, useCallback } from 'react';
-import { FirebaseImage } from '@/components/ui/firebase-image';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { getMoreFeedAction, getFeedUpdatesAction } from '@/features/feed/server/actions';
 import type { FeedItem, FeedResponse } from '@/features/feed/server/feed-service';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 import { useFeedRefresh } from '@/features/feed/hooks/use-feed-refresh';
+import { OmgFeedContainer } from '@/components/omg/omg-feed-container';
+import { OmgFeedCard } from '@/components/omg/omg-feed-card';
+import {
+  derivePreviewAssetUri,
+  fetchStandardPreview,
+  type StandardPreviewResponse,
+} from '@/features/feed/client/preview-service';
 
 interface FeedScreenProps {
   initialFeed: FeedResponse;
@@ -26,10 +29,16 @@ const uniqueKey = (item: FeedItem) => `${item.source}:${item.id}`;
 export const FeedScreen = ({ initialFeed, region, locale, refreshEnabled }: FeedScreenProps) => {
   const [items, setItems] = useState<FeedItem[]>(initialFeed.items);
   const [nextCursor, setNextCursor] = useState<string | null>(initialFeed.nextCursor);
-  const [lastSource, setLastSource] = useState(initialFeed.source);
   const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [favoriteOverrides, setFavoriteOverrides] = useState<Record<string, boolean>>({});
+  const [shareOverrides, setShareOverrides] = useState<Record<string, number>>({});
+  const [compareSet, setCompareSet] = useState<Set<string>>(() => new Set());
+  const [previewCache, setPreviewCache] = useState<Record<string, StandardPreviewResponse | null>>({});
+  const previewInFlightRef = useRef(new Map<string, Promise<StandardPreviewResponse | null>>());
   const latestUpdatedAtRef = useRef<string | null>(null);
+  const { toast } = useToast();
 
   const isRefreshActive = useMemo(() => {
     if (typeof refreshEnabled === 'boolean') {
@@ -52,29 +61,84 @@ export const FeedScreen = ({ initialFeed, region, locale, refreshEnabled }: Feed
     latestUpdatedAtRef.current = computeLatestUpdatedAt(items) ?? null;
   }, [items, computeLatestUpdatedAt]);
 
-  const heading = useMemo(() => {
-    if (lastSource === 'cache') {
-      return '为你精选的个性化创意';
-    }
-    return '热门创意精选';
-  }, [lastSource]);
-
   const hasMore = Boolean(nextCursor);
 
   const mergeIncomingItems = useCallback(
     (incoming: FeedItem[]) => {
-      if (incoming.length === 0) return;
-      setItems((prev) => {
-        const existingIds = new Set(prev.map((item) => item.creation.id));
-        const freshItems = incoming.filter((item) => !existingIds.has(item.creation.id));
-        if (freshItems.length === 0) {
-          return prev;
+      if (incoming.length === 0) {
+        return 0;
+      }
+      let addedCount = 0;
+      setItems((previous) => {
+        const existingIds = new Set(previous.map((entry) => entry.creation.id));
+        const freshItems = incoming.filter((entry) => !existingIds.has(entry.creation.id));
+        addedCount = freshItems.length;
+        if (addedCount === 0) {
+          return previous;
         }
-        return [...freshItems, ...prev];
+        return [...freshItems, ...previous];
       });
+      if (addedCount > 0) {
+        setActiveIndex((current) => current + addedCount);
+      }
+      return addedCount;
     },
     [],
   );
+
+  const fetchPreviewForItem = useCallback(
+    async (item: FeedItem): Promise<StandardPreviewResponse | null> => {
+      const creationId = item.creation.id;
+      if (previewCache[creationId] !== undefined) {
+        return previewCache[creationId];
+      }
+
+      const inFlight = previewInFlightRef.current.get(creationId);
+      if (inFlight) {
+        return inFlight;
+      }
+
+      const assetUri = derivePreviewAssetUri(item.creation);
+      if (!assetUri) {
+        setPreviewCache((previous) => ({ ...previous, [creationId]: null }));
+        return null;
+      }
+      const request = fetchStandardPreview({
+        creationId,
+        assetUri,
+        variant: item.creation.style,
+      })
+        .then((result) => {
+          setPreviewCache((previous) => ({ ...previous, [creationId]: result ?? null }));
+          return result ?? null;
+        })
+        .catch((error) => {
+          if (!(error instanceof Error && error.name === 'AbortError')) {
+            console.error('feed.preview.fetch_error', error);
+          }
+          setPreviewCache((previous) => ({ ...previous, [creationId]: null }));
+          return null;
+        })
+        .finally(() => {
+          previewInFlightRef.current.delete(creationId);
+        });
+
+      previewInFlightRef.current.set(creationId, request);
+      return request;
+    },
+    [previewCache],
+  );
+
+  useEffect(() => {
+    const currentItem = items[activeIndex];
+    if (currentItem) {
+      void fetchPreviewForItem(currentItem);
+    }
+    const nextItem = items[activeIndex + 1];
+    if (nextItem) {
+      void fetchPreviewForItem(nextItem);
+    }
+  }, [activeIndex, items, fetchPreviewForItem]);
 
   const fetchUpdates = useCallback(async () => {
     try {
@@ -85,7 +149,6 @@ export const FeedScreen = ({ initialFeed, region, locale, refreshEnabled }: Feed
       });
       if (response.items.length > 0) {
         mergeIncomingItems(response.items);
-        setLastSource(response.source);
       }
       return response.items.length;
     } catch (error) {
@@ -99,20 +162,26 @@ export const FeedScreen = ({ initialFeed, region, locale, refreshEnabled }: Feed
     fetchUpdates,
   });
 
-  const handleLoadMore = () => {
-    if (!hasMore || isPending) return;
+  const handleLoadMore = useCallback(() => {
+    if (!hasMore || isPending || isLoadingMore) {
+      return;
+    }
 
+    setIsLoadingMore(true);
     startTransition(() => {
-      getMoreFeedAction({ cursor: nextCursor ?? undefined, region: region ?? undefined, locale: locale ?? undefined })
+      getMoreFeedAction({
+        cursor: nextCursor ?? undefined,
+        region: region ?? undefined,
+        locale: locale ?? undefined,
+      })
         .then((result) => {
           if (result.items.length === 0) {
             setNextCursor(null);
             toast({ title: '没有更多作品了', description: '您已经浏览了当日的全部创意。' });
             return;
           }
-          setItems((prev) => [...prev, ...result.items]);
+          setItems((previous) => [...previous, ...result.items]);
           setNextCursor(result.nextCursor);
-          setLastSource(result.source);
         })
         .catch((error) => {
           console.error('加载更多 feed 数据失败', error);
@@ -121,9 +190,110 @@ export const FeedScreen = ({ initialFeed, region, locale, refreshEnabled }: Feed
             description: '请稍后重试，我们已记录错误。',
             variant: 'destructive',
           });
+        })
+        .finally(() => {
+          setIsLoadingMore(false);
         });
     });
-  };
+  }, [hasMore, isPending, isLoadingMore, nextCursor, region, locale, startTransition, toast]);
+
+  const handleToggleFavorite = useCallback(
+    (item: FeedItem) => {
+      const creationId = item.creation.id;
+      let alreadyFavorited = false;
+
+      setFavoriteOverrides((previous) => {
+        alreadyFavorited = Boolean(previous[creationId]);
+        const next = { ...previous };
+        if (alreadyFavorited) {
+          delete next[creationId];
+        } else {
+          next[creationId] = true;
+        }
+        return next;
+      });
+
+      toast({
+        title: alreadyFavorited ? '已取消收藏' : '已收藏作品',
+        description: alreadyFavorited ? '我们会减少类似内容的推荐。' : '个性化推荐将优先考虑类似创意。',
+      });
+    },
+    [toast],
+  );
+
+  const handleToggleCompare = useCallback(
+    (item: FeedItem) => {
+      const creationId = item.creation.id;
+      let alreadyCompared = false;
+      let nextSize = 0;
+
+      setCompareSet((previous) => {
+        alreadyCompared = previous.has(creationId);
+        const next = new Set(previous);
+        if (alreadyCompared) {
+          next.delete(creationId);
+        } else {
+          next.add(creationId);
+        }
+        nextSize = next.size;
+        return next;
+      });
+
+      toast({
+        title: alreadyCompared ? '已移出对比列表' : '已加入对比列表',
+        description: alreadyCompared
+          ? '该作品已从对比列表中移除。'
+          : `当前对比列表含 ${nextSize} 个作品`,
+      });
+    },
+    [toast],
+  );
+
+  const handleShare = useCallback(
+    async (item: FeedItem) => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      const creationId = item.creation.id;
+      const shareUrl = `${window.location.origin}/creations/${creationId}`;
+      const title = item.creation.summary ?? 'Pod.Style 创意';
+      const text = item.creation.prompt;
+
+      try {
+        if (navigator.share) {
+          await navigator.share({ title, text, url: shareUrl });
+        } else if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        }
+        setShareOverrides((previous) => ({
+          ...previous,
+          [creationId]: (previous[creationId] ?? 0) + 1,
+        }));
+        toast({
+          title: '已分享作品',
+          description: '链接已准备好，可发送给朋友或社群。',
+        });
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('feed.share.failed', error);
+          toast({
+            title: '无法分享作品',
+            description: '请手动复制链接或稍后再试。',
+            variant: 'destructive',
+          });
+        }
+      }
+    },
+    [toast],
+  );
+
+  const prefetchPreview = useCallback(
+    (item: FeedItem) => {
+      void fetchPreviewForItem(item);
+    },
+    [fetchPreviewForItem],
+  );
 
   if (items.length === 0) {
     return (
@@ -138,83 +308,47 @@ export const FeedScreen = ({ initialFeed, region, locale, refreshEnabled }: Feed
   }
 
   return (
-    <main
-      className="mx-auto min-h-screen w-full max-w-6xl px-4 py-10"
-      data-refresh-enabled={isRefreshActive ? 'true' : 'false'}
-    >
-      <header className="mb-8 flex flex-col gap-2 text-neutral-100">
-        <Badge variant={lastSource === 'cache' ? 'default' : 'secondary'} className="w-fit">
-          {lastSource === 'cache' ? 'Beta Feed' : '公共 Feed 回退'}
-        </Badge>
-        <h1 className="text-3xl font-bold">{heading}</h1>
-        <p className="text-neutral-400">滚动浏览最新与最受欢迎的创意作品，更多个性化排序即将上线。</p>
-      </header>
+    <main className="relative flex h-dvh w-full overflow-hidden bg-neutral-950 text-neutral-50">
+      <OmgFeedContainer
+        items={items}
+        activeIndex={activeIndex}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        onLoadMore={handleLoadMore}
+        onActiveIndexChange={setActiveIndex}
+        renderItem={(item, renderProps) => {
+          const creationId = item.creation.id;
+          const preview = previewCache[creationId] ?? null;
+          const baseImage = derivePreviewAssetUri(item.creation) ?? DEFAULT_PLACEHOLDER;
+          const overlayImage = preview?.imageUrl ?? null;
+          const favoriteCount = item.creation.favoriteCount + (favoriteOverrides[creationId] ? 1 : 0);
+          const shareCount = item.creation.shareCount + (shareOverrides[creationId] ?? 0);
+          const compareCount = Math.max(compareSet.size, item.creation.remakeCount);
 
-      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => {
-          const preview = item.creation.previewPatternUri ?? item.creation.patternUri ?? DEFAULT_PLACEHOLDER;
           return (
-            <Card
+            <OmgFeedCard
               key={uniqueKey(item)}
-              className="border border-neutral-800 bg-neutral-900 text-neutral-100"
-              data-feed-score={item.ranking ? item.ranking.score.toFixed(4) : undefined}
-            >
-              <CardHeader>
-                <CardTitle className="line-clamp-2 text-lg font-semibold">{item.creation.summary ?? '创意作品'}</CardTitle>
-                <p className="text-sm text-neutral-500">由 {item.creation.userId}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="relative aspect-square overflow-hidden rounded-lg border border-neutral-800">
-                  <FirebaseImage
-                    src={preview}
-                    alt={item.creation.summary ?? item.creation.prompt}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    className="object-cover"
-                    priority={false}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-sm text-neutral-400">
-                  <span>❤️ {item.creation.likeCount}</span>
-                  <span>⭐ {item.creation.favoriteCount}</span>
-                  <span>🗣️ {item.creation.commentCount}</span>
-                  <span>🔁 {item.creation.shareCount}</span>
-                </div>
-                {item.rankingSignals ? (
-                  <div className="space-y-1 text-xs text-neutral-500">
-                    <p className="font-medium text-neutral-300">Ranking Signals</p>
-                    <div className="grid grid-cols-2 gap-1">
-                      {Object.entries(item.rankingSignals).map(([key, value]) => (
-                        <span key={key} className="rounded bg-neutral-800 px-2 py-1">
-                          {key}: {value.toFixed(1)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
+              item={item}
+              baseImage={baseImage}
+              overlayImage={overlayImage}
+              isActive={renderProps.isActive}
+              isNearActive={renderProps.isNearActive}
+              shouldRender={renderProps.shouldRender}
+              isFavorited={Boolean(favoriteOverrides[creationId])}
+              isCompared={compareSet.has(creationId)}
+              favoriteCount={favoriteCount}
+              shareCount={shareCount}
+              compareCount={compareCount}
+              onToggleFavorite={() => handleToggleFavorite(item)}
+              onShare={() => {
+                void handleShare(item);
+              }}
+              onToggleCompare={() => handleToggleCompare(item)}
+              onPrefetch={renderProps.shouldRender ? () => prefetchPreview(item) : undefined}
+            />
           );
-        })}
-      </section>
-
-      <div className="mt-10 flex justify-center">
-        {hasMore ? (
-          <Button onClick={handleLoadMore} disabled={isPending} variant="secondary">
-            {isPending ? '加载中…' : '加载更多'}
-          </Button>
-        ) : (
-          <p className="text-sm text-neutral-500">没有更多作品了，敬请期待下一波更新。</p>
-        )}
-      </div>
-
-      {isPending ? (
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-64 w-full rounded-lg" />
-          ))}
-        </div>
-      ) : null}
+        }}
+      />
     </main>
   );
 };

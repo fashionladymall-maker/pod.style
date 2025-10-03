@@ -1,0 +1,261 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.505Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.3.feed-ranking-and-signals.md"
+  },
+  "story": {
+    "id": "1.3",
+    "title": "Feed Ranking Signals Integration",
+    "status": "Ready for Review",
+    "userStory": "**As a** product team optimizing discovery on Pod.Style,\n**I want** the feed service to rank entries using engagement and personalization signals,\n**so that** users see relevant creations that reflect popularity, freshness, and personal taste without breaking legacy behavior.",
+    "acceptanceCriteria": [
+      "`feed-service` aggregates ranking inputs (likeCount, favoriteCount, shareCount, commentCount, remakeCount, orderCount, createdAt recency, personalization boosts) and produces a composite score used to order feed results before returning them to server actions.",
+      "`personalized_feed_cache` documents are populated or backfilled with the new `rankingSignals` map (e.g., `engagementScore`, `recencyBoost`, `personalBoost`) without breaking the existing Cloud Function writers.",
+      "Server actions expose ranking metadata to the client (for debugging/logging) while keeping user-facing payloads backward compatible and hiding internal scoring details when flag disabled.",
+      "Unit tests validate composite scoring logic across high-engagement, fresh, and personalized scenarios; integration tests confirm feed ordering on `/beta` respects the new ranking.",
+      "Telemetry captures ranking score distribution and cache hit ratios, enabling dashboards/alerts for anomalies."
+    ],
+    "tasks": [
+      {
+        "title": "Define ranking model (AC: 1)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Implement scoring utility (e.g., `calculateFeedScore`) combining engagement, recency, and personalization weights.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Document chosen weights/boosts in architecture change log.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Extend cache schema handling (AC: 2)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Update feed service to read/write `rankingSignals` map, ensuring compatibility with existing Cloud Function data.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Provide fallback values when signals missing.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Server action adjustments (AC: 3)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Expose ranking metadata in server action return (for internal diagnostics) while guarding behind feature flag.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Maintain backward-compatible payload for legacy clients.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 4)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Add unit tests covering scoring edge cases (high engagement vs recent vs personalization).",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Update Playwright integration test to assert ordering on `/beta`.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Telemetry & monitoring (AC: 5)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`feed.service.ranking.score_distribution`, `feed.service.cache.hit_ratio`) and ensure dashboards track them.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Add alert thresholds in observability documentation.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "Story 1.1 established feed route/flag; Story 1.2 implemented cache/pagination with metrics.",
+        "This story builds on the same feed service, adding ranking computations."
+      ],
+      "Data Models": [
+        "`personalized_feed_cache` now includes `rankingSignals` map (engagement/recency/personalization components).",
+        "`[Source: architecture.md#5-data-architecture]`",
+        "Interaction metrics (likeCount, favoriteCount, shareCount, commentCount, remakeCount, orderCount) stored in `creations`; service must read these fields safely.",
+        "`[Source: architecture-brownfield.md#53-data-model]`"
+      ],
+      "API & Service Specifications": [
+        "Feed service is responsible for ranking and pagination; scoring should occur before returning to server actions.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Cloud Function `updatePersonalizedFeedCache` populates cache entries; ranking augmentation must align with its structure without requiring immediate function change.",
+        "`[Source: architecture-brownfield.md#52-backend-services]`"
+      ],
+      "Component Specifications": [
+        "Client feed rendering remains as is; ranking metadata surfaced only for diagnostics (e.g., developer console or metrics), not user UI.",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Ranking utilities can live within `src/features/feed/server/feed-service.ts` or extracted helper (e.g., `feed-ranking.ts`).",
+        "`[Source: architecture.md#41-components--responsibilities]`",
+        "Telemetry logic should reuse existing logger utilities noted in architecture.",
+        "`[Source: architecture.md#74-observability]`"
+      ],
+      "Testing Requirements": [
+        "Unit tests: Jest, `src/features/feed/__tests__/feed-ranking.test.ts`, covering multiple scoring scenarios.",
+        "`[Source: architecture.md#8-testing-strategy]`",
+        "Integration tests: Playwright verifying `/beta` ordering changes reflect ranking; ensure legacy `/` unaffected.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Backward compatibility: new signals must not break legacy cache entries or readers; ensure optional handling.",
+        "`[Source: architecture.md#2-Enhancement-Scope-and-Integration-Strategy]`",
+        "Feature flag gating continues; ranking should only affect `/beta` until rollout.",
+        "`[Source: architecture.md#11-next-steps]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for ranking utility (engagement vs recency vs personalization).  `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright integration test checking `/beta` feed ordering and diagnostics output.  `[Source: architecture.md#8-testing-strategy]`",
+      "Manual regression to confirm legacy `/` ordering unchanged when flag off.  `[Source: architecture.md#73-deployment-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "`feed-service` aggregates ranking inputs (likeCount, favoriteCount, shareCount, commentCount, remakeCount, orderCount, createdAt recency, personalization boosts) and produces a composite score used to order feed results before returning them to server actions."
+        },
+        {
+          "name": "AC-2",
+          "goal": "`personalized_feed_cache` documents are populated or backfilled with the new `rankingSignals` map (e.g., `engagementScore`, `recencyBoost`, `personalBoost`) without breaking the existing Cloud Function writers."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Server actions expose ranking metadata to the client (for debugging/logging) while keeping user-facing payloads backward compatible and hiding internal scoring details when flag disabled."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Unit tests validate composite scoring logic across high-engagement, fresh, and personalized scenarios; integration tests confirm feed ordering on `/beta` respects the new ranking."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Telemetry captures ranking score distribution and cache hit ratios, enabling dashboards/alerts for anomalies."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Define ranking model (AC: 1)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Implement scoring utility (e.g., `calculateFeedScore`) combining engagement, recency, and personalization weights.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Document chosen weights/boosts in architecture change log.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Extend cache schema handling (AC: 2)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Update feed service to read/write `rankingSignals` map, ensuring compatibility with existing Cloud Function data.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Provide fallback values when signals missing.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Server action adjustments (AC: 3)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Expose ranking metadata in server action return (for internal diagnostics) while guarding behind feature flag.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Maintain backward-compatible payload for legacy clients.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 4)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Add unit tests covering scoring edge cases (high engagement vs recent vs personalization).",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Update Playwright integration test to assert ordering on `/beta`.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Telemetry & monitoring (AC: 5)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`feed.service.ranking.score_distribution`, `feed.service.cache.hit_ratio`) and ensure dashboards track them.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Add alert thresholds in observability documentation.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for ranking utility (engagement vs recency vs personalization).  `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration test checking `/beta` feed ordering and diagnostics output.  `[Source: architecture.md#8-testing-strategy]`",
+        "Manual regression to confirm legacy `/` ordering unchanged when flag off.  `[Source: architecture.md#73-deployment-strategy]`"
+      ]
+    }
+  }
+}

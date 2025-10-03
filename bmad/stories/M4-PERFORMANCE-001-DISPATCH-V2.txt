@@ -1,0 +1,54 @@
+角色：你是开发执行者。
+仓库：https://github.com/fashionladymall-maker/pod.style
+故事：bmad/stories/M4-PERFORMANCE-001-optimization.md
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+
+## 任务目标
+优化前端性能，确保 LCP ≤ 2.5s、TTI ≤ 3.5s、CLS < 0.1。
+
+## 核心需求
+1. 图片懒加载与优化（Next.js Image 组件）
+2. 代码分割与预加载（动态导入）
+3. 缓存策略优化（Service Worker）
+4. 性能监控埋点（Web Vitals + Firebase Performance）
+
+## 实现步骤
+
+### Step 1: 图片优化
+- 替换所有 <img> 为 Next.js Image 组件
+- 实现渐进式加载（LQIP）
+- 配置 next.config.js 图片域名
+
+### Step 2: 代码分割
+- 动态导入非关键组件（Modal、Drawer 等）
+- 路由级别代码分割
+- 预加载关键资源
+
+### Step 3: 缓存策略
+- 创建 Service Worker 配置
+- Firestore 本地缓存启用
+- API 响应缓存（stale-while-revalidate）
+
+### Step 4: 性能监控
+- 集成 Web Vitals（reportWebVitals）
+- Firebase Performance Monitoring
+- 自定义性能埋点（preview 生成时延等）
+
+## DoD（Definition of Done）
+- [ ] `npm run build` 通过（0 错误）
+- [ ] `npm run lint` 通过（0 错误）
+- [ ] `npm run typecheck` 通过（0 错误）
+- [ ] `npm run test` 通过（关键路径）
+- [ ] 创建分支 `feature/M4-PERFORMANCE-001`
+- [ ] 提交代码并推送
+- [ ] 更新 `CHANGELOG.md`
+- [ ] 更新 Story 文件标记完成
+
+## 重要提示
+- 使用 `--dangerously-bypass-approvals-and-sandbox` 模式运行
+- 所有 git 操作自动批准
+- 遇到问题先尝试修复，不要停止
+
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+

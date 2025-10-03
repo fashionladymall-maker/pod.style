@@ -1,0 +1,255 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.528Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/4.4.social-notification-inbox.md"
+  },
+  "story": {
+    "id": "4.4",
+    "title": "Notification Inbox & Preferences",
+    "status": "Draft",
+    "userStory": "**As a** Pod.Style user,\n**I want** a unified notification inbox and preference controls,\n**so that** I can manage social activity, follows, comments, and purchases effectively.",
+    "acceptanceCriteria": [
+      "Build a notification inbox UI (in profile area) listing notifications from `notifications` collection, grouped by type (follow, comment, remix, order, moderation) with read/unread states.",
+      "Provide notification preference controls (email, push, in-app) allowing users to enable/disable categories; store preferences in user profile.",
+      "Server-side notification pipeline respects preferences before sending alerts and records read/unread state changes.",
+      "Observability tracks notification delivery success/failure per channel and logs preference changes.",
+      "Tests cover inbox display, preference toggles, notification send pipelines, and regression when social features disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Inbox UI (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create notification inbox page/component; support pagination and mark-read actions.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Display grouped notifications with timestamps.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Preferences (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add settings page for notification categories; persist in user profile.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Reflect preferences across channels.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Pipeline updates (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Modify notification service to check preferences before sending.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update read/unread state in `notifications`.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`notification.channel.success/failure`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Log preference changes for audit.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for preferences + pipeline checks.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for inbox UI and preference toggles.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring feature flag fallback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`notifications` stores inbox items; ensure structure aligns with design.",
+        "`[Source: architecture-brownfield.md#5.3-Data-Model]`"
+      ],
+      "Services": [
+        "Notification service described in architecture; integrate preference checks.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "UI": [
+        "Inbox obeys design tokens; preference toggles accessible.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Structure": [
+        "Components under `src/components/screens/notification-inbox.tsx`; server logic in `src/features/notifications`.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Unit/integration tests per testing strategy.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Constraints": [
+        "Feature flag to enable inbox; ensure privacy (no sensitive info in notifications).",
+        "`[Source: architecture.md#Next-Steps]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for notification preferences/pipeline. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for inbox UI. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Build a notification inbox UI (in profile area) listing notifications from `notifications` collection, grouped by type (follow, comment, remix, order, moderation) with read/unread states."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide notification preference controls (email, push, in-app) allowing users to enable/disable categories; store preferences in user profile."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Server-side notification pipeline respects preferences before sending alerts and records read/unread state changes."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability tracks notification delivery success/failure per channel and logs preference changes."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover inbox display, preference toggles, notification send pipelines, and regression when social features disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Inbox UI (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create notification inbox page/component; support pagination and mark-read actions.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Display grouped notifications with timestamps.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Preferences (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add settings page for notification categories; persist in user profile.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Reflect preferences across channels.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Pipeline updates (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Modify notification service to check preferences before sending.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update read/unread state in `notifications`.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`notification.channel.success/failure`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Log preference changes for audit.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for preferences + pipeline checks.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for inbox UI and preference toggles.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring feature flag fallback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for notification preferences/pipeline. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for inbox UI. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

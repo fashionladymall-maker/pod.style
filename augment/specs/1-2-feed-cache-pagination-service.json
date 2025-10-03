@@ -1,0 +1,264 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.504Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.2.feed-cache-and-pagination.md"
+  },
+  "story": {
+    "id": "1.2",
+    "title": "Feed Cache & Pagination Service",
+    "status": "Ready for Review",
+    "userStory": "**As a** browsing user consuming the Pod.Style feed,\n**I want** the feed service to paginate using personalized cache entries with graceful fallbacks and instrumentation,\n**so that** I can scroll reliably while the system captures ranking signals and preserves existing behavior.",
+    "acceptanceCriteria": [
+      "`src/features/feed/server/feed-service.ts` implements `fetchInitialFeed` and `fetchMoreFeed` that first read `personalized_feed_cache` (filtered by region/language) and fall back to legacy public creations with deterministic ordering; both functions return typed responses consumed by Story 1.1’s server actions.",
+      "The service logs latency and cache-hit metrics using the standardized logger namespace and ensures metrics appear in observability dashboards.",
+      "Cursor-based pagination uses Firestore queries compatible with new fields (`region`, `personaVector`, `rankingSignals`), tolerating missing fields without runtime failures.",
+      "Feature flag for the new feed remains configurable; legacy homepage and existing `getPublicCreations` API continue working when the flag is disabled.",
+      "Integration tests (Playwright or equivalent) validate that `/beta` renders paginated feed results while `/` remains unaffected when the flag is off."
+    ],
+    "tasks": [
+      {
+        "title": "Extend feed service data layer (AC: 1,3)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Implement `fetchInitialFeed`/`fetchMoreFeed` using Firestore queries against `personalized_feed_cache` with region/language filters.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Add fallback query to `creations` with stable ordering when cache is empty.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Metrics & observability (AC: 2)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Hook into logging utilities to emit latency + cache-hit metrics (`feed.service.latency`, `feed.service.cacheHit`).",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards/alerts expectations for SRE handoff.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Pagination contract integration (AC: 1,3)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Update server actions to delegate pagination to the new service functions with typed cursors.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure Firestore queries tolerate missing optional fields and log warnings only in non-critical cases.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Feature flag sanity (AC: 4)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Verify `/beta` gating via Remote Config/env toggle; write rollout note describing on/off procedure.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Confirm legacy `/` continues to use existing `AppClient`.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "done",
+        "subtasks": [
+          {
+            "title": "Jest unit tests for feed service covering cache hit, fallback, and cursor pagination.",
+            "status": "done",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright integration test ensuring `/beta` page paginates without affecting legacy `/`.",
+            "status": "done",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "1.1 created `(feed)` route, FeedScreen component, and initial server actions scaffolding with feature flag gating.",
+        "This story deepens service logic while respecting the same feature flag and legacy fallback."
+      ],
+      "Data Models": [
+        "`personalized_feed_cache` documents include optional fields `region`, `personaVector`, `updatedAt`, `rankingSignals`; service must read gracefully even if fields are missing.",
+        "`[Source: architecture.md#2-enhancement-scope-and-integration-strategy]`",
+        "`creations` remains the canonical source for public entries and should maintain compatibility.",
+        "`[Source: architecture.md#5-data-architecture]`"
+      ],
+      "API & Service Specifications": [
+        "Feed service handles aggregation/pagination and gets triggered by Cloud Function updates.",
+        "`[Source: architecture.md#4-application-architecture]`",
+        "Cloud Function `updatePersonalizedFeedCache` writes `personalized_feed_cache`; service should align with its structure without modifying the function yet.",
+        "`[Source: architecture-brownfield.md#5.2-Backend-Services]`"
+      ],
+      "Component Specifications": [
+        "Client FeedScreen (Story 1.1) already renders props; ensure pagination props align with new service return shape.",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`",
+        "Do not change legacy `/` layout; feature flag continues to guard beta experience.",
+        "`[Source: architecture.md#11-next-steps]`"
+      ],
+      "File Locations & Project Structure": [
+        "Service logic in `src/features/feed/server/feed-service.ts`; server actions in `src/features/feed/server/actions.ts`.",
+        "`[Source: architecture.md#41-components--responsibilities]`",
+        "Integration tests placed under `tests/integration/feed.spec.ts`; unit tests under `src/features/feed/__tests__`.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Testing Requirements": [
+        "Unit tests covering cache hit, fallback, cursor.  `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration verifying pagination + feature flag behavior.  `[Source: architecture.md#8-testing-strategy]`",
+        "Regression check confirming legacy `/` unaffected.  `[Source: architecture.md#73-deployment-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Maintain backward-compatible Firestore schema; optional fields must not break existing readers.",
+        "`[Source: architecture.md#2-enhancement-scope-and-integration-strategy]`",
+        "Continue instrumentation and feature flag plan introduced in Story 1.1.",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for feed service (cache hit/fallback/cursor). `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright integration test for `/beta` pagination and legacy `/` fallback. `[Source: architecture.md#8-testing-strategy]`",
+      "Manual check for metrics emission and feature toggle behavior. `[Source: architecture.md#74-observability]`",
+      "Current automated coverage: `npm run test -- feed-service`; Playwright scenario (`tests/integration/feed.spec.ts`) requires `FEED_E2E_BASE_URL` and optional `FEED_E2E_EXPECT_BETA` environment variables to execute against a running app instance."
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "`src/features/feed/server/feed-service.ts` implements `fetchInitialFeed` and `fetchMoreFeed` that first read `personalized_feed_cache` (filtered by region/language) and fall back to legacy public creations with deterministic ordering; both functions return typed responses consumed by Story 1.1’s server actions."
+        },
+        {
+          "name": "AC-2",
+          "goal": "The service logs latency and cache-hit metrics using the standardized logger namespace and ensures metrics appear in observability dashboards."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Cursor-based pagination uses Firestore queries compatible with new fields (`region`, `personaVector`, `rankingSignals`), tolerating missing fields without runtime failures."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Feature flag for the new feed remains configurable; legacy homepage and existing `getPublicCreations` API continue working when the flag is disabled."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Integration tests (Playwright or equivalent) validate that `/beta` renders paginated feed results while `/` remains unaffected when the flag is off."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Extend feed service data layer (AC: 1,3)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Implement `fetchInitialFeed`/`fetchMoreFeed` using Firestore queries against `personalized_feed_cache` with region/language filters.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Add fallback query to `creations` with stable ordering when cache is empty.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Metrics & observability (AC: 2)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Hook into logging utilities to emit latency + cache-hit metrics (`feed.service.latency`, `feed.service.cacheHit`).",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards/alerts expectations for SRE handoff.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Pagination contract integration (AC: 1,3)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Update server actions to delegate pagination to the new service functions with typed cursors.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure Firestore queries tolerate missing optional fields and log warnings only in non-critical cases.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Feature flag sanity (AC: 4)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Verify `/beta` gating via Remote Config/env toggle; write rollout note describing on/off procedure.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Confirm legacy `/` continues to use existing `AppClient`.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "done",
+          "subtasks": [
+            {
+              "title": "Jest unit tests for feed service covering cache hit, fallback, and cursor pagination.",
+              "status": "done",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright integration test ensuring `/beta` page paginates without affecting legacy `/`.",
+              "status": "done",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for feed service (cache hit/fallback/cursor). `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright integration test for `/beta` pagination and legacy `/` fallback. `[Source: architecture.md#8-testing-strategy]`",
+        "Manual check for metrics emission and feature toggle behavior. `[Source: architecture.md#74-observability]`",
+        "Current automated coverage: `npm run test -- feed-service`; Playwright scenario (`tests/integration/feed.spec.ts`) requires `FEED_E2E_BASE_URL` and optional `FEED_E2E_EXPECT_BETA` environment variables to execute against a running app instance."
+      ]
+    }
+  }
+}

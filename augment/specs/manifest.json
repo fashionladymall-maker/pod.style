@@ -1,0 +1,599 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.591Z",
+  "entries": [
+    {
+      "storyId": "1.1",
+      "title": "Feed Discovery Foundation",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-1-feed-discovery-foundation.json",
+      "files": [
+        "augment/specs/1-1-feed-discovery-foundation.json"
+      ],
+      "source": "docs/stories/1.1.feed-foundation.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.10",
+      "title": "Feed Notifications & Share Hooks",
+      "status": "Ready",
+      "file": "augment/specs/1-10-feed-notifications-share-hooks.json",
+      "files": [
+        "augment/specs/1-10-feed-notifications-share-hooks.json"
+      ],
+      "source": "docs/stories/1.10.feed-notifications-and-sharing.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.11",
+      "title": "Feed Analytics & Dashboard",
+      "status": "Ready",
+      "file": "augment/specs/1-11-feed-analytics-dashboard.json",
+      "files": [
+        "augment/specs/1-11-feed-analytics-dashboard.json"
+      ],
+      "source": "docs/stories/1.11.feed-analytics-and-dashboard.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.2",
+      "title": "Feed Cache & Pagination Service",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-2-feed-cache-pagination-service.json",
+      "files": [
+        "augment/specs/1-2-feed-cache-pagination-service.json"
+      ],
+      "source": "docs/stories/1.2.feed-cache-and-pagination.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.3",
+      "title": "Feed Ranking Signals Integration",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-3-feed-ranking-signals-integration.json",
+      "files": [
+        "augment/specs/1-3-feed-ranking-signals-integration.json"
+      ],
+      "source": "docs/stories/1.3.feed-ranking-and-signals.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.4",
+      "title": "Feed Entry Ingestion Pipeline",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-4-feed-entry-ingestion-pipeline.json",
+      "files": [
+        "augment/specs/1-4-feed-entry-ingestion-pipeline.json"
+      ],
+      "source": "docs/stories/1.4.feed-entry-ingestion.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.5",
+      "title": "Feed Real-Time Refresh & Interaction Hooks",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-5-feed-real-time-refresh-interaction-hooks.json",
+      "files": [
+        "augment/specs/1-5-feed-real-time-refresh-interaction-hooks.json"
+      ],
+      "source": "docs/stories/1.5.feed-realtime-refresh.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.6",
+      "title": "Feed Search & Discovery",
+      "status": "Ready",
+      "file": "augment/specs/1-6-feed-search-discovery.json",
+      "files": [
+        "augment/specs/1-6-feed-search-discovery.json"
+      ],
+      "source": "docs/stories/1.6.feed-search-and-discovery.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.7",
+      "title": "Feed Experimentation & A/B Testing",
+      "status": "Ready",
+      "file": "augment/specs/1-7-feed-experimentation-a-b-testing.json",
+      "files": [
+        "augment/specs/1-7-feed-experimentation-a-b-testing.json"
+      ],
+      "source": "docs/stories/1.7.feed-ab-testing.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.8",
+      "title": "Feed Backfill & Migration",
+      "status": "Ready",
+      "file": "augment/specs/1-8-feed-backfill-migration.json",
+      "files": [
+        "augment/specs/1-8-feed-backfill-migration.json"
+      ],
+      "source": "docs/stories/1.8.feed-backfill-and-migration.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "1.9",
+      "title": "Feed Moderation & Safety Integration",
+      "status": "Ready",
+      "file": "augment/specs/1-9-feed-moderation-safety-integration.json",
+      "files": [
+        "augment/specs/1-9-feed-moderation-safety-integration.json"
+      ],
+      "source": "docs/stories/1.9.feed-moderation-integration.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "2.1",
+      "title": "Creation Studio Foundation",
+      "status": "Draft",
+      "file": "augment/specs/2-1-creation-studio-foundation.json",
+      "files": [
+        "augment/specs/2-1-creation-studio-foundation.json"
+      ],
+      "source": "docs/stories/2.1.creation-studio-foundation.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "2.2",
+      "title": "Creation Personalization & User Models",
+      "status": "Draft",
+      "file": "augment/specs/2-2-creation-personalization-user-models.json",
+      "files": [
+        "augment/specs/2-2-creation-personalization-user-models.json"
+      ],
+      "source": "docs/stories/2.2.creation-personalization.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "2.3",
+      "title": "Creation Result Management & Storage",
+      "status": "Draft",
+      "file": "augment/specs/2-3-creation-result-management-storage.json",
+      "files": [
+        "augment/specs/2-3-creation-result-management-storage.json"
+      ],
+      "source": "docs/stories/2.3.creation-result-storage.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "2.4",
+      "title": "Creation Version History & Publish Flow",
+      "status": "Draft",
+      "file": "augment/specs/2-4-creation-version-history-publish-flow.json",
+      "files": [
+        "augment/specs/2-4-creation-version-history-publish-flow.json"
+      ],
+      "source": "docs/stories/2.4.creation-versioning-and-publish.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "2.5",
+      "title": "Creation Robustness & Queue Management",
+      "status": "Draft",
+      "file": "augment/specs/2-5-creation-robustness-queue-management.json",
+      "files": [
+        "augment/specs/2-5-creation-robustness-queue-management.json"
+      ],
+      "source": "docs/stories/2.5.creation-robustness.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "3.1",
+      "title": "Checkout Foundation & Stripe Integration",
+      "status": "Draft",
+      "file": "augment/specs/3-1-checkout-foundation-stripe-integration.json",
+      "files": [
+        "augment/specs/3-1-checkout-foundation-stripe-integration.json"
+      ],
+      "source": "docs/stories/3.1.checkout-foundation.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "3.2",
+      "title": "Regional Payment Providers & Fallbacks",
+      "status": "Draft",
+      "file": "augment/specs/3-2-regional-payment-providers-fallbacks.json",
+      "files": [
+        "augment/specs/3-2-regional-payment-providers-fallbacks.json"
+      ],
+      "source": "docs/stories/3.2.checkout-region-providers.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "3.3",
+      "title": "Fulfillment & Shipping Integration",
+      "status": "Draft",
+      "file": "augment/specs/3-3-fulfillment-shipping-integration.json",
+      "files": [
+        "augment/specs/3-3-fulfillment-shipping-integration.json"
+      ],
+      "source": "docs/stories/3.3.checkout-fulfillment-shipping.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "3.4",
+      "title": "Order Tracking & Notifications",
+      "status": "Draft",
+      "file": "augment/specs/3-4-order-tracking-notifications.json",
+      "files": [
+        "augment/specs/3-4-order-tracking-notifications.json"
+      ],
+      "source": "docs/stories/3.4.checkout-order-tracking-and-notifications.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "3.5",
+      "title": "Order Cancellation & Refund Management",
+      "status": "Draft",
+      "file": "augment/specs/3-5-order-cancellation-refund-management.json",
+      "files": [
+        "augment/specs/3-5-order-cancellation-refund-management.json"
+      ],
+      "source": "docs/stories/3.5.checkout-cancel-and-refund.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "3.6",
+      "title": "Checkout Reconciliation & Backoffice Tools",
+      "status": "Draft",
+      "file": "augment/specs/3-6-checkout-reconciliation-backoffice-tools.json",
+      "files": [
+        "augment/specs/3-6-checkout-reconciliation-backoffice-tools.json"
+      ],
+      "source": "docs/stories/3.6.checkout-reconciliation-and-backoffice.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "4.1",
+      "title": "Social Follow Integration with Feed",
+      "status": "Draft",
+      "file": "augment/specs/4-1-social-follow-integration-with-feed.json",
+      "files": [
+        "augment/specs/4-1-social-follow-integration-with-feed.json"
+      ],
+      "source": "docs/stories/4.1.social-follow-feed-integration.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "4.2",
+      "title": "Commenting & Engagement Notifications",
+      "status": "Draft",
+      "file": "augment/specs/4-2-commenting-engagement-notifications.json",
+      "files": [
+        "augment/specs/4-2-commenting-engagement-notifications.json"
+      ],
+      "source": "docs/stories/4.2.social-comments-and-notifications.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "4.3",
+      "title": "Likes & Favorites Insights",
+      "status": "Draft",
+      "file": "augment/specs/4-3-likes-favorites-insights.json",
+      "files": [
+        "augment/specs/4-3-likes-favorites-insights.json"
+      ],
+      "source": "docs/stories/4.3.social-likes-favorites-insights.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "4.4",
+      "title": "Notification Inbox & Preferences",
+      "status": "Draft",
+      "file": "augment/specs/4-4-notification-inbox-preferences.json",
+      "files": [
+        "augment/specs/4-4-notification-inbox-preferences.json"
+      ],
+      "source": "docs/stories/4.4.social-notification-inbox.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "4.5",
+      "title": "Remix Attribution & Collaboration Flow",
+      "status": "Draft",
+      "file": "augment/specs/4-5-remix-attribution-collaboration-flow.json",
+      "files": [
+        "augment/specs/4-5-remix-attribution-collaboration-flow.json"
+      ],
+      "source": "docs/stories/4.5.social-remix-collaboration.md",
+      "missingSections": [
+        "Dev Notes"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 2
+    },
+    {
+      "storyId": "4.6",
+      "title": "Creator Profile Enhancements & Social Growth Tools",
+      "status": "Draft",
+      "file": "augment/specs/4-6-creator-profile-enhancements-social-growth-tools.json",
+      "files": [
+        "augment/specs/4-6-creator-profile-enhancements-social-growth-tools.json"
+      ],
+      "source": "docs/stories/4.6.social-creator-profile-enhancements.md",
+      "missingSections": [
+        "Dev Notes"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 2
+    },
+    {
+      "storyId": "5.1",
+      "title": "Moderation Pipeline Foundation",
+      "status": "Draft",
+      "file": "augment/specs/5-1-moderation-pipeline-foundation.json",
+      "files": [
+        "augment/specs/5-1-moderation-pipeline-foundation.json"
+      ],
+      "source": "docs/stories/5.1.moderation-pipeline-foundation.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "5.2",
+      "title": "User Reports & Appeals Workflow",
+      "status": "Draft",
+      "file": "augment/specs/5-2-user-reports-appeals-workflow.json",
+      "files": [
+        "augment/specs/5-2-user-reports-appeals-workflow.json"
+      ],
+      "source": "docs/stories/5.2.moderation-reports-and-appeals.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "5.3",
+      "title": "Moderation Dashboard & Reporting",
+      "status": "Draft",
+      "file": "augment/specs/5-3-moderation-dashboard-reporting.json",
+      "files": [
+        "augment/specs/5-3-moderation-dashboard-reporting.json"
+      ],
+      "source": "docs/stories/5.3.moderation-dashboard-and-reporting.md",
+      "missingScore": 0
+    },
+    {
+      "storyId": "5.4",
+      "title": "Moderation Policy & Rules Engine Updates",
+      "status": "Draft",
+      "file": "augment/specs/5-4-moderation-policy-rules-engine-updates.json",
+      "files": [
+        "augment/specs/5-4-moderation-policy-rules-engine-updates.json"
+      ],
+      "source": "docs/stories/5.4.moderation-policy-rules-engine.md",
+      "missingSections": [
+        "Dev Notes"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 2
+    },
+    {
+      "storyId": "5.5",
+      "title": "Moderation ML Training & Continuous Improvement",
+      "status": "Draft",
+      "file": "augment/specs/5-5-moderation-ml-training-continuous-improvement.json",
+      "files": [
+        "augment/specs/5-5-moderation-ml-training-continuous-improvement.json"
+      ],
+      "source": "docs/stories/5.5.moderation-ml-improvements.md",
+      "missingSections": [
+        "Dev Notes"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 2
+    },
+    {
+      "storyId": "",
+      "title": "",
+      "status": "",
+      "file": "augment/specs/readme.json",
+      "files": [
+        "augment/specs/readme.json"
+      ],
+      "source": "docs/stories/README.md",
+      "missingSections": [
+        "Story",
+        "Acceptance Criteria",
+        "Tasks / Subtasks",
+        "Dev Notes",
+        "Testing"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Story",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Acceptance Criteria",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Tasks / Subtasks",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Testing",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 10
+    },
+    {
+      "storyId": "",
+      "title": "",
+      "status": "",
+      "file": "augment/specs/brownfield-mvp-stories.json",
+      "files": [
+        "augment/specs/brownfield-mvp-stories.json"
+      ],
+      "source": "docs/stories/brownfield-mvp-stories.md",
+      "missingSections": [
+        "Story",
+        "Acceptance Criteria",
+        "Tasks / Subtasks",
+        "Dev Notes",
+        "Testing"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Story",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Acceptance Criteria",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Tasks / Subtasks",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Testing",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 10
+    },
+    {
+      "storyId": "1.1",
+      "title": "项目初始化与 Monorepo 设置",
+      "status": "",
+      "file": "augment/specs/1-1-monorepo.json",
+      "files": [
+        "augment/specs/1-1-monorepo.json"
+      ],
+      "source": "docs/stories/story-1.1-project-init.md",
+      "missingSections": [
+        "Story",
+        "Tasks / Subtasks",
+        "Dev Notes",
+        "Testing"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Story",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Tasks / Subtasks",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Testing",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 8
+    },
+    {
+      "storyId": "1.4",
+      "title": "PostgreSQL 数据库设置与 Prisma 集成",
+      "status": "",
+      "file": "augment/specs/1-4-postgresql-prisma.json",
+      "files": [
+        "augment/specs/1-4-postgresql-prisma.json"
+      ],
+      "source": "docs/stories/story-1.4-database-setup.md",
+      "missingSections": [
+        "Story",
+        "Tasks / Subtasks",
+        "Dev Notes",
+        "Testing"
+      ],
+      "missingSectionsDetail": [
+        {
+          "section": "Story",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Tasks / Subtasks",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Dev Notes",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        },
+        {
+          "section": "Testing",
+          "severity": "critical",
+          "weight": 2,
+          "goal": null
+        }
+      ],
+      "missingScore": 8
+    }
+  ]
+}

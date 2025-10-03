@@ -1,0 +1,64 @@
+角色：你是开发执行者。
+仓库：https://github.com/fashionladymall-maker/pod.style
+故事：bmad/stories/M3-RENDER-001-print-ready-queue.md
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+
+## 任务目标
+实现异步渲染队列，将用户设计转换为工厂可用的 print-ready 文件（高分辨率 TIFF/PDF）。
+
+## 核心需求
+1. 配置 Cloud Tasks 队列
+2. 实现渲染 Worker（`functions/src/render/worker.ts`）
+3. 校验：分辨率 ≥ 300 DPI、出血 3mm、安全区、ICC 配置
+4. 生成报告并上传到 `prints/{orderId}/{lineItemId}/`
+5. 回填 `designs.printAsset`
+
+## 实现步骤
+
+### Step 1: 配置 Cloud Tasks 队列
+- 在 `firebase.json` 中添加 Cloud Tasks 配置
+- 创建队列配置文件（如需要）
+
+### Step 2: 实现渲染 Worker
+- 创建 `functions/src/render/worker.ts`
+- 实现图像处理逻辑（使用 Sharp 或类似库）
+- 校验：
+  - 分辨率 ≥ 300 DPI
+  - 出血 3mm
+  - 安全区检查
+  - ICC 配置文件应用
+- 生成 TIFF/PDF 格式的 print-ready 文件
+
+### Step 3: Storage 上传
+- 上传到 `prints/{orderId}/{lineItemId}/print-ready.tif`
+- 生成校验报告 JSON
+
+### Step 4: Firestore 回填
+- 更新 `designs/{designId}` 的 `printAsset` 字段
+- 包含：url, dpi, icc, checksum, reportId
+
+### Step 5: 测试与文档
+- 添加单元测试（覆盖率 ≥ 80%）
+- 更新 CHANGELOG.md
+- 更新 Story 状态
+
+## DoD（Definition of Done）
+- [x] `npm run build` 通过（0 错误）
+- [x] `npm run lint` 通过（0 错误）
+- [x] `npm run typecheck` 通过（0 错误）
+- [x] `npm run test` 通过（关键路径）
+- [x] 创建分支 `feature/M3-RENDER-001`
+- [x] 提交代码并推送
+- [x] 更新 `CHANGELOG.md`
+- [x] 更新 Story 文件标记完成
+
+## 注意事项
+1. 使用 Sharp 库处理图像（已在 package.json 中）
+2. Cloud Tasks 配置可能需要 GCP 项目设置
+3. 如果 Cloud Tasks 不可用，可以先实现 HTTP 触发的 Worker
+4. 生成的文件应该是高质量的（300+ DPI）
+5. 所有文件路径使用 Firebase Storage 规范
+
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+

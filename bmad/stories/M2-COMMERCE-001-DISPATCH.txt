@@ -1,0 +1,259 @@
+# M2-COMMERCE-001 派单文档
+
+## 执行指令
+
+你是开发执行者。
+
+**仓库**: `/Users/mike/pod.style`
+
+**故事**: `bmad/stories/M2-COMMERCE-001-sku-details-cart.md`
+
+**遵循文档**:
+- `docs/architecture.md`
+- `docs/prd.md`
+- `bmad/constraints.md`
+
+**任务目标**: 实现 SKU 详情页 + 购物车 + Stripe 支付闭环
+
+**核心需求**:
+1. 创建 SKU 详情页 (`/product/[sku]`)
+2. 实现购物车功能 (`/cart`)
+3. 集成 Stripe 支付
+4. 创建结算页 (`/checkout`)
+5. 创建订单确认页 (`/orders/[orderId]`)
+6. 实现 Cloud Functions（Payment Intent + Webhook）
+
+**技术要求**:
+- 使用 Next.js 15 App Router
+- 复用现有 Tailwind + Radix UI 组件
+- 使用 React Hook Form + Zod 校验
+- 集成 `@stripe/stripe-js` + `@stripe/react-stripe-js`
+- 遵循 TypeScript 严格模式
+
+**DoD（Definition of Done）**:
+- [ ] `npm run build` 通过（0 错误）
+- [ ] `npm run lint` 通过（0 错误）
+- [ ] `npm run typecheck` 通过（0 错误）
+- [ ] `npm run test` 通过（关键路径）
+- [ ] 创建分支 `feature/M2-COMMERCE-001`
+- [ ] 提交代码并推送
+- [ ] 更新 `CHANGELOG.md`
+- [ ] 更新 Story 文件标记完成
+- [ ] Stripe 测试支付成功
+- [ ] 订单写入 Firestore 验证
+
+**禁止事项**:
+- ❌ 并发处理多个任务
+- ❌ 修改 `main` 分支
+- ❌ 引入真实平台名（如 TikTok、抖音等）
+- ❌ 破坏现有功能
+- ❌ 使用真实 Stripe 生产密钥
+
+**输出要求**:
+1. PR 链接或分支名
+2. 测试说明（如何验证）
+3. 风险与缓解措施
+4. Stripe 测试结果
+
+---
+
+## 实现建议
+
+### 1. 文件结构
+```
+src/app/(routes)/
+  ├── product/[sku]/page.tsx       # SKU 详情页
+  ├── cart/page.tsx                 # 购物车
+  ├── checkout/page.tsx             # 结算页
+  └── orders/[orderId]/page.tsx     # 订单确认页
+
+src/features/
+  ├── cart/
+  │   ├── context/cart-context.tsx  # 购物车状态管理
+  │   ├── hooks/use-cart.ts         # 购物车 Hooks
+  │   └── __tests__/                # 单测
+  └── payment/
+      ├── stripe-provider.tsx       # Stripe Provider
+      ├── payment-form.tsx          # 支付表单
+      └── __tests__/                # 单测
+
+functions/src/
+  ├── payment/
+  │   ├── create-intent.ts          # 创建 Payment Intent
+  │   └── webhook.ts                # Stripe Webhook
+  └── orders/
+      └── create-order.ts           # 创建订单
+```
+
+### 2. 关键组件
+
+**SKU 详情页**:
+- 使用 Server Component 获取 SKU 数据
+- 客户端组件处理变体选择和加购
+- 使用 `useCart` Hook 管理购物车状态
+
+**购物车**:
+- 使用 React Context 管理全局购物车状态
+- 实时同步到 Firestore（防止多设备不一致）
+- 支持修改数量、删除商品
+
+**结算页**:
+- 使用 React Hook Form 管理表单
+- 集成 Stripe Elements（CardElement）
+- 处理支付成功/失败回调
+
+**Cloud Functions**:
+- `createPaymentIntent`: 创建 Stripe Payment Intent
+- `handlePaymentWebhook`: 处理 Stripe Webhook
+- `createOrder`: 创建订单并写入 Firestore
+
+### 3. Stripe 集成步骤
+
+1. 安装依赖:
+```bash
+npm install @stripe/stripe-js @stripe/react-stripe-js stripe
+```
+
+2. 配置环境变量（`.env.local`）:
+```
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+3. 创建 Stripe Provider:
+```typescript
+// src/features/payment/stripe-provider.tsx
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+export function StripeProvider({ children }: { children: React.ReactNode }) {
+  return <Elements stripe={stripePromise}>{children}</Elements>;
+}
+```
+
+4. 创建 Payment Intent（Cloud Functions）:
+```typescript
+// functions/src/payment/create-intent.ts
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+});
+
+export async function createPaymentIntent(amount: number, currency: string) {
+  return await stripe.paymentIntents.create({
+    amount,
+    currency,
+    automatic_payment_methods: { enabled: true },
+  });
+}
+```
+
+5. 处理支付（前端）:
+```typescript
+// src/features/payment/payment-form.tsx
+import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
+
+export function PaymentForm() {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: elements.getElement(CardElement)!,
+      },
+    });
+
+    if (error) {
+      // 处理错误
+    } else if (paymentIntent.status === 'succeeded') {
+      // 支付成功，创建订单
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <CardElement />
+      <button type="submit">支付</button>
+    </form>
+  );
+}
+```
+
+### 4. 测试要点
+
+**单元测试**:
+- 购物车 CRUD 操作
+- 支付表单校验
+- 订单创建逻辑
+
+**集成测试**:
+- Stripe Payment Intent 创建
+- Webhook 处理
+- Firestore 订单写入
+
+**E2E 测试**:
+- 完整购买流程（SKU → 购物车 → 结算 → 支付 → 订单确认）
+- 使用 Stripe 测试卡号: `4242 4242 4242 4242`
+
+### 5. Stripe 测试卡号
+
+- **成功**: `4242 4242 4242 4242`
+- **需要 3D 验证**: `4000 0027 6000 3184`
+- **失败（余额不足）**: `4000 0000 0000 9995`
+- **失败（卡被拒绝）**: `4000 0000 0000 0002`
+
+---
+
+## 验收标准
+
+运行以下命令验证：
+
+```bash
+# 1. 构建
+npm run build
+
+# 2. Lint
+npm run lint
+
+# 3. 类型检查
+npm run typecheck
+
+# 4. 测试
+npm run test
+
+# 5. 本地预览
+npm run dev
+# 访问 http://localhost:6000/product/test-sku
+```
+
+**手动测试**:
+1. 打开 SKU 详情页
+2. 选择变体并加入购物车
+3. 查看购物车并修改数量
+4. 去结算并填写配送信息
+5. 使用测试卡号支付
+6. 验证订单确认页
+7. 检查 Firestore 订单数据
+
+---
+
+## 完成后
+
+1. 创建分支：`git checkout -b feature/M2-COMMERCE-001`
+2. 提交代码：`git add . && git commit -m "feat: SKU details + cart + Stripe payment"`
+3. 推送：`git push origin feature/M2-COMMERCE-001`
+4. 更新 `CHANGELOG.md`
+5. 更新 `bmad/stories/M2-COMMERCE-001-sku-details-cart.md` 标记完成
+
+---
+
+**请开始执行。**
+

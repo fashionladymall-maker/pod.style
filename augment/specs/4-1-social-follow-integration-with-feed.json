@@ -1,0 +1,255 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.526Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/4.1.social-follow-feed-integration.md"
+  },
+  "story": {
+    "id": "4.1",
+    "title": "Social Follow Integration with Feed",
+    "status": "Draft",
+    "userStory": "**As a** Pod.Style user,\n**I want** to follow creators and see their new creations prioritized in my feed,\n**so that** I can keep up with artists I like.",
+    "acceptanceCriteria": [
+      "Implement follow/unfollow server actions updating `social_edges` collection, maintaining counts on user profiles (`followers`, `following`), and logging events for analytics.",
+      "Adjust feed service to boost entries from followed creators via personalization signals, ensuring Story 1.x ranking logic incorporates follow relationships.",
+      "UI surfaces follow buttons on feed cards and creator profiles, updating state optimistically while syncing with server results.",
+      "Observability logs follow/unfollow events, feed ranking adjustments due to follows, and exposes metrics for social engagement.",
+      "Tests cover server action logic, feed recalculations, UI follow/unfollow flow, and regression ensuring legacy behavior when social features disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Follow/unfollow actions (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create server actions to add/remove entries in `social_edges`.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update profile counts and log analytics events.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Feed ranking boost (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Modify feed service to apply personalization boost when creator is followed.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure fallback when follow data missing.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI integration (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add follow buttons on feed cards/profile page; handle optimistic updates.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manage state changes, handle errors gracefully.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`social.follow.success`, `feed.followBoost`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards for social engagement.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for follow actions and feed boost logic.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for UI follow flow.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring social flag can disable features.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`social_edges` stores follow relationships; ensure compatibility with existing schema.",
+        "`[Source: architecture-brownfield.md#5.3-Data-Model]`"
+      ],
+      "Services": [
+        "Feed ranking adjustments must align with previous stories (ranking signals).",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Component Specs": [
+        "UI should be consistent with design tokens; follow button states (Follow/Following).",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations": [
+        "Social actions in `src/features/social/server/actions.ts`; feed updates in `feed-service`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit + integration tests for social interactions, feed boost.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flag for social features; ensure privacy (no overexposing follower lists).",
+        "`[Source: architecture.md#Next-Steps]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for follow logic and feed boost. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for UI flow. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Implement follow/unfollow server actions updating `social_edges` collection, maintaining counts on user profiles (`followers`, `following`), and logging events for analytics."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Adjust feed service to boost entries from followed creators via personalization signals, ensuring Story 1.x ranking logic incorporates follow relationships."
+        },
+        {
+          "name": "AC-3",
+          "goal": "UI surfaces follow buttons on feed cards and creator profiles, updating state optimistically while syncing with server results."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs follow/unfollow events, feed ranking adjustments due to follows, and exposes metrics for social engagement."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover server action logic, feed recalculations, UI follow/unfollow flow, and regression ensuring legacy behavior when social features disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Follow/unfollow actions (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create server actions to add/remove entries in `social_edges`.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update profile counts and log analytics events.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Feed ranking boost (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Modify feed service to apply personalization boost when creator is followed.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure fallback when follow data missing.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI integration (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add follow buttons on feed cards/profile page; handle optimistic updates.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manage state changes, handle errors gracefully.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`social.follow.success`, `feed.followBoost`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards for social engagement.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for follow actions and feed boost logic.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for UI follow flow.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring social flag can disable features.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for follow logic and feed boost. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for UI flow. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

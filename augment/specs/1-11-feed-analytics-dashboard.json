@@ -1,0 +1,256 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.503Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.11.feed-analytics-and-dashboard.md"
+  },
+  "story": {
+    "id": "1.11",
+    "title": "Feed Analytics & Dashboard",
+    "status": "Ready",
+    "userStory": "**As a** product analyst,\n**I want** a feed analytics dashboard tracking key metrics (latency, engagement, ranking signals),\n**so that** stakeholders can monitor performance, diagnose issues, and evaluate experiments.",
+    "acceptanceCriteria": [
+      "Instrumented metrics (latency, cache hit rate, ranking score distribution, refresh frequency, interaction counts) are exported to the analytics pipeline (e.g., BigQuery/Cloud Logging) with variant segmentation.",
+      "Dashboards (Looker Studio or equivalent) visualize feed KPIs (DAU, scroll depth, engagement per variant, moderation impacts) using existing analytics infrastructure.",
+      "Alerting rules trigger notifications when metrics exceed thresholds (e.g., feed latency spikes, cache miss rate high, moderation backlog).",
+      "Documentation provides instructions for analysts to query data (SQL samples) and interpret dashboard widgets, ensuring alignment with story 1.7 experiments.",
+      "Tests / verification steps: metric instrumentation validation, dashboard data accuracy (spot checks), and alert trigger simulations."
+    ],
+    "tasks": [
+      {
+        "title": "Metric instrumentation (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Ensure existing logging emits metrics with variant labels (utilize `feed.*` namespaces).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Configure exports to BigQuery/GA/Cloud Logging as per architecture.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Dashboard creation (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Build or update analytics dashboard with feed KPIs, variant segments, moderation data.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Verify data refresh cadence and access controls.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Alerts (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Define thresholds + notifications for latency, cache miss, notification failures, moderation backlog.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Test alert triggers via emulation.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Documentation (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Write analyst guide (SQL snippets, dashboard definitions, experiment interpretation).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document in docs/analytics or operations handbook.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Verification (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Validate metrics appear in BigQuery/GA.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Perform manual spot checks comparing raw data and dashboard.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Simulate alert triggers and verify notifications.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "Stories 1.1–1.10 established feed, ranking, experiments, interactions. Analytics ties these together for monitoring and optimization."
+      ],
+      "Data Models & Pipelines": [
+        "Use analytics pipeline described (BigQuery export, Cloud Logging) to store metrics.",
+        "`[Source: architecture.md#74-observability]`",
+        "Dashboards should track `feed.service.latency`, `feed.refresh.frequency`, `feed.ranking.scoreDistribution`, `feed.interaction.count`, etc.",
+        "`[Source: architecture.md#74-observability]`"
+      ],
+      "Component Specifications": [
+        "No UI change; dashboards built with analytics tooling. Ensure access controls for analysts.",
+        "`[Source: architecture-brownfield.md#12-handoffs]`"
+      ],
+      "File Locations & Project Structure": [
+        "Documentation under `docs/analytics` or similar; scripts in `scripts/analytics`.",
+        "`[Source: architecture.md#41-components--responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Manual validation plus scripted sanity checks for metrics/dashboards; align with testing strategy.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Metrics should not capture PII; aggregator must maintain privacy.",
+        "`[Source: architecture.md#74-observability]`",
+        "Ensure compatibility with experiments (variant segmentation).",
+        "`[Source: architecture.md#72-infrastructure-changes]`"
+      ]
+    },
+    "testing": [
+      "Manual and scripted verification of dashboard/metrics. `[Source: architecture.md#8-testing-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Instrumented metrics (latency, cache hit rate, ranking score distribution, refresh frequency, interaction counts) are exported to the analytics pipeline (e.g., BigQuery/Cloud Logging) with variant segmentation."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Dashboards (Looker Studio or equivalent) visualize feed KPIs (DAU, scroll depth, engagement per variant, moderation impacts) using existing analytics infrastructure."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Alerting rules trigger notifications when metrics exceed thresholds (e.g., feed latency spikes, cache miss rate high, moderation backlog)."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Documentation provides instructions for analysts to query data (SQL samples) and interpret dashboard widgets, ensuring alignment with story 1.7 experiments."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests / verification steps: metric instrumentation validation, dashboard data accuracy (spot checks), and alert trigger simulations."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Metric instrumentation (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Ensure existing logging emits metrics with variant labels (utilize `feed.*` namespaces).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Configure exports to BigQuery/GA/Cloud Logging as per architecture.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Dashboard creation (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Build or update analytics dashboard with feed KPIs, variant segments, moderation data.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Verify data refresh cadence and access controls.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Alerts (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Define thresholds + notifications for latency, cache miss, notification failures, moderation backlog.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Test alert triggers via emulation.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Documentation (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Write analyst guide (SQL snippets, dashboard definitions, experiment interpretation).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document in docs/analytics or operations handbook.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Verification (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Validate metrics appear in BigQuery/GA.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Perform manual spot checks comparing raw data and dashboard.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Simulate alert triggers and verify notifications.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Manual and scripted verification of dashboard/metrics. `[Source: architecture.md#8-testing-strategy]`"
+      ]
+    }
+  }
+}

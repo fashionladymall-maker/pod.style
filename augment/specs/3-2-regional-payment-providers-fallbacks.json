@@ -1,0 +1,261 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.521Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/3.2.checkout-region-providers.md"
+  },
+  "story": {
+    "id": "3.2",
+    "title": "Regional Payment Providers & Fallbacks",
+    "status": "Draft",
+    "userStory": "**As a** buyer in different regions (US/EU/Middle East),\n**I want** checkout to offer region-appropriate payment options (Stripe, PayPal, Klarna, Tabby),\n**so that** I can pay with familiar methods without friction.",
+    "acceptanceCriteria": [
+      "Extend `payments-service` to support region-specific providers: Stripe (global), PayPal (global), Klarna (EU), Tabby (Middle East), selectable based on user locale/region configuration.",
+      "Checkout UI displays available payment options dynamically, with logic to fall back to Stripe when regional provider unavailable.",
+      "Payment intents/tokenization stored in `payments` collection include provider metadata and status to support reconciliation and refunds.",
+      "Observability captures provider usage, failure rates, and fallback occurrences; dashboards track payment success by provider/region.",
+      "Tests cover provider selection logic, fallback paths, payment confirmation flows, and regression against guest/auth checkouts."
+    ],
+    "tasks": [
+      {
+        "title": "Provider configuration (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update config to map regions to providers/priority order.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement provider modules in `payments-service`.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI option rendering (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Adjust checkout UI to list provider-specific buttons/forms.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Handle fallback gracefully (e.g., message when provider disabled).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Payment metadata (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Store provider info in `payments` documents, ensure reconcilable data.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide utilities for refunds/capture differences.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`checkout.provider.{name}.success/failure`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Update dashboards/alerts for provider outages.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for provider selection/fallback.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests verifying checkout flow per region.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression with mock providers.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`payments` collection must capture provider type, token IDs, status history.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "Payment service architecture describes provider adapters.",
+        "`[Source: architecture.md#6-Integration-Architecture]`",
+        "Ensure each provider integration adheres to compliance and security requirements.",
+        "`[Source: prd.md#5.4-Commerce-&-Fulfillment]`"
+      ],
+      "Component Specs": [
+        "UI should clearly indicate provider selection and fallback.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Provider modules under `src/features/payments/server/providers/`.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`",
+        "UI adjustments in checkout screen components.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing Requirements": [
+        "Unit + integration tests for provider interactions.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Feature flags to enable providers per region; ensure quick rollback.",
+        "`[Source: architecture-brownfield.md#10-Migration-&-Rollout-Strategy]`",
+        "Security: store only tokenized data.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for provider selection logic. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for region-based checkout flows. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Extend `payments-service` to support region-specific providers: Stripe (global), PayPal (global), Klarna (EU), Tabby (Middle East), selectable based on user locale/region configuration."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Checkout UI displays available payment options dynamically, with logic to fall back to Stripe when regional provider unavailable."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Payment intents/tokenization stored in `payments` collection include provider metadata and status to support reconciliation and refunds."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability captures provider usage, failure rates, and fallback occurrences; dashboards track payment success by provider/region."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover provider selection logic, fallback paths, payment confirmation flows, and regression against guest/auth checkouts."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Provider configuration (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update config to map regions to providers/priority order.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement provider modules in `payments-service`.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI option rendering (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Adjust checkout UI to list provider-specific buttons/forms.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Handle fallback gracefully (e.g., message when provider disabled).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Payment metadata (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Store provider info in `payments` documents, ensure reconcilable data.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide utilities for refunds/capture differences.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`checkout.provider.{name}.success/failure`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Update dashboards/alerts for provider outages.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for provider selection/fallback.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests verifying checkout flow per region.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression with mock providers.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for provider selection logic. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for region-based checkout flows. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

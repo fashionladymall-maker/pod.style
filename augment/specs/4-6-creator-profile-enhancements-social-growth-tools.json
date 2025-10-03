@@ -1,0 +1,228 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.560Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/4.6.social-creator-profile-enhancements.md"
+  },
+  "story": {
+    "id": "4.6",
+    "title": "Creator Profile Enhancements & Social Growth Tools",
+    "status": "Draft",
+    "userStory": "**As a** creator building an audience,\n**I want** enhanced profile pages with social metrics and shareable links,\n**so that** new followers can discover my work and I can track growth.",
+    "acceptanceCriteria": [
+      "Redesign creator profile page to highlight bio, social links, follower/following counts, and featured creations (pinned/most popular).",
+      "Provide growth analytics widget showing follower trends, top referrers, and engagement metrics (leveraging `engagement_events`).",
+      "Add shareable profile link with OG metadata, optional QR code, and integration with external social channels.",
+      "Observability tracks profile visits, share link usage, and growth metrics; dashboards visualize creator growth funnels.",
+      "Tests cover profile UI, analytics data accuracy, share link functionality, and regression when social features disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Profile UI update (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Implement new layout with sections for bio, featured creations, follower stats.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Support pinned creations chosen by creator.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Growth analytics (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Build analytics widget pulling data from `engagement_events` / follower logs.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide filters (7d/30d) and tooltips explaining metrics.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Shareable links (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Generate share URL with OG tags and optional QR code.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Track clicks/ referrals in analytics.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`profile.visits`, `profile.shareClicks`).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document dashboards for creator growth.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Playwright tests for profile UI and analytics widget.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Unit tests for share link tracking.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression verifying flag fallback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {},
+    "testing": [
+      "Unit + integration tests as per testing strategy. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Redesign creator profile page to highlight bio, social links, follower/following counts, and featured creations (pinned/most popular)."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide growth analytics widget showing follower trends, top referrers, and engagement metrics (leveraging `engagement_events`)."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Add shareable profile link with OG metadata, optional QR code, and integration with external social channels."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability tracks profile visits, share link usage, and growth metrics; dashboards visualize creator growth funnels."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover profile UI, analytics data accuracy, share link functionality, and regression when social features disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Profile UI update (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Implement new layout with sections for bio, featured creations, follower stats.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Support pinned creations chosen by creator.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Growth analytics (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Build analytics widget pulling data from `engagement_events` / follower logs.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide filters (7d/30d) and tooltips explaining metrics.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Shareable links (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Generate share URL with OG tags and optional QR code.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Track clicks/ referrals in analytics.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`profile.visits`, `profile.shareClicks`).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document dashboards for creator growth.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Playwright tests for profile UI and analytics widget.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Unit tests for share link tracking.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression verifying flag fallback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Unit + integration tests as per testing strategy. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

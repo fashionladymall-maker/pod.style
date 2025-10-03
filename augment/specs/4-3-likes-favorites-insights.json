@@ -1,0 +1,255 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.527Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/4.3.social-likes-favorites-insights.md"
+  },
+  "story": {
+    "id": "4.3",
+    "title": "Likes & Favorites Insights",
+    "status": "Draft",
+    "userStory": "**As a** creator and platform analyst,\n**I want** to track likes and favorites with meaningful insights,\n**so that** I understand engagement and tailor future creations.",
+    "acceptanceCriteria": [
+      "Ensure like/favorite server actions update `creations` engagement metrics, `personalized_feed_cache` signals, and write detailed events to `engagement_events` collection.",
+      "Provide creator dashboard components (under profile) summarizing likes/favorites by creation, timeframe, and variant.",
+      "Feed service adjusts ranking signals based on likes/favorites, factoring in time decay, and exposes insights metadata in analytics pipeline.",
+      "Observability logs engagement events, reconciles counts, and triggers alerts when anomalies occur (e.g., suspicious spikes).",
+      "Tests cover server action logic, dashboard displays, analytics hooks, and regression ensuring social features toggle cleanly."
+    ],
+    "tasks": [
+      {
+        "title": "Engagement logging (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update existing like/favorite actions to persist events in `engagement_events`.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Refresh feed signals accordingly.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Creator dashboard (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add dashboard view under profile showing likes/favorites metrics.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement filters/timeframe selectors.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Analytics integration (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Ensure ranking signals incorporate time decay; expose insights to analytics.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Provide documentation for analysts.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Emit metrics (`social.like.count`, `social.favorite.count`), detect anomalies.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Configure alerts for suspicious activity.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for engagement actions + analytics export.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright tests for dashboard UI.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression for feature flag fallback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "`engagement_events` records like/favorite events; ensure schema consistent.",
+        "`[Source: architecture-brownfield.md#5.3-Data-Model]`"
+      ],
+      "Services": [
+        "Feed ranking adjustments align with Story 1.x; ensure impedance.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "UI": [
+        "Dashboard should align with design tokens; accessible from creator profile.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "Files": [
+        "Server actions under `social-service`; dashboard components under `src/components/screens/creator-dashboard.tsx`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Testing": [
+        "Unit/integration tests per architecture.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Constraints": [
+        "Feature flag to disable social insights; ensure metrics anonymized.",
+        "`[Source: architecture.md#Next-Steps]`"
+      ]
+    },
+    "testing": [
+      "Jest tests for engagement logging and analytics export. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for creator dashboard. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Ensure like/favorite server actions update `creations` engagement metrics, `personalized_feed_cache` signals, and write detailed events to `engagement_events` collection."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Provide creator dashboard components (under profile) summarizing likes/favorites by creation, timeframe, and variant."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Feed service adjusts ranking signals based on likes/favorites, factoring in time decay, and exposes insights metadata in analytics pipeline."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability logs engagement events, reconciles counts, and triggers alerts when anomalies occur (e.g., suspicious spikes)."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover server action logic, dashboard displays, analytics hooks, and regression ensuring social features toggle cleanly."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Engagement logging (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update existing like/favorite actions to persist events in `engagement_events`.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Refresh feed signals accordingly.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Creator dashboard (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add dashboard view under profile showing likes/favorites metrics.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement filters/timeframe selectors.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Analytics integration (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Ensure ranking signals incorporate time decay; expose insights to analytics.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Provide documentation for analysts.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Emit metrics (`social.like.count`, `social.favorite.count`), detect anomalies.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Configure alerts for suspicious activity.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for engagement actions + analytics export.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright tests for dashboard UI.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression for feature flag fallback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest tests for engagement logging and analytics export. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for creator dashboard. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

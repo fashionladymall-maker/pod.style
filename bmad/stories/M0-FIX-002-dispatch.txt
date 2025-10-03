@@ -1,0 +1,17 @@
+角色：你是开发执行者。
+仓库：/Users/mike/pod.style
+故事：bmad/stories/M0-FIX-002-eslint-config.md
+遵循：docs/architecture.md、docs/prd.md、bmad/constraints.md
+DoD：构建+测试通过；文档更新；PR -> feature/M0-FIX-002；CI 全绿；性能预算达标。
+禁止：并发任务/修改 main/引入敏感词。
+输出：PR 链接、测试说明、风险与缓解。
+
+任务：创建 eslint.config.js 使 npm run lint 通过
+
+验收标准：
+- npm run lint 通过（0 错误）
+- eslint.config.js 已创建
+- 不破坏现有功能
+
+请开始执行。
+

@@ -1,0 +1,27 @@
+修复 TypeScript 类型错误
+
+## 目标
+修复所有 TypeScript 类型错误，确保 typecheck 和 build 通过。
+
+## 关键修复
+1. src/lib/types.ts - Comment 接口添加：content, isLiked, likeCount, replyCount, replies
+2. src/lib/types.ts - 添加导出：Follow, Hashtag, ViewHistory, Notification, NotificationType
+3. src/lib/types.ts - ShippingInfo 添加：fullName, city, state, zipCode, country
+4. src/lib/types.ts - Order 添加：paymentInfo
+5. src/lib/types.ts - Creation 添加：isLiked, userName
+6. src/lib/types.ts - Model 添加：modelUri
+7. src/lib/types.ts - OrderStatus 添加："pending" | "processing" | "completed"
+8. 测试文件修复：将 const loadRoute 改为 let loadRoute
+
+## 验证
+- npm run typecheck（0 错误）
+- npm run build（0 错误）
+- npm run lint
+- npm run test
+
+## 分支
+feature/M4-TYPEFIX-001
+
+## 提交
+git add . && git commit -m "fix: resolve TypeScript type errors" && git push origin feature/M4-TYPEFIX-001
+

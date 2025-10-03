@@ -1,0 +1,260 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.514Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/1.9.feed-moderation-integration.md"
+  },
+  "story": {
+    "id": "1.9",
+    "title": "Feed Moderation & Safety Integration",
+    "status": "Ready",
+    "userStory": "**As a** trust & safety operator,\n**I want** the feed to respect moderation decisions and hide inappropriate content promptly,\n**so that** users only see compliant creations while moderators can audit changes.",
+    "acceptanceCriteria": [
+      "`feed-service` and ingestion pipeline honor `moderation_flags` and `creations.moderationStatus`, excluding flagged entries from cache/query results while keeping data for audit logs.",
+      "When moderation status changes (auto or human), feed cache entries are updated or removed via Cloud Function triggers, and a rollback path allows reinstating content if an appeal succeeds.",
+      "Server actions surface minimal moderation metadata (e.g., `isModerated`) for analytics while ensuring no moderated content leaks to users.",
+      "Observability captures moderation actions impacting feed (counts of removed/reinstated entries) and alerts when moderation backlog causes stale content.",
+      "Tests confirm moderated items disappear from `/beta` feed, cache updates occur on status change, and legacy `/` path remains unaffected."
+    ],
+    "tasks": [
+      {
+        "title": "Feed service filtering (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update queries to exclude entries with `moderationStatus != approved`.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure ranking/aggregation respects removed items without errors.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Moderation triggers (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Cloud Function listening to `moderation_flags` or `creations` updates to refresh/remove cache entries.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement rollback utility to restore entries upon appeal.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Analytics surface (AC: 3,4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Server actions expose `isModerated` metadata for analytics only (not user UI).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Emit metrics/logs for moderation removals and reinstatements; alert when backlog exceeds threshold.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Feature flag & compatibility (AC: 3,5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Wrap new behavior behind feed feature flag; legacy path unaffected.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Document rollback steps (disable triggers/notifiers).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for filtering logic and moderation update handler.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Emulator/Playwright tests verifying moderated content removal.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring legacy `/` unaffected.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Previous Story Insights": [
+        "Ingestion (1.4) and backfill (1.8) populate feed data; moderation integration ensures compliance."
+      ],
+      "Data Models": [
+        "`moderation_flags` and `creations.moderationStatus` drive inclusion/exclusion; system must respect audit logs.",
+        "`[Source: architecture-brownfield.md#53-data-model]`"
+      ],
+      "API & Service Specifications": [
+        "Moderation workflow described in architecture; feed service must integrate with moderation queue/function.",
+        "`[Source: architecture-brownfield.md#6-workflows]`"
+      ],
+      "Component Specifications": [
+        "No major UI change; ensure admin tooling can see moderation impact, possibly via diagnostics view.",
+        "`[Source: architecture.md#3-business-user-experience-architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Cloud Function updates under `functions/`; feed filtering logic under `src/features/feed/server/`.",
+        "`[Source: architecture.md#41-components--responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Emulator tests for function trigger; Playwright verifying moderated items hidden.",
+        "`[Source: architecture.md#8-testing-strategy]`"
+      ],
+      "Technical Constraints": [
+        "Implementation must be idempotent, maintain audit trail, and avoid deleting data permanently.",
+        "`[Source: architecture.md#2-Enhancement-Scope-and-Integration-Strategy]`",
+        "Observability metrics integrate with moderation dashboards.",
+        "`[Source: architecture.md#74-observability]`"
+      ]
+    },
+    "testing": [
+      "Jest unit tests for moderation filtering & triggers. `[Source: architecture.md#8-testing-strategy]`",
+      "Playwright/emulator tests verifying removal behavior. `[Source: architecture.md#8-testing-strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "`feed-service` and ingestion pipeline honor `moderation_flags` and `creations.moderationStatus`, excluding flagged entries from cache/query results while keeping data for audit logs."
+        },
+        {
+          "name": "AC-2",
+          "goal": "When moderation status changes (auto or human), feed cache entries are updated or removed via Cloud Function triggers, and a rollback path allows reinstating content if an appeal succeeds."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Server actions surface minimal moderation metadata (e.g., `isModerated`) for analytics while ensuring no moderated content leaks to users."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability captures moderation actions impacting feed (counts of removed/reinstated entries) and alerts when moderation backlog causes stale content."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests confirm moderated items disappear from `/beta` feed, cache updates occur on status change, and legacy `/` path remains unaffected."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Feed service filtering (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update queries to exclude entries with `moderationStatus != approved`.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure ranking/aggregation respects removed items without errors.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Moderation triggers (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Cloud Function listening to `moderation_flags` or `creations` updates to refresh/remove cache entries.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement rollback utility to restore entries upon appeal.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Analytics surface (AC: 3,4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Server actions expose `isModerated` metadata for analytics only (not user UI).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Emit metrics/logs for moderation removals and reinstatements; alert when backlog exceeds threshold.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Feature flag & compatibility (AC: 3,5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Wrap new behavior behind feed feature flag; legacy path unaffected.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Document rollback steps (disable triggers/notifiers).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for filtering logic and moderation update handler.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Emulator/Playwright tests verifying moderated content removal.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring legacy `/` unaffected.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest unit tests for moderation filtering & triggers. `[Source: architecture.md#8-testing-strategy]`",
+        "Playwright/emulator tests verifying removal behavior. `[Source: architecture.md#8-testing-strategy]`"
+      ]
+    }
+  }
+}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #2a2a2a;
+        }
+        .success { border-left: 4px solid #4caf50; }
+        .error { border-left: 4px solid #f44336; }
+        .warning { border-left: 4px solid #ff9800; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #2196F3;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        pre {
+            background: #000;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Authentication Test</h1>
+    
+    <div id="config-status" class="status"></div>
+    <div id="auth-status" class="status"></div>
+    <div id="user-info" class="status"></div>
+    
+    <div>
+        <button onclick="testAnonymousSignIn()">Test Anonymous Sign In</button>
+        <button onclick="testEmailSignUp()">Test Email Sign Up</button>
+        <button onclick="testSignOut()">Sign Out</button>
+    </div>
+    
+    <h2>Logs</h2>
+    <pre id="logs"></pre>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            createUserWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Firebase configuration from .env.local
+        const firebaseConfig = {
+            apiKey: "AIzaSyAr_uiyZThmAYRDigXt0g_0Y2am2ojc8I0",
+            authDomain: "studio-1269295870-5fde0.firebaseapp.com",
+            projectId: "studio-1269295870-5fde0",
+            storageBucket: "studio-1269295870-5fde0.firebasestorage.app",
+            messagingSenderId: "204491544475",
+            appId: "1:204491544475:web:dadc0d6d650572156db33e"
+        };
+
+        let app, auth;
+        const logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            document.getElementById('logs').textContent = logs.join('\n');
+            console.log(message);
+        }
+
+        function updateStatus(elementId, message, className) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `status ${className}`;
+        }
+
+        // Initialize Firebase
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            updateStatus('config-status', '✅ Firebase initialized successfully', 'success');
+            log('Firebase initialized');
+        } catch (error) {
+            updateStatus('config-status', `❌ Firebase initialization failed: ${error.message}`, 'error');
+            log(`Firebase init error: ${error.message}`, 'error');
+        }
+
+        // Monitor auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                updateStatus('auth-status', '✅ User is signed in', 'success');
+                updateStatus('user-info', `
+                    User ID: ${user.uid}
+                    Email: ${user.email || 'N/A'}
+                    Anonymous: ${user.isAnonymous}
+                    Provider: ${user.providerData.map(p => p.providerId).join(', ') || 'anonymous'}
+                `, 'success');
+                log(`User signed in: ${user.uid} (anonymous: ${user.isAnonymous})`);
+            } else {
+                updateStatus('auth-status', '⚠️ No user signed in', 'warning');
+                updateStatus('user-info', 'No user information available', 'warning');
+                log('User signed out');
+            }
+        });
+
+        // Test functions
+        window.testAnonymousSignIn = async () => {
+            try {
+                log('Attempting anonymous sign in...');
+                const result = await signInAnonymously(auth);
+                log(`Anonymous sign in successful: ${result.user.uid}`, 'success');
+            } catch (error) {
+                log(`Anonymous sign in failed: ${error.code} - ${error.message}`, 'error');
+                alert(`Error: ${error.message}`);
+            }
+        };
+
+        window.testEmailSignUp = async () => {
+            const email = prompt('Enter email:');
+            const password = prompt('Enter password:');
+            if (!email || !password) return;
+
+            try {
+                log(`Attempting email sign up for ${email}...`);
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                log(`Email sign up successful: ${result.user.uid}`, 'success');
+            } catch (error) {
+                log(`Email sign up failed: ${error.code} - ${error.message}`, 'error');
+                alert(`Error: ${error.message}`);
+            }
+        };
+
+        window.testSignOut = async () => {
+            try {
+                log('Attempting sign out...');
+                await signOut(auth);
+                log('Sign out successful', 'success');
+            } catch (error) {
+                log(`Sign out failed: ${error.code} - ${error.message}`, 'error');
+                alert(`Error: ${error.message}`);
+            }
+        };
+
+        // Auto-test on load
+        log('Page loaded, waiting for auth state...');
+    </script>
+</body>
+</html>
+

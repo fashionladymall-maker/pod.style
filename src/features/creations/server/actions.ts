@@ -186,7 +186,7 @@ export const addCommentAction = async (creationId: string, commentData: CommentI
       userId: z.string(),
       userName: z.string(),
       userPhotoURL: z.string().optional().default(''),
-      text: z.string().min(1),
+      content: z.string().min(1),
     }),
   });
 

@@ -1,0 +1,261 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.518Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/2.3.creation-result-storage.md"
+  },
+  "story": {
+    "id": "2.3",
+    "title": "Creation Result Management & Storage",
+    "status": "Draft",
+    "userStory": "**As a** creator using the studio,\n**I want** generated patterns and mockups to be saved to my workspace automatically,\n**so that** I can review, manage, and reuse creations without repeating the generation process.",
+    "acceptanceCriteria": [
+      "When generation succeeds, server actions persist pattern and mockup assets to Firebase Storage (public preview + private source) following naming conventions (`creations/{userId}/{uuid}`), and create a draft `Creation` document in Firestore.",
+      "Stored creation documents include prompt, style, summary (via `summarizePrompt`), models array (initially empty or with generated mockups), and flags indicating draft vs published state.",
+      "UI provides a results gallery showing saved assets, allowing creators to rename, delete, or mark favorites prior to publishing.",
+      "Implement retry/error handling for upload failures, including cleanup of orphaned files and fallback messaging.",
+      "Tests cover storage uploads (with emulator or mocks), Firestore document creation, UI gallery interactions, and legacy behavior when feature flag disabled."
+    ],
+    "tasks": [
+      {
+        "title": "Asset storage (AC: 1,4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Update server actions to upload pattern/modeled assets to Storage with correct metadata.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Implement cleanup logic on failure (delete partial uploads).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Firestore draft creation (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Create draft `Creation` document capturing prompt, style, summary, pattern URIs.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure compatibility with existing schema & future publish flow.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "UI result gallery (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Display saved assets with rename/delete/favorite controls.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Confirm actions update Firestore & Storage accordingly.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Error handling (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Add try/catch with user feedback and cleanup steps.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Log errors with actionable details (`studio.storage.failure`).",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Testing (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Jest tests for server actions (success/failure paths).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Playwright test verifying gallery operations.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Manual regression ensuring feature flag fallback.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {
+      "Data Models": [
+        "Use `Creation` schema with fields: prompt, style, summary, patternUri, models[], createdAt, draft flags.",
+        "`[Source: architecture.md#5-Data-Architecture]`"
+      ],
+      "API & Service Specs": [
+        "Upload logic uses `uploadDataUriToStorage` and ensures public/private access as needed.",
+        "`[Source: architecture-brownfield.md#5.2-Backend-Services]`",
+        "Summaries generated via `summarizePrompt`.",
+        "`[Source: architecture.md#4-Application-Architecture]`"
+      ],
+      "Component Specs": [
+        "Gallery component aligns with design tokens; operations triggered via server actions.",
+        "`[Source: architecture.md#3-Business-User-Experience-Architecture]`"
+      ],
+      "File Locations & Project Structure": [
+        "Storage logic in `src/features/creations/server/creation-service.ts`.",
+        "`[Source: architecture.md#4-Application-Architecture]`",
+        "UI in `CreationStudioScreen` or sub-component.",
+        "`[Source: architecture.md#4.1-Components-&-Responsibilities]`"
+      ],
+      "Testing Requirements": [
+        "Storage + Firestore emulator tests; UI integration tests.",
+        "`[Source: architecture.md#8-Testing-Strategy]`"
+      ],
+      "Technical Constraints": [
+        "Ensure no orphaned files; use idempotent naming.",
+        "`[Source: architecture.md#2-Enhancement-Scope-and-Integration-Strategy]`",
+        "Respect auth/security rules for uploads.",
+        "`[Source: architecture.md#9-Security-Integration]`"
+      ]
+    },
+    "testing": [
+      "Jest/emulator tests for storage & Firestore writes. `[Source: architecture.md#8-Testing-Strategy]`",
+      "Playwright tests for gallery interactions. `[Source: architecture.md#8-Testing-Strategy]`"
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "When generation succeeds, server actions persist pattern and mockup assets to Firebase Storage (public preview + private source) following naming conventions (`creations/{userId}/{uuid}`), and create a draft `Creation` document in Firestore."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Stored creation documents include prompt, style, summary (via `summarizePrompt`), models array (initially empty or with generated mockups), and flags indicating draft vs published state."
+        },
+        {
+          "name": "AC-3",
+          "goal": "UI provides a results gallery showing saved assets, allowing creators to rename, delete, or mark favorites prior to publishing."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Implement retry/error handling for upload failures, including cleanup of orphaned files and fallback messaging."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Tests cover storage uploads (with emulator or mocks), Firestore document creation, UI gallery interactions, and legacy behavior when feature flag disabled."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Asset storage (AC: 1,4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Update server actions to upload pattern/modeled assets to Storage with correct metadata.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Implement cleanup logic on failure (delete partial uploads).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Firestore draft creation (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Create draft `Creation` document capturing prompt, style, summary, pattern URIs.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure compatibility with existing schema & future publish flow.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "UI result gallery (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Display saved assets with rename/delete/favorite controls.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Confirm actions update Firestore & Storage accordingly.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Error handling (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Add try/catch with user feedback and cleanup steps.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Log errors with actionable details (`studio.storage.failure`).",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Testing (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Jest tests for server actions (success/failure paths).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Playwright test verifying gallery operations.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Manual regression ensuring feature flag fallback.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Jest/emulator tests for storage & Firestore writes. `[Source: architecture.md#8-Testing-Strategy]`",
+        "Playwright tests for gallery interactions. `[Source: architecture.md#8-Testing-Strategy]`"
+      ]
+    }
+  }
+}

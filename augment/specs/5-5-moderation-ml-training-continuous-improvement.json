@@ -1,0 +1,198 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-10-01T05:26:39.580Z",
+  "source": {
+    "type": "bmad-story",
+    "file": "docs/stories/5.5.moderation-ml-improvements.md"
+  },
+  "story": {
+    "id": "5.5",
+    "title": "Moderation ML Training & Continuous Improvement",
+    "status": "Draft",
+    "userStory": "**As a** machine learning engineer,\n**I want** to retrain moderation models using feedback data,\n**so that** automated decisions improve accuracy over time.",
+    "acceptanceCriteria": [
+      "Collect labeled datasets from moderation outcomes (approved, rejected, appeal results) and store in a secure dataset for training.",
+      "Implement training pipeline (offline job) that updates ML models or heuristics, publishing new versions behind feature flags for gradual rollout.",
+      "Provide evaluation metrics (precision, recall, false positive rate) and require thresholds before promoting new models.",
+      "Observability monitors model performance post-rollout, compares against control, and alerts on regression.",
+      "Documentation outlines training process, data retention policy, and rollback steps; tests validate data collection, pipeline execution, and model serving toggles."
+    ],
+    "tasks": [
+      {
+        "title": "Data collection (AC: 1)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Aggregate moderation decisions into training datasets (BigQuery or storage).",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Ensure PII removal/anonymization.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Training pipeline (AC: 2)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Build training scripts/jobs (e.g., Cloud Run batch) producing model artifacts.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Deploy models behind feature flags for staged rollout.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Evaluation (AC: 3)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Compute metrics, compare to baselines, require approval before promotion.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Observability (AC: 4)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Track live metrics vs control; set alerts on regression.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "title": "Documentation/tests (AC: 5)",
+        "status": "todo",
+        "subtasks": [
+          {
+            "title": "Document SOP, retention policy, rollback steps.",
+            "status": "todo",
+            "subtasks": []
+          },
+          {
+            "title": "Add tests/scripts verifying data pipeline and feature flag toggles.",
+            "status": "todo",
+            "subtasks": []
+          }
+        ]
+      }
+    ],
+    "devNotes": {},
+    "testing": [
+      "Automated sanity checks on dataset, training job, and deployment toggles."
+    ]
+  },
+  "augment": {
+    "recommendedPlaybooks": {
+      "design": [
+        {
+          "name": "AC-1",
+          "goal": "Collect labeled datasets from moderation outcomes (approved, rejected, appeal results) and store in a secure dataset for training."
+        },
+        {
+          "name": "AC-2",
+          "goal": "Implement training pipeline (offline job) that updates ML models or heuristics, publishing new versions behind feature flags for gradual rollout."
+        },
+        {
+          "name": "AC-3",
+          "goal": "Provide evaluation metrics (precision, recall, false positive rate) and require thresholds before promoting new models."
+        },
+        {
+          "name": "AC-4",
+          "goal": "Observability monitors model performance post-rollout, compares against control, and alerts on regression."
+        },
+        {
+          "name": "AC-5",
+          "goal": "Documentation outlines training process, data retention policy, and rollback steps; tests validate data collection, pipeline execution, and model serving toggles."
+        }
+      ],
+      "implementation": [
+        {
+          "title": "Data collection (AC: 1)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Aggregate moderation decisions into training datasets (BigQuery or storage).",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Ensure PII removal/anonymization.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Training pipeline (AC: 2)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Build training scripts/jobs (e.g., Cloud Run batch) producing model artifacts.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Deploy models behind feature flags for staged rollout.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Evaluation (AC: 3)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Compute metrics, compare to baselines, require approval before promotion.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Observability (AC: 4)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Track live metrics vs control; set alerts on regression.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        },
+        {
+          "title": "Documentation/tests (AC: 5)",
+          "status": "todo",
+          "subtasks": [
+            {
+              "title": "Document SOP, retention policy, rollback steps.",
+              "status": "todo",
+              "subtasks": []
+            },
+            {
+              "title": "Add tests/scripts verifying data pipeline and feature flag toggles.",
+              "status": "todo",
+              "subtasks": []
+            }
+          ]
+        }
+      ],
+      "qa": [
+        "Automated sanity checks on dataset, training job, and deployment toggles."
+      ]
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2025-10-01T02:08:13.680Z",
+  "options": {
+    "tokens": [
+      "1.1"
+    ],
+    "formats": [
+      "json"
+    ],
+    "outDir": "augment/specs",
+    "storiesDir": "docs/stories",
+    "manifest": true,
+    "statusFilters": [],
+    "dryRun": true,
+    "strict": false,
+    "stats": true,
+    "quiet": false
+  },
+  "stats": {
+    "processed": 3,
+    "exported": 3,
+    "skipped": 0,
+    "formats": [
+      "json"
+    ],
+    "acceptanceCriteria": 14,
+    "tasks": 15,
+    "statuses": {
+      "ready for review": 1,
+      "ready": 2
+    },
+    "missingSections": {}
+  },
+  "entries": [
+    {
+      "storyId": "1.1",
+      "title": "Feed Discovery Foundation",
+      "status": "Ready for Review",
+      "file": "augment/specs/1-1-feed-discovery-foundation.json",
+      "files": [
+        "augment/specs/1-1-feed-discovery-foundation.json"
+      ],
+      "source": "docs/stories/1.1.feed-foundation.md"
+    },
+    {
+      "storyId": "1.10",
+      "title": "Feed Notifications & Share Hooks",
+      "status": "Ready",
+      "file": "augment/specs/1-10-feed-notifications-share-hooks.json",
+      "files": [
+        "augment/specs/1-10-feed-notifications-share-hooks.json"
+      ],
+      "source": "docs/stories/1.10.feed-notifications-and-sharing.md"
+    },
+    {
+      "storyId": "1.11",
+      "title": "Feed Analytics & Dashboard",
+      "status": "Ready",
+      "file": "augment/specs/1-11-feed-analytics-dashboard.json",
+      "files": [
+        "augment/specs/1-11-feed-analytics-dashboard.json"
+      ],
+      "source": "docs/stories/1.11.feed-analytics-and-dashboard.md"
+    }
+  ]
+}
