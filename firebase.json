@@ -18,13 +18,15 @@
       "source": "functions",
       "codebase": "default",
       "ignore": [
-        "venv",
+        "node_modules",
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "*.local"
+        "*.local",
+        "src",
+        "tsconfig.json"
       ],
-      "runtime": "python313"
+      "runtime": "nodejs20"
     }
   ],
   "apphosting": {
