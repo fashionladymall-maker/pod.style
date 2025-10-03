@@ -187,7 +187,7 @@
 # Pod.Style Brownfield Enhancement Architecture
 
 ## 1. Introduction
-This document specifies the technical architecture for rebuilding Pod.Style into a TikTok-like social commerce platform. The goal is to integrate short-form creative discovery, AI-assisted product creation, and seamless commerce while preserving core Firebase infrastructure. It supplements existing Next.js + Firebase architecture by defining new services, data flows, and integration rules needed for the social feed, AI generation, and checkout.
+This document specifies the technical architecture for rebuilding Pod.Style into an OMG-like social commerce platform. The goal is to integrate short-form creative discovery, AI-assisted product creation, and seamless commerce while preserving core Firebase infrastructure. It supplements existing Next.js + Firebase architecture by defining new services, data flows, and integration rules needed for the social feed, AI generation, and checkout.
 
 ## 2. Current System Assessment
 - **Primary Purpose**: Print-on-demand storefront built with Next.js 15, Firebase Hosting, App Router, Tailwind UI, and Firebase functions.
@@ -309,4 +309,3 @@ Key components:
 
 ### 12.2 Developer Prompt
 "Reference docs/prd-brownfield.md and docs/architecture-brownfield.md. Follow Next.js App Router patterns, Firestore data models listed, and Cloud Functions wrappers for AI/payments. Implement features in MVP order (feed → creation → checkout → social → moderation), adding tests and respecting Firestore security rules. Coordinate with moderation & analytics requirements during implementation."
-

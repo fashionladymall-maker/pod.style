@@ -1,0 +1,314 @@
+
+Running 10 tests using 8 workers
+
+  -   2 [chromium] › tests/integration/feed.spec.ts:19:7 › Feed beta experience › renders feed shell and pagination controls when beta flag is enabled
+  ✘   1 [chromium] › tests/integration/feed.spec.ts:9:7 › Feed beta experience › redirects to legacy homepage when beta flag is disabled (1.9s)
+  ✘   5 [chromium] › tests/integration/omg-feed-performance.spec.ts:114:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 竖向滚动功能 (1.9s)
+  ✘   3 [chromium] › tests/integration/omg-feed-performance.spec.ts:135:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 卡片内轮播功能 (1.9s)
+  ✘   7 [chromium] › tests/integration/omg-feed-performance.spec.ts:97:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 3: 预览卡片 500ms 内出现 (2.0s)
+  ✘   6 [chromium] › tests/integration/omg-feed-performance.spec.ts:153:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 悬浮操作栏功能 (2.0s)
+  ✘   8 [chromium] › tests/integration/omg-feed-performance.spec.ts:10:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 1: 首屏 LCP ≤ 2.5s（4G 模拟） (2.1s)
+  ✘   4 [chromium] › tests/integration/omg-feed-performance.spec.ts:33:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 2: 滚动流畅（掉帧 < 5%） (2.0s)
+  ✘   9 [chromium] › tests/integration/omg-feed-performance.spec.ts:180:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 懒加载功能 (557ms)
+  ✘  10 [chromium] › tests/integration/omg-feed-performance.spec.ts:211:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: Canvas 叠加功能 (620ms)
+
+
+  1) [chromium] › tests/integration/feed.spec.ts:9:7 › Feed beta experience › redirects to legacy homepage when beta flag is disabled 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/beta
+    Call log:
+    [2m  - navigating to "http://localhost:6100/beta", waiting until "domcontentloaded"[22m
+
+
+      10 |     test.skip(isBetaForced, 'Feed beta is forced on; redirect behaviour is not expected.');
+      11 |
+    > 12 |     const response = await page.goto(`${baseUrl}/beta`, { waitUntil: 'domcontentloaded' });
+         |                                 ^
+      13 |     expect(response?.status()).toBeLessThan(400);
+      14 |
+      15 |     await expect(page).toHaveURL(new RegExp(`${baseUrl}/?$`));
+        at /Users/mike/pod.style/tests/integration/feed.spec.ts:12:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/feed-Feed-beta-experience--f2e09--when-beta-flag-is-disabled-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/feed-Feed-beta-experience--f2e09--when-beta-flag-is-disabled-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/feed-Feed-beta-experience--f2e09--when-beta-flag-is-disabled-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/feed-Feed-beta-experience--f2e09--when-beta-flag-is-disabled-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › tests/integration/omg-feed-performance.spec.ts:10:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 1: 首屏 LCP ≤ 2.5s（4G 模拟） 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      17 |     const startTime = Date.now();
+      18 |     
+    > 19 |     await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+         |                ^
+      20 |     
+      21 |     // 等待首屏内容加载
+      22 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:19:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-eb743--DoD-1-首屏-LCP-≤-2-5s（4G-模拟）-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-eb743--DoD-1-首屏-LCP-≤-2-5s（4G-模拟）-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-eb743--DoD-1-首屏-LCP-≤-2-5s（4G-模拟）-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FE-eb743--DoD-1-首屏-LCP-≤-2-5s（4G-模拟）-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › tests/integration/omg-feed-performance.spec.ts:33:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 2: 滚动流畅（掉帧 < 5%） 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      32 |
+      33 |   test('DoD 2: 滚动流畅（掉帧 < 5%）', async ({ page }) => {
+    > 34 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+         |                ^
+      35 |     
+      36 |     // 等待 Feed 加载
+      37 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:34:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-64ab5--MVP-性能验证-DoD-2-滚动流畅（掉帧-5-）-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-64ab5--MVP-性能验证-DoD-2-滚动流畅（掉帧-5-）-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-64ab5--MVP-性能验证-DoD-2-滚动流畅（掉帧-5-）-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FE-64ab5--MVP-性能验证-DoD-2-滚动流畅（掉帧-5-）-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › tests/integration/omg-feed-performance.spec.ts:97:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 3: 预览卡片 500ms 内出现 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "domcontentloaded"[22m
+
+
+       96 |
+       97 |   test('DoD 3: 预览卡片 500ms 内出现', async ({ page }) => {
+    >  98 |     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+          |                ^
+       99 |     
+      100 |     const startTime = Date.now();
+      101 |     
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:98:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-e2494-P-性能验证-DoD-3-预览卡片-500ms-内出现-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-e2494-P-性能验证-DoD-3-预览卡片-500ms-内出现-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-e2494-P-性能验证-DoD-3-预览卡片-500ms-内出现-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FE-e2494-P-性能验证-DoD-3-预览卡片-500ms-内出现-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › tests/integration/omg-feed-performance.spec.ts:114:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 竖向滚动功能 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      113 |
+      114 |   test('验证: 竖向滚动功能', async ({ page }) => {
+    > 115 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+          |                ^
+      116 |     
+      117 |     // 等待 Feed 加载
+      118 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:115:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-竖向滚动功能-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-竖向滚动功能-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-竖向滚动功能-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-竖向滚动功能-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › tests/integration/omg-feed-performance.spec.ts:135:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 卡片内轮播功能 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      134 |
+      135 |   test('验证: 卡片内轮播功能', async ({ page }) => {
+    > 136 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+          |                ^
+      137 |     
+      138 |     // 等待 Feed 加载
+      139 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:136:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-b7ea4-MG-Feed-MVP-性能验证-验证-卡片内轮播功能-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-b7ea4-MG-Feed-MVP-性能验证-验证-卡片内轮播功能-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-b7ea4-MG-Feed-MVP-性能验证-验证-卡片内轮播功能-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FE-b7ea4-MG-Feed-MVP-性能验证-验证-卡片内轮播功能-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › tests/integration/omg-feed-performance.spec.ts:153:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 悬浮操作栏功能 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      152 |
+      153 |   test('验证: 悬浮操作栏功能', async ({ page }) => {
+    > 154 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+          |                ^
+      155 |     
+      156 |     // 等待 Feed 加载
+      157 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:154:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-0346a-MG-Feed-MVP-性能验证-验证-悬浮操作栏功能-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-0346a-MG-Feed-MVP-性能验证-验证-悬浮操作栏功能-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-0346a-MG-Feed-MVP-性能验证-验证-悬浮操作栏功能-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FE-0346a-MG-Feed-MVP-性能验证-验证-悬浮操作栏功能-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › tests/integration/omg-feed-performance.spec.ts:180:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 懒加载功能 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      179 |
+      180 |   test('验证: 懒加载功能', async ({ page }) => {
+    > 181 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+          |                ^
+      182 |     
+      183 |     // 等待 Feed 加载
+      184 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:181:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-懒加载功能-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-懒加载功能-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-懒加载功能-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FEED-001-OMG-Feed-MVP-性能验证-验证-懒加载功能-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium] › tests/integration/omg-feed-performance.spec.ts:211:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: Canvas 叠加功能 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6100/
+    Call log:
+    [2m  - navigating to "http://localhost:6100/", waiting until "networkidle"[22m
+
+
+      210 |
+      211 |   test('验证: Canvas 叠加功能', async ({ page }) => {
+    > 212 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+          |                ^
+      213 |     
+      214 |     // 等待 Feed 加载
+      215 |     await page.waitForSelector('[data-feed-index="0"]', { timeout: 5000 });
+        at /Users/mike/pod.style/tests/integration/omg-feed-performance.spec.ts:212:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-73ebf-eed-MVP-性能验证-验证-Canvas-叠加功能-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-73ebf-eed-MVP-性能验证-验证-Canvas-叠加功能-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/omg-feed-performance-M1-FE-73ebf-eed-MVP-性能验证-验证-Canvas-叠加功能-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/omg-feed-performance-M1-FE-73ebf-eed-MVP-性能验证-验证-Canvas-叠加功能-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9 failed
+    [chromium] › tests/integration/feed.spec.ts:9:7 › Feed beta experience › redirects to legacy homepage when beta flag is disabled 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:10:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 1: 首屏 LCP ≤ 2.5s（4G 模拟） 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:33:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 2: 滚动流畅（掉帧 < 5%） 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:97:7 › M1-FEED-001: OMG Feed MVP 性能验证 › DoD 3: 预览卡片 500ms 内出现 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:114:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 竖向滚动功能 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:135:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 卡片内轮播功能 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:153:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 悬浮操作栏功能 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:180:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: 懒加载功能 
+    [chromium] › tests/integration/omg-feed-performance.spec.ts:211:7 › M1-FEED-001: OMG Feed MVP 性能验证 › 验证: Canvas 叠加功能 
+  1 skipped

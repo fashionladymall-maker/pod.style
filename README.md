@@ -4,6 +4,10 @@ This is a Next.js starter in Firebase Studio.
 
 To get started, take a look at `src/app/page.tsx`.
 
+## Supervising Development with Codex + MCP
+
+See `docs/workflows/codex-supervision.md` for a turnkey setup that combines the Codex VS Code plugin (control plane), Codex CLI (execution), Chrome DevTools MCP (acceptance), and CI (final gate). The workflow ships with VS Code tasks, npm scripts, and report locations so long-running stories can be supervised without keeping a single chat session open.
+
 ## Deploying with Firebase
 
 The project is already configured for Firebase App Hosting. Follow the steps in

@@ -20,10 +20,16 @@ if (!existsSync(buildDir)) {
 }
 
 const files = [];
+const ignoredTopLevelDirs = new Set(['cache']);
 
 function walk(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
+    const relativeFromBuildRoot = relative(buildDir, full);
+    const topLevelSegment = relativeFromBuildRoot.split(/\\|\//)[0];
+    if (ignoredTopLevelDirs.has(topLevelSegment)) {
+      continue;
+    }
     if (entry.isDirectory()) {
       walk(full);
       continue;

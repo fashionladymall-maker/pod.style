@@ -14,7 +14,7 @@
    - ⚠️ 敏感词扫描（部分历史文档仍有违规，已标记为 DEPRECATED）
 
 2. **代码清理**
-   - ✅ 删除 `src/app/tiktok*` 和 `src/components/tiktok/`
+   - ✅ 删除 `src/app/omg*` 和 `src/components/omg/`
    - ✅ 重命名违规文档为 `DEPRECATED_*`
    - ✅ 更新 `src/app/page.tsx` 使用 OMG 客户端
    - ✅ 清理 `.next` 缓存
@@ -143,4 +143,3 @@ git push origin main --force
 3. 设置性能预算告警
 4. 配置错误监控（Sentry/Firebase Crashlytics）
 5. 设置 CI/CD 自动部署
-

@@ -45,7 +45,7 @@
 | 初始草稿 | 2025-01-12 | v0.1 | 建立 brownfield PRD，记录现状及改造方向 | John (pm) |
 
 ## 1. Vision & Summary
-Rebuild Pod.Style into a TikTok-like social commerce platform where users rapidly turn creative ideas into purchasable products. Users can browse an infinite feed of community creations, generate AI-powered product mockups (via nanobanana + Gemini), and check out in one tap. The experience must feel familiar to short-form content platforms while retaining ecommerce reliability.
+Rebuild Pod.Style into an OMG-like social commerce platform where users rapidly turn creative ideas into purchasable products. Users can browse an infinite feed of community creations, generate AI-powered product mockups (via nanobanana + Gemini), and check out in one tap. The experience must feel familiar to short-form content platforms while retaining ecommerce reliability.
 
 ## 2. Goals & KPIs
 - Launch an MVP within 1–4 weeks that supports anonymous browsing, creative generation, and checkout.

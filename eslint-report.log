@@ -1,0 +1,71 @@
+
+> nextn@0.1.0 lint
+> eslint .
+
+
+/Users/mike/pod.style/scripts/augment-supervisor-final.mjs
+  3:8  warning  'fs' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/scripts/augment-supervisor-v2.mjs
+  2:8   warning  'fs' is defined but never used              @typescript-eslint/no-unused-vars
+  3:17  warning  'execSync' is defined but never used        @typescript-eslint/no-unused-vars
+  6:7   warning  'sleep' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/scripts/augment-supervisor.mjs
+  102:12  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  111:12  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/scripts/comprehensive-test.ts
+  48:9  warning  'testDoc' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/scripts/feed/seed-personalized-cache.ts
+  21:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/scripts/migrate-creation-fields.js
+  55:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/src/app/omg-client.tsx
+  32:10  warning  'isLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  56:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  72:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  84:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/mike/pod.style/src/app/page.tsx
+  5:10  warning  'isFirebaseAdminConfigured' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/src/features/feed/__tests__/feed-ingestion.test.ts
+  4:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-var-requires')
+
+/Users/mike/pod.style/src/features/feed/hooks/use-feed-refresh.ts
+  3:10  warning  'useCallback' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/src/features/follows/server/follow-service.ts
+  170:3  warning  'page' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  198:3  warning  'page' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/src/features/notifications/server/notification-service.ts
+  53:3  warning  'page' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/src/features/prompt/server/moderation-service.ts
+  7:7  warning  'delay' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mike/pod.style/src/features/users/server/user-service.ts
+  58:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mike/pod.style/tests/debug-production.spec.ts
+   40:11  warning  'content' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   73:63  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   95:40  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   96:43  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   98:30  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   99:34  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  100:33  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+/Users/mike/pod.style/tests/verify-production.spec.ts
+  52:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 31 problems (0 errors, 31 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

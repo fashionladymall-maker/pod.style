@@ -13,7 +13,7 @@ test.describe('Feed beta experience', () => {
     expect(response?.status()).toBeLessThan(400);
 
     await expect(page).toHaveURL(new RegExp(`${baseUrl}/?$`));
-    await expect(page.locator('body')).toContainText(/Pod\.Style|灵感|创意/);
+    await expect(page.locator('body')).toContainText(/POD\.STYLE|放飞思想|随心定制|OMG Feed/);
   });
 
   test('renders feed shell and pagination controls when beta flag is enabled', async ({ page }) => {

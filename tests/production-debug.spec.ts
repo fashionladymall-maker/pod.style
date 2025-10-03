@@ -48,7 +48,7 @@ test.describe('Production Environment Debugging', () => {
     
     // 检查 Firebase 配置
     const firebaseConfig = await page.evaluate(() => {
-      // @ts-ignore
+      // @ts-expect-error accessing injected firebase config from runtime
       return window.__FIREBASE_CONFIG__ || null;
     });
     console.log(`🔥 Firebase 配置 (window.__FIREBASE_CONFIG__): ${JSON.stringify(firebaseConfig, null, 2)}\n`);
@@ -56,10 +56,10 @@ test.describe('Production Environment Debugging', () => {
     // 检查环境变量
     const envVars = await page.evaluate(() => {
       return {
-        // @ts-ignore
+        // @ts-expect-error process is not defined in the browser typing but exposed in this env
         NEXT_PUBLIC_FIREBASE_API_KEY: typeof process !== 'undefined' && process.env ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : 'undefined',
         // 检查是否有 Firebase 相关的全局变量
-        // @ts-ignore
+        // @ts-expect-error window.firebase is injected by Firebase SDK in runtime
         hasFirebaseApp: typeof window.firebase !== 'undefined',
       };
     });
@@ -146,11 +146,11 @@ test.describe('Production Environment Debugging', () => {
     // 检查 Firebase SDK 是否加载
     const firebaseSDK = await page.evaluate(() => {
       return {
-        // @ts-ignore
+        // @ts-expect-error firebase typings not available in this test context
         hasFirebaseApp: typeof window.firebase !== 'undefined',
-        // @ts-ignore
+        // @ts-expect-error firebase typings not available in this test context
         hasFirebaseAuth: typeof window.firebase?.auth !== 'undefined',
-        // @ts-ignore
+        // @ts-expect-error firebase typings not available in this test context
         hasFirebaseFirestore: typeof window.firebase?.firestore !== 'undefined',
       };
     });
@@ -170,4 +170,3 @@ test.describe('Production Environment Debugging', () => {
     console.log(`Firebase localStorage 键: ${JSON.stringify(localStorageKeys, null, 2)}\n`);
   });
 });
-

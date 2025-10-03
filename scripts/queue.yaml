@@ -1,0 +1,13 @@
+# Example supervision queue for Codex plugin command palette
+# Each item can be copy/pasted into plugin checkpoints or tracked in project management tools.
+- id: FEA-001
+  story: docs/stories/1.1.feed-foundation.md
+  branch: feature/FEA-001
+  status: pending
+  notes: >-
+    Initialize feed foundation. Use Codex CLI in dedicated worktree and follow MCP/Gate flow.
+- id: FEA-002
+  story: docs/stories/1.2.feed-cache-and-pagination.md
+  branch: feature/FEA-002
+  status: blocked
+  notes: Awaiting upstream API stabilization.

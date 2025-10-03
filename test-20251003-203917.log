@@ -1,0 +1,157 @@
+
+> nextn@0.1.0 test
+> jest --runInBand
+
+PASS functions/src/render/__tests__/worker.test.ts
+  ● Console
+
+    console.info
+      {"designId":"design-123","orderId":"order-456","lineItemId":"line-789","bucket":"default-bucket","tiffPath":"prints/order-456/line-789/print-ready.tif","severity":"INFO","message":"render.worker.completed"}
+
+      at write (functions/node_modules/firebase-functions/lib/logger/index.js:70:74)
+
+    console.info
+      {"designId":"design-123","orderId":"order-456","lineItemId":"line-789","bucket":"default-bucket","tiffPath":"prints/order-456/line-789/print-ready.tif","pdfPath":"prints/order-456/line-789/print-ready.pdf","severity":"INFO","message":"render.worker.completed"}
+
+      at write (functions/node_modules/firebase-functions/lib/logger/index.js:70:74)
+
+PASS src/lib/__tests__/experiments.test.ts
+  ● Console
+
+    console.warn
+      experiments.remote_config_admin_unavailable {"parameterKey":"feature_flags","error":"The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services."}
+
+      17 |       break;
+      18 |     case 'warn':
+    > 19 |       console.warn(payload);
+         |               ^
+      20 |       break;
+      21 |     case 'error':
+      22 |       console.error(payload);
+
+      at warn (src/utils/logger.ts:19:15)
+      at Object.log [as warn] (src/utils/logger.ts:32:62)
+      at warn (src/lib/experiments.ts:186:12)
+      at loadRemoteConfigPayload (src/lib/experiments.ts:199:25)
+      at getFeatureFlagsConfig (src/lib/experiments.ts:351:19)
+      at getFeatureFlagValue (src/lib/experiments.ts:435:24)
+      at Object.<anonymous> (src/lib/__tests__/experiments.test.ts:63:24)
+
+    console.warn
+      experiments.remote_config_admin_unavailable {"parameterKey":"feature_flags","error":"The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services."}
+
+      17 |       break;
+      18 |     case 'warn':
+    > 19 |       console.warn(payload);
+         |               ^
+      20 |       break;
+      21 |     case 'error':
+      22 |       console.error(payload);
+
+      at warn (src/utils/logger.ts:19:15)
+      at Object.log [as warn] (src/utils/logger.ts:32:62)
+      at warn (src/lib/experiments.ts:186:12)
+      at loadRemoteConfigPayload (src/lib/experiments.ts:199:25)
+      at getFeatureFlagsConfig (src/lib/experiments.ts:351:19)
+      at getFeatureFlagValue (src/lib/experiments.ts:435:24)
+      at Object.<anonymous> (src/lib/__tests__/experiments.test.ts:71:24)
+
+    console.warn
+      experiments.remote_config_admin_unavailable {"parameterKey":"experiments_config","error":"The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services."}
+
+      17 |       break;
+      18 |     case 'warn':
+    > 19 |       console.warn(payload);
+         |               ^
+      20 |       break;
+      21 |     case 'error':
+      22 |       console.error(payload);
+
+      at warn (src/utils/logger.ts:19:15)
+      at Object.log [as warn] (src/utils/logger.ts:32:62)
+      at warn (src/lib/experiments.ts:186:12)
+      at loadRemoteConfigPayload (src/lib/experiments.ts:199:25)
+      at getExperimentsConfig (src/lib/experiments.ts:335:19)
+      at generateExperimentReportPlaceholder (src/lib/experiments.ts:524:18)
+      at Object.<anonymous> (src/lib/__tests__/experiments.test.ts:90:20)
+
+PASS src/components/screens/__tests__/feed-screen.utils.test.ts
+PASS functions/src/moderation/__tests__/text.test.ts
+PASS src/features/feed/__tests__/feed-service.test.ts
+PASS src/app/api/orders/place/route.test.ts
+  ● Console
+
+    console.info
+      orders.place.created {"orderId":"order_test_id","paymentIntentId":"pi_test_001"}
+
+      at info (src/utils/logger.ts:16:15)
+
+    console.warn
+      orders.place.invalid_payload {"error":{"issues":[{"code":"too_small","minimum":1,"type":"string","inclusive":true,"exact":false,"message":"String must contain at least 1 character(s)","path":["paymentIntentId"]},{"code":"invalid_type","expected":"number","received":"undefined","path":["amount"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["currency"],"message":"Required"},{"code":"invalid_type","expected":"object","received":"undefined","path":["shipping"],"message":"Required"},{"code":"invalid_type","expected":"array","received":"undefined","path":["items"],"message":"Required"}],"name":"ZodError"}}
+
+      17 |       break;
+      18 |     case 'warn':
+    > 19 |       console.warn(payload);
+         |               ^
+      20 |       break;
+      21 |     case 'error':
+      22 |       console.error(payload);
+
+      at warn (src/utils/logger.ts:19:15)
+      at Object.log [as warn] (src/utils/logger.ts:32:62)
+      at warn (src/app/api/orders/place/route.ts:41:12)
+      at Object.<anonymous> (src/app/api/orders/place/route.test.ts:167:22)
+
+PASS src/features/cart/__tests__/cart-model.test.ts
+PASS src/features/orders/commerce/__tests__/order-model.test.ts
+PASS src/app/api/payments/create-intent/route.test.ts
+  ● Console
+
+    console.info
+      stripe.payment_intent.created {"paymentIntentId":"pi_test_123","amount":2999}
+
+      at info (src/utils/logger.ts:16:15)
+
+    console.warn
+      stripe.payment_intent.invalid_payload {"error":{"issues":[{"code":"invalid_type","expected":"number","received":"undefined","path":["amount"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["currency"],"message":"Required"},{"code":"invalid_type","expected":"array","received":"undefined","path":["items"],"message":"Required"},{"code":"invalid_type","expected":"object","received":"undefined","path":["shipping"],"message":"Required"}],"name":"ZodError"}}
+
+      17 |       break;
+      18 |     case 'warn':
+    > 19 |       console.warn(payload);
+         |               ^
+      20 |       break;
+      21 |     case 'error':
+      22 |       console.error(payload);
+
+      at warn (src/utils/logger.ts:19:15)
+      at Object.log [as warn] (src/utils/logger.ts:32:62)
+      at warn (src/app/api/payments/create-intent/route.ts:43:12)
+      at Object.<anonymous> (src/app/api/payments/create-intent/route.test.ts:79:22)
+
+    console.error
+      stripe.payment_intent.failed {"error":"stripe failure"}
+
+      20 |       break;
+      21 |     case 'error':
+    > 22 |       console.error(payload);
+         |               ^
+      23 |       break;
+      24 |     default:
+      25 |       console.log(payload);
+
+      at error (src/utils/logger.ts:22:15)
+      at Object.log [as error] (src/utils/logger.ts:33:63)
+      at error (src/app/api/payments/create-intent/route.ts:80:12)
+      at Object.<anonymous> (src/app/api/payments/create-intent/route.test.ts:119:22)
+
+PASS src/features/feed/client/__tests__/preview-service.test.ts
+PASS src/features/feed/__tests__/use-feed-refresh.test.tsx
+PASS src/features/feed/__tests__/feed-ranking.test.ts
+PASS src/features/feed/__tests__/feed-ingestion.test.ts
+PASS src/features/checkout/__tests__/utils.test.ts
+
+Test Suites: 14 passed, 14 total
+Tests:       48 passed, 48 total
+Snapshots:   0 total
+Time:        5.158 s
+Ran all test suites.

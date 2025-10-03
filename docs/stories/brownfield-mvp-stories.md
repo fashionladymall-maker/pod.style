@@ -11,7 +11,7 @@
 - **Dependencies**: Data model from architecture doc.
 
 ### Story 1.2: Infinite Scroll Home Feed UI
-- **Goal**: Implement TikTok-style vertical feed page with optimistic engagement counters.
+- **Goal**: Implement OMG-style vertical feed page with optimistic engagement counters.
 - **Acceptance Criteria**:
   - Mobile-first layout with auto-play previews (image loop/GIF) and skeleton placeholders <1s.
   - Pulls data via Story 1.1 endpoint, persists scroll position per session.
@@ -137,4 +137,3 @@
 - Maintain feature flags for each epic to support staged rollout and rollback.
 - Each story must include Firestore security rule updates, TypeScript types, unit tests, and integration tests as applicable.
 - Coordinate with legal/compliance before enabling production payments and user-generated merchandise.
-

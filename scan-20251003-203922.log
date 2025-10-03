@@ -1,0 +1,14 @@
+
+> nextn@0.1.0 scan:banned
+> node scripts/scan-banned.js
+
+🔍 Scanning for banned words (OMG compliance)...
+
+
+📊 Scan Summary:
+   Files scanned: 465
+   Duration: 227ms
+   Violations: 0
+
+✅ No banned words found. OMG compliance verified!
+
