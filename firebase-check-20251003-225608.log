@@ -1,0 +1,86 @@
+
+Running 1 test using 1 worker
+
+
+🔍 Loading production page...
+
+⏳ Waiting 5 seconds for Firebase to initialize...
+
+================================================================================
+🔥 FIREBASE INITIALIZATION REPORT
+================================================================================
+
+1️⃣  Firebase Global Object:
+   Available: ❌ NO
+
+2️⃣  Firebase App Initialization:
+   Initialized: ❌ NO
+   Apps Count: 0
+
+3️⃣  Firebase Modules:
+   Auth Available: ❌ NO
+   Firestore Available: ❌ NO
+
+4️⃣  Environment Variables:
+   API Key: ❌ NOT SET
+   Project ID: ❌ NOT SET
+   App ID: ❌ NOT SET
+
+5️⃣  Page Content:
+   Has Content: ✅ YES
+   Body Text Length: 46979 chars
+   Has Loading Spinner: ⚠️  YES
+   Has Error Message: ❌ YES
+
+6️⃣  Console Logs:
+   Total: 2
+   Recent logs:
+   [warning] [2025-10-03T14:56:17.489Z]  @firebase/firestore: Firestore (10.14.1): enableIndexedDbPersistence() will be deprecated in the future, you can use `FirestoreSettings.cache` instead.
+   [warning] NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.
+
+================================================================================
+📝 SUMMARY:
+================================================================================
+
+❌ Issues Found:
+   1. Firebase global object not available
+   2. Firebase app not initialized
+   3. Firebase Auth not available
+   4. Firebase Firestore not available
+   5. Loading spinner still visible
+   6. Error message visible
+
+================================================================================
+
+🔍 Browser will stay open for 30 seconds...
+  ✘  1 [chromium] › tests/integration/production-firebase-check.spec.ts:6:7 › Production Firebase Initialization Check › should verify Firebase is properly initialized (47.2s)
+
+
+  1) [chromium] › tests/integration/production-firebase-check.spec.ts:6:7 › Production Firebase Initialization Check › should verify Firebase is properly initialized 
+
+    Error: Loading spinner should not be visible
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mfalse[39m
+    Received: [31mtrue[39m
+
+      155 |     // Assertions
+      156 |     expect(pageContent.hasContent, 'Page should have content').toBe(true);
+    > 157 |     expect(pageContent.hasLoadingSpinner, 'Loading spinner should not be visible').toBe(false);
+          |                                                                                    ^
+      158 |     expect(pageContent.hasErrorMessage, 'No error messages should be visible').toBe(false);
+      159 |     
+      160 |     // Note: Firebase global object might not be available in modular SDK
+        at /Users/mike/pod.style/tests/integration/production-firebase-check.spec.ts:157:84
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/production-firebase-check--bd6ea-ase-is-properly-initialized-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/production-firebase-check--bd6ea-ase-is-properly-initialized-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/integration/production-firebase-check.spec.ts:6:7 › Production Firebase Initialization Check › should verify Firebase is properly initialized 

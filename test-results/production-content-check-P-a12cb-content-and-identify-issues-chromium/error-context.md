@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "美丽的神话" [ref=e8]
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - button "FE" [ref=e12] [cursor=pointer]:
+            - generic [ref=e14] [cursor=pointer]: FE
+          - button [ref=e16] [cursor=pointer]:
+            - img [ref=e17] [cursor=pointer]
+        - button [ref=e20] [cursor=pointer]:
+          - img [ref=e22] [cursor=pointer]
+        - button [ref=e24] [cursor=pointer]:
+          - img [ref=e26] [cursor=pointer]
+        - button [ref=e28] [cursor=pointer]:
+          - img [ref=e30] [cursor=pointer]
+        - button [ref=e32] [cursor=pointer]:
+          - img [ref=e34] [cursor=pointer]
+        - button [ref=e40] [cursor=pointer]:
+          - img [ref=e42] [cursor=pointer]
+      - generic [ref=e47]:
+        - button "@FeR3AgxV 关注" [ref=e48] [cursor=pointer]:
+          - text: "@FeR3AgxV"
+          - generic [ref=e49] [cursor=pointer]: 关注
+        - paragraph [ref=e50]: 美丽的神话
+        - generic [ref=e51]:
+          - generic [ref=e52]: 🎨
+          - generic [ref=e53]: 日系动漫
+        - generic [ref=e55]: "#瑰丽神话"
+    - generic [ref=e76]:
+      - button "首页" [ref=e77] [cursor=pointer]:
+        - img [ref=e79] [cursor=pointer]
+        - generic [ref=e82] [cursor=pointer]: 首页
+      - button "发现" [ref=e83] [cursor=pointer]:
+        - img [ref=e85] [cursor=pointer]
+        - generic [ref=e88] [cursor=pointer]: 发现
+      - button [ref=e89] [cursor=pointer]:
+        - img [ref=e94] [cursor=pointer]
+      - button "3 消息" [ref=e96] [cursor=pointer]:
+        - generic [ref=e97] [cursor=pointer]:
+          - img [ref=e98] [cursor=pointer]
+          - generic [ref=e101] [cursor=pointer]: "3"
+        - generic [ref=e102] [cursor=pointer]: 消息
+      - button "我" [ref=e103] [cursor=pointer]:
+        - img [ref=e105] [cursor=pointer]
+        - generic [ref=e108] [cursor=pointer]: 我
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e109]
+```

@@ -1,0 +1,225 @@
+
+Running 1 test using 1 worker
+
+
+🔍 Navigating to production URL...
+[WARNING] [2025-10-03T14:53:53.977Z]  @firebase/firestore: Firestore (10.14.1): enableIndexedDbPersistence() will be deprecated in the future, you can use `FirestoreSettings.cache` instead.
+[WARNING] NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.
+
+⏳ Waiting 10 seconds for page to load and errors to appear...
+
+📸 Screenshot saved: production-debug-screenshot.png
+
+================================================================================
+📊 PRODUCTION DEBUGGING REPORT
+================================================================================
+
+1️⃣  PAGE STATUS:
+   URL: https://studio--studio-1269295870-5fde0.us-central1.hosted.app
+   Title: POD.STYLE - 放飞思想，随心定制
+   Loading Spinner Visible: ✅ NO
+   Firebase Initialized: ❌ NO (BUG!)
+
+2️⃣  ENVIRONMENT VARIABLES:
+   Firebase Config in Window: ❌ NO (BUG!)
+   NEXT_PUBLIC_* vars: ❌ NONE (BUG!)
+
+3️⃣  CONSOLE MESSAGES:
+   Total: 2
+   Errors: 0
+   Warnings: 2
+
+   ⚠️  WARNINGS:
+      1. [2025-10-03T14:53:53.977Z]  @firebase/firestore: Firestore (10.14.1): enableIndexedDbPersistence() will be deprecated in the future, you can use `FirestoreSettings.cache` instead.
+      2. NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.
+
+4️⃣  PAGE ERRORS:
+   Total: 0
+
+5️⃣  FAILED REQUESTS:
+   Total: 0
+
+6️⃣  NETWORK REQUESTS:
+   Total: 38
+   ⚠️  Slow requests (>1s): 32
+      1. https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/css/fab044a354a9637e.css (1438ms)
+      2. https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/4bd1b696-4e3478591cd4eded.js (1168ms)
+      3. https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/1684-01c5cfc2e8ec233e.js (1786ms)
+      4. https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/main-app-57181503e9ff832a.js (2301ms)
+      5. https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/69806262-3b3343e3feced19d.js (2618ms)
+
+================================================================================
+📝 SUMMARY:
+================================================================================
+
+❌ 发现的问题:
+   1. Firebase未初始化
+   2. 环境变量未注入
+
+================================================================================
+[LOG] DETAILED_REPORT: {
+  "timestamp": "2025-10-03T14:54:09.668Z",
+  "url": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app",
+  "bugs": [
+    "Firebase未初始化",
+    "环境变量未注入"
+  ],
+  "isLoadingVisible": false,
+  "firebaseInitialized": false,
+  "envVars": {
+    "hasFirebaseConfig": false,
+    "processEnv": []
+  },
+  "consoleMessages": [
+    {
+      "type": "warning",
+      "text": "[2025-10-03T14:53:53.977Z]  @firebase/firestore: Firestore (10.14.1): enableIndexedDbPersistence() will be deprecated in the future, you can use `FirestoreSettings.cache` instead.",
+      "location": {
+        "url": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/4533-983db0c673f5b636.js",
+        "lineNumber": 0,
+        "columnNumber": 101383
+      }
+    },
+    {
+      "type": "warning",
+      "text": "NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be enabled.",
+      "location": {
+        "url": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/1207-cf073cc2575f7013.js",
+        "lineNumber": 0,
+        "columnNumber": 5986
+      }
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "requests": [
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/css/fab044a354a9637e.css",
+      "duration": 1437.5,
+      "transferSize": 13771
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/webpack-adca332ed9c25f88.js",
+      "duration": 392.90000000596046,
+      "transferSize": 2448
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/4bd1b696-4e3478591cd4eded.js",
+      "duration": 1168,
+      "transferSize": 53621
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/1684-01c5cfc2e8ec233e.js",
+      "duration": 1785.5,
+      "transferSize": 45933
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/main-app-57181503e9ff832a.js",
+      "duration": 2301,
+      "transferSize": 819
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/69806262-3b3343e3feced19d.js",
+      "duration": 2617.800000011921,
+      "transferSize": 25215
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/bc9e92e6-55461b4405c68fa1.js",
+      "duration": 2620.699999988079,
+      "transferSize": 73755
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/4277-b02ff4d4696850c6.js",
+      "duration": 1868.5,
+      "transferSize": 7565
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/4533-983db0c673f5b636.js",
+      "duration": 2103.0999999940395,
+      "transferSize": 43208
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/9443-17aaccf4bf122d76.js",
+      "duration": 1783.5,
+      "transferSize": 3004
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/3971-c086516eac81b3d6.js",
+      "duration": 1882.300000011921,
+      "transferSize": 6659
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/1207-cf073cc2575f7013.js",
+      "duration": 2216.5,
+      "transferSize": 3725
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/app/(feed)/layout-c96e20aa76d8a03d.js",
+      "duration": 2217,
+      "transferSize": 1709
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/6766-158c1dc3f0110954.js",
+      "duration": 2255.199999988079,
+      "transferSize": 5875
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/9974-97b981ea70d4834d.js",
+      "duration": 2610.2999999821186,
+      "transferSize": 49391
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/8624-d275584fadfb3ba8.js",
+      "duration": 2439,
+      "transferSize": 12175
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/_next/static/chunks/app/page-fd711ae62456190d.js",
+      "duration": 2545.300000011921,
+      "transferSize": 478
+    },
+    {
+      "name": "https://studio--studio-1269295870-5fde0.us-central1.hosted.app/favicon.ico",
+      "duration": 345.80000001192093,
+      "transferSize": 15386
+    },
+    {
+      "name": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAr_uiyZThmAYRDigXt0g_0Y2am2ojc8I0",
+      "duration": 1748.9000000059605,
+      "transferSize": 0
+    },
+    {
+      "name": "https://storage.googleapis.com/studio-1269295870-5fde0.firebasestorage.app/creations%2FMGS7iLvNlyW95SgRPS3m1bih3qd2%2F0e5e4fda-0a0e-4c2d-b0fe-a1c46a7ab374",
+      "duration": 3921.5,
+      "transferSize": 0
+    }
+  ]
+}
+
+🔍 Browser will stay open for 30 seconds for manual inspection...
+  ✘  1 [chromium] › tests/integration/production-debug-real.spec.ts:6:7 › Production Environment - Real Debugging › should capture all console errors and warnings (54.8s)
+
+
+  1) [chromium] › tests/integration/production-debug-real.spec.ts:6:7 › Production Environment - Real Debugging › should capture all console errors and warnings 
+
+    Error: 发现 2 个问题: Firebase未初始化, 环境变量未注入
+
+      203 |     // Fail test if bugs found
+      204 |     if (bugs.length > 0) {
+    > 205 |       throw new Error(`发现 ${bugs.length} 个问题: ${bugs.join(', ')}`);
+          |             ^
+      206 |     }
+      207 |   });
+      208 | });
+        at /Users/mike/pod.style/tests/integration/production-debug-real.spec.ts:205:13
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/production-debug-real-Prod-41a98-console-errors-and-warnings-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/production-debug-real-Prod-41a98-console-errors-and-warnings-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/integration/production-debug-real.spec.ts:6:7 › Production Environment - Real Debugging › should capture all console errors and warnings 

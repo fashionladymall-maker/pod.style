@@ -1,0 +1,39 @@
+
+Running 1 test using 1 worker
+
+
+🔍 Loading production page...
+
+⏳ Waiting 5 seconds...
+📄 Saved full HTML to production-page.html
+📄 Saved visible text to production-page-text.txt
+  ✘  1 [chromium] › tests/integration/production-content-check.spec.ts:7:7 › Production Content Analysis › should analyze actual page content and identify issues (24.6s)
+
+
+  1) [chromium] › tests/integration/production-content-check.spec.ts:7:7 › Production Content Analysis › should analyze actual page content and identify issues 
+
+    Error: page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': '[data-testid="login-button"], button:has-text("登录"), button:has-text("Login")' is not a valid selector.
+        at eval (eval at evaluate (:291:30), <anonymous>:32:41)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:291:30), <anonymous>:32:41)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at /Users/mike/pod.style/tests/integration/production-content-check.spec.ts:32:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/production-content-check-P-a12cb-content-and-identify-issues-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/production-content-check-P-a12cb-content-and-identify-issues-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/production-content-check-P-a12cb-content-and-identify-issues-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/production-content-check-P-a12cb-content-and-identify-issues-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/integration/production-content-check.spec.ts:7:7 › Production Content Analysis › should analyze actual page content and identify issues 
