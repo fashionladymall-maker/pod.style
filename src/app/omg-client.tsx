@@ -38,6 +38,7 @@ export default function OMGClient({
       new Map(allCreations.map(c => [c.id, c])).values()
     );
     setCreations(uniqueCreations);
+    // 即使没有数据也要停止加载状态
     setIsLoading(false);
   }, [initialPublicCreations, initialTrendingCreations]);
 
@@ -85,7 +86,9 @@ export default function OMGClient({
     }
   };
 
-  if (authLoading || isLoading) {
+  // 只在认证加载时显示加载屏幕
+  // 数据加载完成后即使为空也显示应用
+  if (authLoading) {
     return <LoadingScreen />;
   }
 
