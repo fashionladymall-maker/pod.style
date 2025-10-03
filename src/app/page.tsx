@@ -1,9 +1,9 @@
 import { AuthProvider } from '@/context/auth-context';
-import TikTokClient from '@/app/tiktok-client';
+import OMGClient from '@/app/omg-client';
 import { getPublicCreationsAction, getTrendingCreationsAction } from '@/server/actions';
 import type { Creation } from '@/lib/types';
 
-// TikTok风格的主页面（已替换原版）
+// OMG 风格的主页面
 export default async function Page() {
   // 服务端获取初始数据
   let publicCreations: Creation[] = [];
@@ -20,7 +20,7 @@ export default async function Page() {
 
   return (
     <AuthProvider>
-      <TikTokClient
+      <OMGClient
         initialPublicCreations={publicCreations}
         initialTrendingCreations={trendingCreations}
       />
