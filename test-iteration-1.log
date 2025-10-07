@@ -1,0 +1,52 @@
+
+Running 2 tests using 1 worker
+
+
+🧪 测试 #1: 首页加载和 Firebase 初始化
+============================================================
+📍 导航到首页...
+✅ HTTP 状态: 200
+
+🔍 检查 Firebase 初始化...
+Firebase 初始化: ❌
+Firebase App: ❌
+
+🐛 [CRITICAL] Firebase Not Initialized: Firebase SDK not initialized on client
+   详情: {
+  "hasFirebase": false,
+  "hasFirebaseApp": false
+}
+📸 截图已保存: test-results/complete-app-test/test-1-homepage.png
+
+============================================================
+  ✓  1 [chromium] › tests/integration/complete-app-test.spec.ts:123:7 › pod.style 完整应用测试 › 测试 #1: 首页加载和 Firebase 初始化 (17.4s)
+
+🧪 测试 #2: 用户登录功能
+============================================================
+
+🔍 查找登录入口...
+
+🐛 [CRITICAL] Login Button Not Found: Cannot find login button
+   详情: {
+  "selectors": [
+    "button:has-text(\"登录\")",
+    "button:has-text(\"我的\")",
+    "button:has-text(\"Profile\")",
+    "button:has-text(\"个人\")",
+    "[aria-label*=\"登录\"]",
+    "[aria-label*=\"profile\"]",
+    "[data-testid=\"login-button\"]"
+  ]
+}
+❌ 未找到登录按钮
+
+📊 Bug 报告已保存: test-results/complete-app-test/bugs-report.json
+
+总共发现 2 个问题
+  - Critical: 2
+  - High: 0
+  - Medium: 0
+  - Low: 0
+  ✓  2 [chromium] › tests/integration/complete-app-test.spec.ts:170:7 › pod.style 完整应用测试 › 测试 #2: 用户登录功能 (11.4s)
+
+  2 passed (31.4s)

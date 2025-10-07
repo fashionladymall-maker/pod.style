@@ -1,0 +1,29 @@
+[
+  {
+    "category": "Firebase Not Initialized",
+    "description": "Firebase SDK not initialized on client",
+    "severity": "critical",
+    "details": {
+      "hasFirebase": false,
+      "hasFirebaseApp": false
+    },
+    "timestamp": "2025-10-07T17:28:31.226Z"
+  },
+  {
+    "category": "Login Button Not Found",
+    "description": "Cannot find login button",
+    "severity": "critical",
+    "details": {
+      "selectors": [
+        "button:has-text(\"登录\")",
+        "button:has-text(\"我的\")",
+        "button:has-text(\"Profile\")",
+        "button:has-text(\"个人\")",
+        "[aria-label*=\"登录\"]",
+        "[aria-label*=\"profile\"]",
+        "[data-testid=\"login-button\"]"
+      ]
+    },
+    "timestamp": "2025-10-07T17:28:44.002Z"
+  }
+]
