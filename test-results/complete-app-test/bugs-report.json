@@ -7,7 +7,7 @@
       "type": "error",
       "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:36:33.406Z"
+    "timestamp": "2025-10-07T17:44:13.977Z"
   },
   {
     "category": "Console Error",
@@ -17,7 +17,7 @@
       "type": "error",
       "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:36:41.178Z"
+    "timestamp": "2025-10-07T17:44:22.030Z"
   },
   {
     "category": "Console Error",
@@ -27,7 +27,7 @@
       "type": "error",
       "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:36:49.573Z"
+    "timestamp": "2025-10-07T17:44:30.106Z"
   },
   {
     "category": "Console Error",
@@ -37,7 +37,7 @@
       "type": "error",
       "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:36:57.751Z"
+    "timestamp": "2025-10-07T17:44:38.005Z"
   },
   {
     "category": "Console Error",
@@ -47,6 +47,6 @@
       "type": "error",
       "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:37:05.629Z"
+    "timestamp": "2025-10-07T17:44:45.805Z"
   }
 ]
