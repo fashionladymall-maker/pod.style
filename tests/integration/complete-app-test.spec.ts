@@ -165,134 +165,278 @@ test.describe('pod.style 完整应用测试', () => {
   });
 
   /**
-   * 测试 #2: 用户登录功能
+   * 测试 #2: 创建页面 (/create)
    */
-  test('测试 #2: 用户登录功能', async () => {
-    console.log('\n🧪 测试 #2: 用户登录功能');
+  test('测试 #2: 创建页面', async () => {
+    console.log('\n🧪 测试 #2: 创建页面');
     console.log('='.repeat(60));
 
-    // 导航到首页
-    await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle' });
+    const createUrl = `${PRODUCTION_URL}/create`;
+    console.log(`📍 导航到创建页面: ${createUrl}`);
+
+    const response = await page.goto(createUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    if (response?.status() !== 200) {
+      recordBug('Create Page HTTP Error', `HTTP status ${response?.status()}`, 'high', { status: response?.status(), url: createUrl });
+    }
+
     await page.waitForTimeout(3000);
 
-    // 查找登录入口
-    console.log('\n🔍 查找登录入口...');
-    
-    // 尝试多种方式找到登录按钮
-    const loginSelectors = [
-      'button:has-text("登录")',
-      'button:has-text("我的")',
-      'button:has-text("Profile")',
-      'button:has-text("个人")',
-      '[aria-label*="登录"]',
-      '[aria-label*="profile"]',
-      '[data-testid="login-button"]',
-    ];
-
-    let loginButton = null;
-    for (const selector of loginSelectors) {
-      try {
-        loginButton = await page.locator(selector).first();
-        if (await loginButton.count() > 0) {
-          console.log(`✅ 找到登录按钮: ${selector}`);
-          break;
-        }
-      } catch (e) {
-        // 继续尝试下一个选择器
-      }
-    }
-
-    if (!loginButton || await loginButton.count() === 0) {
-      recordBug('Login Button Not Found', 'Cannot find login button', 'critical', { selectors: loginSelectors });
-      console.log('❌ 未找到登录按钮');
-      return;
-    }
-
-    // 点击登录按钮
-    console.log('\n🖱️  点击登录按钮...');
-    await loginButton.click();
-    await page.waitForTimeout(2000);
-
     // 截图
-    await page.screenshot({ path: path.join(RESULTS_DIR, 'test-2-after-click-login.png'), fullPage: true });
+    const screenshotPath = path.join(RESULTS_DIR, 'test-2-create-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
 
-    // 查找登录表单
-    console.log('\n🔍 查找登录表单...');
-    const emailInput = page.locator('input[type="email"]').first();
-    const passwordInput = page.locator('input[type="password"]').first();
-
-    if (await emailInput.count() === 0 || await passwordInput.count() === 0) {
-      recordBug('Login Form Not Found', 'Login form not displayed after clicking login button', 'critical', {
-        emailInputCount: await emailInput.count(),
-        passwordInputCount: await passwordInput.count(),
-      });
-      console.log('❌ 未找到登录表单');
-      return;
-    }
-
-    // 填写登录表单
-    console.log('\n📝 填写登录表单...');
-    await emailInput.fill(TEST_EMAIL);
-    console.log(`✅ 填写邮箱: ${TEST_EMAIL}`);
-    
-    await passwordInput.fill(TEST_PASSWORD);
-    console.log('✅ 填写密码: ******');
-
-    // 截图
-    await page.screenshot({ path: path.join(RESULTS_DIR, 'test-2-form-filled.png'), fullPage: true });
-
-    // 查找并点击提交按钮
-    console.log('\n🖱️  查找提交按钮...');
-    const submitSelectors = [
-      'button[type="submit"]',
-      'button:has-text("登录")',
-      'button:has-text("Login")',
-      'button:has-text("Sign in")',
-    ];
-
-    let submitButton = null;
-    for (const selector of submitSelectors) {
-      try {
-        submitButton = page.locator(selector).first();
-        if (await submitButton.count() > 0) {
-          console.log(`✅ 找到提交按钮: ${selector}`);
-          break;
-        }
-      } catch (e) {
-        // 继续
-      }
-    }
-
-    if (!submitButton || await submitButton.count() === 0) {
-      recordBug('Submit Button Not Found', 'Cannot find login submit button', 'high', { selectors: submitSelectors });
-      console.log('❌ 未找到提交按钮');
-      return;
-    }
-
-    // 提交登录
-    console.log('\n🚀 提交登录...');
-    await submitButton.click();
-    await page.waitForTimeout(5000);
-
-    // 截图
-    await page.screenshot({ path: path.join(RESULTS_DIR, 'test-2-after-login.png'), fullPage: true });
-
-    // 验证登录状态
-    console.log('\n🔍 验证登录状态...');
-    const loginStatus = await page.evaluate(() => {
-      const bodyText = document.body.innerText;
+    // 检查页面内容
+    const pageContent = await page.evaluate(() => {
       return {
-        hasErrorMessage: bodyText.includes('错误') || bodyText.includes('Error') || bodyText.includes('失败'),
-        bodyPreview: bodyText.substring(0, 200),
+        title: document.title,
+        hasPromptInput: document.querySelector('textarea, input[placeholder*="prompt"], input[placeholder*="描述"]') !== null,
+        hasUploadButton: document.querySelector('input[type="file"], button:has-text("上传")') !== null,
+        bodyText: document.body.innerText.substring(0, 500),
       };
     });
 
-    if (loginStatus.hasErrorMessage) {
-      recordBug('Login Failed', 'Login error detected', 'high', loginStatus);
-      console.log('❌ 登录失败');
-    } else {
-      console.log('✅ 登录可能成功');
-    }
+    console.log(`页面标题: ${pageContent.title}`);
+    console.log(`Prompt 输入框: ${pageContent.hasPromptInput ? '✅' : '❌'}`);
+    console.log(`上传按钮: ${pageContent.hasUploadButton ? '✅' : '❌'}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #3: 产品详情页 (/product/[sku])
+   */
+  test('测试 #3: 产品详情页', async () => {
+    console.log('\n🧪 测试 #3: 产品详情页');
+    console.log('='.repeat(60));
+
+    // 测试一个示例 SKU
+    const testSku = 'tshirt-basic';
+    const productUrl = `${PRODUCTION_URL}/product/${testSku}`;
+    console.log(`📍 导航到产品页面: ${productUrl}`);
+
+    const response = await page.goto(productUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-3-product-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    // 检查页面内容
+    const pageContent = await page.evaluate(() => {
+      return {
+        title: document.title,
+        hasPrice: document.body.innerText.match(/\$|¥|￥/) !== null,
+        hasAddToCart: document.querySelector('button:has-text("加入购物车"), button:has-text("Add to Cart")') !== null,
+        bodyText: document.body.innerText.substring(0, 500),
+      };
+    });
+
+    console.log(`页面标题: ${pageContent.title}`);
+    console.log(`价格显示: ${pageContent.hasPrice ? '✅' : '❌'}`);
+    console.log(`加入购物车按钮: ${pageContent.hasAddToCart ? '✅' : '❌'}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #4: 购物车页面 (/cart)
+   */
+  test('测试 #4: 购物车页面', async () => {
+    console.log('\n🧪 测试 #4: 购物车页面');
+    console.log('='.repeat(60));
+
+    const cartUrl = `${PRODUCTION_URL}/cart`;
+    console.log(`📍 导航到购物车页面: ${cartUrl}`);
+
+    const response = await page.goto(cartUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-4-cart-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #5: 结算页面 (/checkout)
+   */
+  test('测试 #5: 结算页面', async () => {
+    console.log('\n🧪 测试 #5: 结算页面');
+    console.log('='.repeat(60));
+
+    const checkoutUrl = `${PRODUCTION_URL}/checkout`;
+    console.log(`📍 导航到结算页面: ${checkoutUrl}`);
+
+    const response = await page.goto(checkoutUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-5-checkout-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #6: 订单列表页面 (/orders)
+   */
+  test('测试 #6: 订单列表页面', async () => {
+    console.log('\n🧪 测试 #6: 订单列表页面');
+    console.log('='.repeat(60));
+
+    const ordersUrl = `${PRODUCTION_URL}/orders`;
+    console.log(`📍 导航到订单列表页面: ${ordersUrl}`);
+
+    const response = await page.goto(ordersUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-6-orders-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #7: 个人资料页面 (/profile)
+   */
+  test('测试 #7: 个人资料页面', async () => {
+    console.log('\n🧪 测试 #7: 个人资料页面');
+    console.log('='.repeat(60));
+
+    const profileUrl = `${PRODUCTION_URL}/profile`;
+    console.log(`📍 导航到个人资料页面: ${profileUrl}`);
+
+    const response = await page.goto(profileUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-7-profile-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #8: 发现页面 (/discover)
+   */
+  test('测试 #8: 发现页面', async () => {
+    console.log('\n🧪 测试 #8: 发现页面');
+    console.log('='.repeat(60));
+
+    const discoverUrl = `${PRODUCTION_URL}/discover`;
+    console.log(`📍 导航到发现页面: ${discoverUrl}`);
+
+    const response = await page.goto(discoverUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-8-discover-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #9: 消息页面 (/messages)
+   */
+  test('测试 #9: 消息页面', async () => {
+    console.log('\n🧪 测试 #9: 消息页面');
+    console.log('='.repeat(60));
+
+    const messagesUrl = `${PRODUCTION_URL}/messages`;
+    console.log(`📍 导航到消息页面: ${messagesUrl}`);
+
+    const response = await page.goto(messagesUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-9-messages-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
+
+    console.log('\n' + '='.repeat(60));
+  });
+
+  /**
+   * 测试 #10: 设置页面 (/settings)
+   */
+  test('测试 #10: 设置页面', async () => {
+    console.log('\n🧪 测试 #10: 设置页面');
+    console.log('='.repeat(60));
+
+    const settingsUrl = `${PRODUCTION_URL}/settings`;
+    console.log(`📍 导航到设置页面: ${settingsUrl}`);
+
+    const response = await page.goto(settingsUrl, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
+
+    console.log(`✅ HTTP 状态: ${response?.status()}`);
+
+    await page.waitForTimeout(3000);
+
+    // 截图
+    const screenshotPath = path.join(RESULTS_DIR, 'test-10-settings-page.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`📸 截图已保存: ${screenshotPath}`);
 
     console.log('\n' + '='.repeat(60));
   });

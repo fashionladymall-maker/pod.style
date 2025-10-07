@@ -1,29 +1,52 @@
 [
   {
-    "category": "Firebase Not Initialized",
-    "description": "Firebase SDK not initialized on client",
-    "severity": "critical",
+    "category": "Console Error",
+    "description": "Failed to load resource: the server responded with a status of 404 ()",
+    "severity": "high",
     "details": {
-      "hasFirebase": false,
-      "hasFirebaseApp": false
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:28:31.226Z"
+    "timestamp": "2025-10-07T17:36:33.406Z"
   },
   {
-    "category": "Login Button Not Found",
-    "description": "Cannot find login button",
-    "severity": "critical",
+    "category": "Console Error",
+    "description": "Failed to load resource: the server responded with a status of 404 ()",
+    "severity": "high",
     "details": {
-      "selectors": [
-        "button:has-text(\"登录\")",
-        "button:has-text(\"我的\")",
-        "button:has-text(\"Profile\")",
-        "button:has-text(\"个人\")",
-        "[aria-label*=\"登录\"]",
-        "[aria-label*=\"profile\"]",
-        "[data-testid=\"login-button\"]"
-      ]
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
     },
-    "timestamp": "2025-10-07T17:28:44.002Z"
+    "timestamp": "2025-10-07T17:36:41.178Z"
+  },
+  {
+    "category": "Console Error",
+    "description": "Failed to load resource: the server responded with a status of 404 ()",
+    "severity": "high",
+    "details": {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    "timestamp": "2025-10-07T17:36:49.573Z"
+  },
+  {
+    "category": "Console Error",
+    "description": "Failed to load resource: the server responded with a status of 404 ()",
+    "severity": "high",
+    "details": {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    "timestamp": "2025-10-07T17:36:57.751Z"
+  },
+  {
+    "category": "Console Error",
+    "description": "Failed to load resource: the server responded with a status of 404 ()",
+    "severity": "high",
+    "details": {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    "timestamp": "2025-10-07T17:37:05.629Z"
   }
 ]
