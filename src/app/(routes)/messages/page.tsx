@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 interface Message {
@@ -88,10 +89,12 @@ export default function MessagesPage() {
                 <div className="flex items-start gap-4">
                   {/* 头像 */}
                   <div className="relative">
-                    <img
+                    <Image
                       src={message.user.avatar}
                       alt={message.user.name}
-                      className="w-12 h-12 rounded-full"
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-full"
                     />
                     {message.unread > 0 && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
@@ -123,4 +126,3 @@ export default function MessagesPage() {
     </div>
   );
 }
-

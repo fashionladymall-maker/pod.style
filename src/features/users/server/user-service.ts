@@ -55,7 +55,9 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 export async function updateUserProfile(input: UpdateUserProfileInput): Promise<UserProfile> {
   const db = getDb();
   
-  const updateData: any = {
+  type UpdatableFields = Partial<Pick<UserProfile, 'name' | 'bio' | 'avatar'>> & { updatedAt: string };
+
+  const updateData: UpdatableFields = {
     updatedAt: new Date().toISOString(),
   };
   
@@ -195,4 +197,3 @@ export async function getUsersByIds(userIds: string[]): Promise<UserProfile[]> {
   
   return users;
 }
-

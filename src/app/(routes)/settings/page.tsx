@@ -2,8 +2,25 @@
 
 import { useState } from 'react';
 
+interface SettingsState {
+  notifications: {
+    email: boolean;
+    push: boolean;
+    likes: boolean;
+    comments: boolean;
+    followers: boolean;
+  };
+  privacy: {
+    profilePublic: boolean;
+    showEmail: boolean;
+    showDesigns: boolean;
+  };
+  language: string;
+  theme: 'dark' | 'light';
+}
+
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SettingsState>({
     notifications: {
       email: true,
       push: true,
@@ -20,12 +37,22 @@ export default function SettingsPage() {
     theme: 'dark',
   });
 
-  const handleToggle = (category: string, key: string) => {
+  const toggleNotification = (key: keyof SettingsState['notifications']) => {
     setSettings((prev) => ({
       ...prev,
-      [category]: {
-        ...(prev as any)[category],
-        [key]: !(prev as any)[category][key],
+      notifications: {
+        ...prev.notifications,
+        [key]: !prev.notifications[key],
+      },
+    }));
+  };
+
+  const togglePrivacy = (key: keyof SettingsState['privacy']) => {
+    setSettings((prev) => ({
+      ...prev,
+      privacy: {
+        ...prev.privacy,
+        [key]: !prev.privacy[key],
       },
     }));
   };
@@ -84,7 +111,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">接收重要更新的邮件</p>
               </div>
               <button
-                onClick={() => handleToggle('notifications', 'email')}
+                onClick={() => toggleNotification('email')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.notifications.email ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -102,7 +129,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">接收应用推送</p>
               </div>
               <button
-                onClick={() => handleToggle('notifications', 'push')}
+                onClick={() => toggleNotification('push')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.notifications.push ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -120,7 +147,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">有人点赞你的设计时通知</p>
               </div>
               <button
-                onClick={() => handleToggle('notifications', 'likes')}
+                onClick={() => toggleNotification('likes')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.notifications.likes ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -138,7 +165,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">有人评论你的设计时通知</p>
               </div>
               <button
-                onClick={() => handleToggle('notifications', 'comments')}
+                onClick={() => toggleNotification('comments')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.notifications.comments ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -156,7 +183,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">有人关注你时通知</p>
               </div>
               <button
-                onClick={() => handleToggle('notifications', 'followers')}
+                onClick={() => toggleNotification('followers')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.notifications.followers ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -181,7 +208,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">允许其他人查看你的资料</p>
               </div>
               <button
-                onClick={() => handleToggle('privacy', 'profilePublic')}
+                onClick={() => togglePrivacy('profilePublic')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.privacy.profilePublic ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -199,7 +226,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">在个人资料中显示邮箱</p>
               </div>
               <button
-                onClick={() => handleToggle('privacy', 'showEmail')}
+                onClick={() => togglePrivacy('showEmail')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.privacy.showEmail ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -217,7 +244,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-400">允许其他人查看你的设计</p>
               </div>
               <button
-                onClick={() => handleToggle('privacy', 'showDesigns')}
+                onClick={() => togglePrivacy('showDesigns')}
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings.privacy.showDesigns ? 'bg-blue-600' : 'bg-zinc-600'
                 }`}
@@ -242,4 +269,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

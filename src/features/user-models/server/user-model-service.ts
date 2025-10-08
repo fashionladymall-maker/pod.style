@@ -1,10 +1,16 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import { isFirebaseAdminConfigured } from '@/server/firebase/admin';
 import type { UserFineTunedModel, UserFineTunedModelData } from '@/lib/types';
 import {
   createUserFineTunedModel,
   findUserFineTunedModel,
   updateUserFineTunedModel,
 } from './user-model-repository';
+import {
+  mockEnsureUserFineTunedModel,
+  mockUpdateUserFineTunedModel,
+  mockMarkUserFineTunedModelUsed,
+} from '@/server/mock/mock-store';
 
 const createDefaultModelData = (userId: string): UserFineTunedModelData => {
   const now = Timestamp.fromDate(new Date());
@@ -31,6 +37,9 @@ const createDefaultModelData = (userId: string): UserFineTunedModelData => {
 };
 
 export const ensureUserFineTunedModel = async (userId: string): Promise<UserFineTunedModel> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockEnsureUserFineTunedModel(userId);
+  }
   const existing = await findUserFineTunedModel(userId);
   if (existing) {
     return existing;
@@ -53,6 +62,26 @@ export const updateUserFineTunedModelSettings = async (
   userId: string,
   updates: UpdateUserFineTunedModelInput
 ): Promise<UserFineTunedModel> => {
+  if (!isFirebaseAdminConfigured()) {
+    const current = mockEnsureUserFineTunedModel(userId);
+    const partial: Partial<UserFineTunedModel> = {
+      modelName: updates.modelName,
+      displayName: updates.displayName,
+      provider: updates.provider,
+      baseModel: updates.baseModel,
+      status: updates.status,
+      personalization: updates.personalization
+        ? {
+            strength: updates.personalization.strength ?? current.personalization?.strength ?? 0.6,
+            tags: updates.personalization.tags ?? current.personalization?.tags ?? [],
+            preferredStyles:
+              updates.personalization.preferredStyles ?? current.personalization?.preferredStyles ?? [],
+          }
+        : undefined,
+      metadata: updates.metadata,
+    };
+    return mockUpdateUserFineTunedModel(userId, partial);
+  }
   const existing = await ensureUserFineTunedModel(userId);
   const now = Timestamp.fromDate(new Date());
   const partial: Partial<UserFineTunedModelData> = {
@@ -97,6 +126,9 @@ export const updateUserFineTunedModelSettings = async (
 export const markUserFineTunedModelAsUsed = async (
   userId: string
 ): Promise<UserFineTunedModel> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockMarkUserFineTunedModelUsed(userId);
+  }
   await ensureUserFineTunedModel(userId);
   const now = Timestamp.fromDate(new Date());
   return updateUserFineTunedModel(userId, {

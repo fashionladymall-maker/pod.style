@@ -1,0 +1,216 @@
+{
+  "summary": {
+    "totalTests": 12,
+    "passed": 3,
+    "failed": 9,
+    "totalBugs": 9,
+    "critical": 1,
+    "high": 7,
+    "medium": 1,
+    "low": 0
+  },
+  "testResults": [
+    {
+      "testName": "页面加载-首页",
+      "status": "pass",
+      "details": {
+        "status": 200
+      },
+      "timestamp": "2025-10-08T02:32:20.154Z"
+    },
+    {
+      "testName": "页面加载-创建页面",
+      "status": "fail",
+      "details": {
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:22.892Z"
+    },
+    {
+      "testName": "页面加载-购物车",
+      "status": "pass",
+      "details": {
+        "status": 200
+      },
+      "timestamp": "2025-10-08T02:32:24.529Z"
+    },
+    {
+      "testName": "页面加载-结算",
+      "status": "pass",
+      "details": {
+        "status": 200
+      },
+      "timestamp": "2025-10-08T02:32:26.348Z"
+    },
+    {
+      "testName": "页面加载-订单列表",
+      "status": "fail",
+      "details": {
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:30.002Z"
+    },
+    {
+      "testName": "页面加载-个人资料",
+      "status": "fail",
+      "details": {
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:31.573Z"
+    },
+    {
+      "testName": "页面加载-发现",
+      "status": "fail",
+      "details": {
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:33.177Z"
+    },
+    {
+      "testName": "页面加载-消息",
+      "status": "fail",
+      "details": {
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:34.777Z"
+    },
+    {
+      "testName": "页面加载-设置",
+      "status": "fail",
+      "details": {
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:36.356Z"
+    },
+    {
+      "testName": "Firebase初始化",
+      "status": "fail",
+      "details": {
+        "hasWindow": true,
+        "hasFirebase": false,
+        "hasFirebaseApp": false,
+        "hasAuth": false,
+        "hasFirestore": false
+      },
+      "timestamp": "2025-10-08T02:32:50.334Z"
+    },
+    {
+      "testName": "底部导航",
+      "status": "fail",
+      "details": {},
+      "timestamp": "2025-10-08T02:32:54.507Z"
+    },
+    {
+      "testName": "Feed内容",
+      "status": "fail",
+      "details": {
+        "hasContent": false,
+        "contentLength": 55,
+        "preview": "9Y\n2\n1\n@9Yx5LpgS\n关注\n\n美丽的雪山湖\n\n🎨\nNone\n#冰峰玉湖\n首页\n发现\n3\n消息\n我"
+      },
+      "timestamp": "2025-10-08T02:33:07.898Z"
+    }
+  ],
+  "bugs": [
+    {
+      "testName": "页面加载-创建页面",
+      "category": "HTTP Error",
+      "description": "页面返回 404",
+      "severity": "high",
+      "details": {
+        "url": "/create",
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:22.892Z"
+    },
+    {
+      "testName": "页面加载-订单列表",
+      "category": "HTTP Error",
+      "description": "页面返回 404",
+      "severity": "high",
+      "details": {
+        "url": "/orders",
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:30.002Z"
+    },
+    {
+      "testName": "页面加载-个人资料",
+      "category": "HTTP Error",
+      "description": "页面返回 404",
+      "severity": "high",
+      "details": {
+        "url": "/profile",
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:31.572Z"
+    },
+    {
+      "testName": "页面加载-发现",
+      "category": "HTTP Error",
+      "description": "页面返回 404",
+      "severity": "high",
+      "details": {
+        "url": "/discover",
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:33.177Z"
+    },
+    {
+      "testName": "页面加载-消息",
+      "category": "HTTP Error",
+      "description": "页面返回 404",
+      "severity": "high",
+      "details": {
+        "url": "/messages",
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:34.777Z"
+    },
+    {
+      "testName": "页面加载-设置",
+      "category": "HTTP Error",
+      "description": "页面返回 404",
+      "severity": "high",
+      "details": {
+        "url": "/settings",
+        "status": 404
+      },
+      "timestamp": "2025-10-08T02:32:36.356Z"
+    },
+    {
+      "testName": "Firebase初始化",
+      "category": "Firebase Not Initialized",
+      "description": "Firebase SDK 未在客户端初始化",
+      "severity": "critical",
+      "details": {
+        "hasWindow": true,
+        "hasFirebase": false,
+        "hasFirebaseApp": false,
+        "hasAuth": false,
+        "hasFirestore": false
+      },
+      "timestamp": "2025-10-08T02:32:50.334Z"
+    },
+    {
+      "testName": "底部导航",
+      "category": "Navigation Not Found",
+      "description": "未找到底部导航",
+      "severity": "high",
+      "details": {},
+      "timestamp": "2025-10-08T02:32:54.507Z"
+    },
+    {
+      "testName": "Feed内容",
+      "category": "Empty Feed",
+      "description": "Feed 内容过少",
+      "severity": "medium",
+      "details": {
+        "hasContent": false,
+        "contentLength": 55,
+        "preview": "9Y\n2\n1\n@9Yx5LpgS\n关注\n\n美丽的雪山湖\n\n🎨\nNone\n#冰峰玉湖\n首页\n发现\n3\n消息\n我"
+      },
+      "timestamp": "2025-10-08T02:33:07.898Z"
+    }
+  ]
+}

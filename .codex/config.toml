@@ -1,0 +1,7 @@
+[mcp_servers.persistent-terminal]
+command = "/Users/mike/.nvm/versions/node/v22.20.0/bin/node"
+args = ["/Users/mike/pod.style/persistent-terminal-mcp/dist/index.js"]
+
+[mcp_servers.persistent-terminal.env]
+MAX_BUFFER_SIZE = "10000"
+SESSION_TIMEOUT = "86400000"

@@ -13,22 +13,35 @@ export default async function Page() {
 
   // 检测环境
   const isProduction = process.env.NODE_ENV === 'production';
-  const hasCredentials = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  const emulatorEnabled = Boolean(
+    process.env.EMULATORS_RUNNING ||
+    process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+    process.env.FIRESTORE_EMULATOR_HOST ||
+    process.env.STORAGE_EMULATOR_HOST
+  );
+  const hasServiceCredentials = Boolean(
+    process.env.FIREBASE_SERVICE_ACCOUNT ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON ||
+    process.env.GOOGLE_AUTH_CREDENTIALS
+  );
+  const adminReady = isFirebaseAdminConfigured();
   const isTest = process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST === 'true';
 
+  const shouldUseMockData = isTest || (!isProduction && !emulatorEnabled && !hasServiceCredentials);
+
   // 测试环境或本地开发无凭据时使用 mock 数据
-  if (isTest || (!isProduction && !hasCredentials)) {
-    console.log("Using mock data for testing/development");
+  if (shouldUseMockData) {
     publicCreations = mockCreations;
     trendingCreations = mockCreations.slice(0, 3);
-  } else if (isProduction || hasCredentials) {
+  } else if (adminReady) {
     try {
       [publicCreations, trendingCreations] = await Promise.all([
         getPublicCreationsAction(20),
         getTrendingCreationsAction(20),
       ]);
     } catch (error) {
-      console.error("Failed to fetch initial server data:", error);
+      console.warn('Failed to fetch initial server data, falling back to mock content:', error);
       // 失败时使用 mock 数据作为后备
       publicCreations = mockCreations;
       trendingCreations = mockCreations.slice(0, 3);

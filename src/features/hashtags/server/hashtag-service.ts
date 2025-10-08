@@ -1,6 +1,14 @@
-import { getDb } from '@/lib/firebase-admin';
+import { getDb, isFirebaseAdminConfigured } from '@/lib/firebase-admin';
 import type { Hashtag, HashtagUsage } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  mockAddHashtagsToCreation,
+  mockGetHashtagsForCreation,
+  mockGetCreationsByHashtag,
+  mockGetTrendingHashtags,
+  mockSearchHashtags,
+  mockGetHashtagByName,
+} from '@/server/mock/mock-store';
 
 const HASHTAGS_COLLECTION = 'hashtags';
 const HASHTAG_USAGES_COLLECTION = 'hashtagUsages';
@@ -57,9 +65,12 @@ export async function addHashtagsToCreation(
   userId: string,
   text: string
 ): Promise<string[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockAddHashtagsToCreation(creationId, userId, text);
+  }
   const db = getDb();
   const hashtagNames = extractHashtags(text);
-  
+
   if (hashtagNames.length === 0) return [];
   
   const batch = db.batch();
@@ -101,6 +112,9 @@ export async function addHashtagsToCreation(
  * Get hashtags for creation
  */
 export async function getHashtagsForCreation(creationId: string): Promise<Hashtag[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetHashtagsForCreation(creationId);
+  }
   const db = getDb();
   
   const usagesSnapshot = await db
@@ -131,6 +145,9 @@ export async function getCreationsByHashtag(
   hashtagName: string,
   limit: number = 20
 ): Promise<string[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetCreationsByHashtag(hashtagName, limit);
+  }
   const db = getDb();
   const normalizedName = hashtagName.toLowerCase();
   
@@ -148,6 +165,9 @@ export async function getCreationsByHashtag(
  * Get trending hashtags
  */
 export async function getTrendingHashtags(limit: number = 20): Promise<Hashtag[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetTrendingHashtags(limit);
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -163,6 +183,9 @@ export async function getTrendingHashtags(limit: number = 20): Promise<Hashtag[]
  * Search hashtags
  */
 export async function searchHashtags(query: string, limit: number = 20): Promise<Hashtag[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockSearchHashtags(query, limit);
+  }
   const db = getDb();
   
   if (!query.trim()) return [];
@@ -185,6 +208,9 @@ export async function searchHashtags(query: string, limit: number = 20): Promise
  * Get hashtag by name
  */
 export async function getHashtagByName(name: string): Promise<Hashtag | null> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetHashtagByName(name);
+  }
   const db = getDb();
   const normalizedName = name.toLowerCase();
   

@@ -2,6 +2,8 @@ import { AuthProvider } from '@/context/auth-context';
 import AppClient from '@/app/app-client';
 import { getPublicCreationsAction, getTrendingCreationsAction } from '@/server/actions';
 import type { Creation } from '@/lib/types';
+import { mockCreations } from '@/lib/test-data/mock-creations';
+import { isFirebaseAdminConfigured } from '@/server/firebase/admin';
 
 // This is now a React Server Component (RSC)
 export default async function LegacyPage() {
@@ -11,14 +13,35 @@ export default async function LegacyPage() {
   let publicCreations: Creation[] = [];
   let trendingCreations: Creation[] = [];
 
-  try {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const emulatorEnabled = Boolean(
+    process.env.EMULATORS_RUNNING ||
+    process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+    process.env.FIRESTORE_EMULATOR_HOST ||
+    process.env.STORAGE_EMULATOR_HOST
+  );
+  const hasServiceCredentials = Boolean(
+    process.env.FIREBASE_SERVICE_ACCOUNT ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON ||
+    process.env.GOOGLE_AUTH_CREDENTIALS
+  );
+  const shouldUseMockData = !isProduction && !emulatorEnabled && !hasServiceCredentials;
+
+  if (shouldUseMockData || !isFirebaseAdminConfigured()) {
+    publicCreations = mockCreations;
+    trendingCreations = mockCreations.slice(0, 3);
+  } else {
+    try {
       [publicCreations, trendingCreations] = await Promise.all([
-          getPublicCreationsAction(),
-          getTrendingCreationsAction()
+        getPublicCreationsAction(),
+        getTrendingCreationsAction()
       ]);
-  } catch (error) {
-      console.error("Failed to fetch initial server data:", error);
-      // On error, we will render with empty arrays to prevent crashing the page.
+    } catch (error) {
+      console.warn('Failed to fetch initial server data, falling back to mock content:', error);
+      publicCreations = mockCreations;
+      trendingCreations = mockCreations.slice(0, 3);
+    }
   }
 
 

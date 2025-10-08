@@ -22,12 +22,15 @@ const followInputSchema = z.object({
 
 const userIdSchema = z.string().min(1);
 
+const shouldRequireFirestore = () =>
+  !isFirebaseAdminConfigured() && process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_SERVICES !== 'true';
+
 /**
  * Follow a user
  */
 export async function followUserAction(input: FollowInput) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -54,7 +57,7 @@ export async function followUserAction(input: FollowInput) {
  */
 export async function unfollowUserAction(input: FollowInput) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -76,7 +79,7 @@ export async function unfollowUserAction(input: FollowInput) {
  */
 export async function toggleFollowAction(input: FollowInput) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -110,7 +113,7 @@ export async function toggleFollowAction(input: FollowInput) {
  */
 export async function isFollowingAction(followerId: string, followingId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -133,7 +136,7 @@ export async function isFollowingAction(followerId: string, followingId: string)
  */
 export async function getFollowStatsAction(userId: string, currentUserId?: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -158,7 +161,7 @@ export async function getFollowStatsAction(userId: string, currentUserId?: strin
  */
 export async function getFollowingAction(userId: string, page: number = 1) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -180,7 +183,7 @@ export async function getFollowingAction(userId: string, page: number = 1) {
  */
 export async function getFollowersAction(userId: string, page: number = 1) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -202,7 +205,7 @@ export async function getFollowersAction(userId: string, page: number = 1) {
  */
 export async function getMutualFollowsAction(userId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -224,7 +227,7 @@ export async function getMutualFollowsAction(userId: string) {
  */
 export async function removeFollowerAction(userId: string, followerId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -241,4 +244,3 @@ export async function removeFollowerAction(userId: string, followerId: string) {
     };
   }
 }
-

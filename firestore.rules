@@ -228,6 +228,34 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // 购物车规则
+    match /carts/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+      match /items/{itemId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // 用户资料规则
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // SKU/产品规则（公开读取）
+    match /skus/{skuId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 设计模板规则（公开读取）
+    match /designs/{designId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

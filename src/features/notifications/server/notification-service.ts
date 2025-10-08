@@ -1,16 +1,34 @@
 "use server";
 
-import { getDb } from '@/lib/firebase-admin';
+import { getDb, isFirebaseAdminConfigured } from '@/lib/firebase-admin';
 import type { Notification, NotificationInput } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const NOTIFICATIONS_COLLECTION = 'notifications';
 const USERS_COLLECTION = 'users';
 
+const formatUserDisplayName = (userId: string) => `用户-${userId.slice(0, 6)}`;
+
 /**
  * Create a notification
  */
 export async function createNotification(input: NotificationInput): Promise<Notification> {
+  if (!isFirebaseAdminConfigured()) {
+    return {
+      id: uuidv4(),
+      userId: input.userId,
+      type: input.type,
+      title: input.title,
+      message: input.message,
+      actorId: input.actorId,
+      actorName: input.actorId ? formatUserDisplayName(input.actorId) : undefined,
+      actorAvatar: undefined,
+      relatedId: input.relatedId,
+      link: input.link,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    };
+  }
   const db = getDb();
   
   // Get actor info if provided
@@ -53,8 +71,12 @@ export async function getNotifications(
   page: number = 1,
   limit: number = 20
 ): Promise<{ notifications: Notification[]; hasMore: boolean }> {
+  if (!isFirebaseAdminConfigured()) {
+    return { notifications: [], hasMore: false };
+  }
   const db = getDb();
-  
+  const queryLimit = limit * Math.max(page, 1) + 1;
+
   let query = db
     .collection(NOTIFICATIONS_COLLECTION)
     .where('userId', '==', userId);
@@ -63,17 +85,19 @@ export async function getNotifications(
     query = query.where('type', '==', type);
   }
   
-  query = query.orderBy('createdAt', 'desc').limit(limit + 1);
+  query = query.orderBy('createdAt', 'desc').limit(queryLimit);
   
   const snapshot = await query.get();
-  const notifications = snapshot.docs.slice(0, limit).map(doc => ({
+  const startIndex = (Math.max(page, 1) - 1) * limit;
+  const paginatedDocs = snapshot.docs.slice(startIndex, startIndex + limit);
+  const notifications = paginatedDocs.map(doc => ({
     id: doc.id,
     ...doc.data(),
   })) as Notification[];
   
   return {
     notifications,
-    hasMore: snapshot.docs.length > limit,
+    hasMore: snapshot.docs.length > startIndex + limit,
   };
 }
 
@@ -81,6 +105,9 @@ export async function getNotifications(
  * Mark notification as read
  */
 export async function markAsRead(notificationId: string): Promise<void> {
+  if (!isFirebaseAdminConfigured()) {
+    return;
+  }
   const db = getDb();
   
   await db.collection(NOTIFICATIONS_COLLECTION).doc(notificationId).update({
@@ -92,6 +119,9 @@ export async function markAsRead(notificationId: string): Promise<void> {
  * Mark all notifications as read
  */
 export async function markAllAsRead(userId: string): Promise<void> {
+  if (!isFirebaseAdminConfigured()) {
+    return;
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -112,6 +142,9 @@ export async function markAllAsRead(userId: string): Promise<void> {
  * Delete notification
  */
 export async function deleteNotification(notificationId: string): Promise<void> {
+  if (!isFirebaseAdminConfigured()) {
+    return;
+  }
   const db = getDb();
   
   await db.collection(NOTIFICATIONS_COLLECTION).doc(notificationId).delete();
@@ -121,6 +154,9 @@ export async function deleteNotification(notificationId: string): Promise<void> 
  * Delete all notifications for a user
  */
 export async function deleteAllNotifications(userId: string): Promise<void> {
+  if (!isFirebaseAdminConfigured()) {
+    return;
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -140,6 +176,9 @@ export async function deleteAllNotifications(userId: string): Promise<void> {
  * Get unread notification count
  */
 export async function getUnreadCount(userId: string): Promise<number> {
+  if (!isFirebaseAdminConfigured()) {
+    return 0;
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -267,4 +306,3 @@ export async function createOrderNotification(
     link: `/orders/${orderId}`,
   });
 }
-

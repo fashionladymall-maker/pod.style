@@ -1,7 +1,13 @@
 import type { Order, OrderDetails, PaymentSummary, ShippingInfo } from '@/lib/types';
+import { isFirebaseAdminConfigured } from '@/server/firebase/admin';
 import { createOrder, listOrdersByUser } from './order-repository';
 import { nowTimestamp, type OrderDocument } from './order-model';
 import { logInteraction } from '@/features/creations/server/creation-service';
+import {
+  mockPlaceOrder,
+  mockGetOrders,
+  mockLogInteraction,
+} from '@/server/mock/mock-store';
 
 export interface CreateOrderInput {
   userId: string;
@@ -16,6 +22,21 @@ export interface CreateOrderInput {
 
 export const placeOrder = async (input: CreateOrderInput): Promise<Order> => {
   const { userId, creationId, modelUri, category, orderDetails, shippingInfo, paymentSummary, price } = input;
+
+  if (!isFirebaseAdminConfigured()) {
+    const order = mockPlaceOrder({
+      userId,
+      creationId,
+      modelUri,
+      category,
+      orderDetails,
+      shippingInfo,
+      paymentSummary,
+      price,
+    });
+    mockLogInteraction({ action: 'order', creationId, userId, weight: orderDetails.quantity });
+    return order;
+  }
 
   const orderDoc: OrderDocument = {
     userId,
@@ -52,6 +73,9 @@ export const placeOrder = async (input: CreateOrderInput): Promise<Order> => {
 export const getOrdersForUser = async (userId: string): Promise<Order[]> => {
   if (!userId) {
     return [];
+  }
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetOrders(userId);
   }
   return listOrdersByUser(userId);
 };

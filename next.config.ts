@@ -44,6 +44,10 @@ const nextConfig: NextConfig = {
       ...(config.resolve.alias || {}),
       handlebars: 'handlebars/dist/handlebars.js',
     };
+
+    if (config.module) {
+      config.module.exprContextCritical = false;
+    }
     return config;
   },
   images: {
@@ -63,6 +67,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
         port: '',
         pathname: '/**',
       },

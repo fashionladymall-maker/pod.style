@@ -1,8 +1,18 @@
 "use server";
 
-import { getDb } from '@/lib/firebase-admin';
+import { getDb, isFirebaseAdminConfigured } from '@/lib/firebase-admin';
 import type { ViewHistory } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  mockRecordView,
+  mockGetViewHistory,
+  mockGetViewedCreationIds,
+  mockClearViewHistory,
+  mockDeleteViewHistoryItem,
+  mockHasViewed,
+  mockGetRecentlyViewed,
+  mockGetAllViewHistoryEntries,
+} from '@/server/mock/mock-store';
 
 const VIEW_HISTORY_COLLECTION = 'viewHistory';
 
@@ -14,6 +24,9 @@ export async function recordView(
   creationId: string,
   duration?: number
 ): Promise<ViewHistory> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockRecordView(userId, creationId, duration);
+  }
   const db = getDb();
   
   // Check if already viewed recently (within last hour)
@@ -64,6 +77,9 @@ export async function getViewHistory(
   userId: string,
   limit: number = 50
 ): Promise<ViewHistory[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetViewHistory(userId, limit);
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -83,6 +99,9 @@ export async function getViewedCreationIds(
   userId: string,
   limit: number = 50
 ): Promise<string[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetViewedCreationIds(userId, limit);
+  }
   const history = await getViewHistory(userId, limit);
   
   // Remove duplicates and return creation IDs
@@ -95,6 +114,10 @@ export async function getViewedCreationIds(
  * Clear view history for a user
  */
 export async function clearViewHistory(userId: string): Promise<void> {
+  if (!isFirebaseAdminConfigured()) {
+    mockClearViewHistory(userId);
+    return;
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -116,6 +139,10 @@ export async function clearViewHistory(userId: string): Promise<void> {
  * Delete a specific view history item
  */
 export async function deleteViewHistoryItem(historyId: string): Promise<void> {
+  if (!isFirebaseAdminConfigured()) {
+    mockDeleteViewHistoryItem(historyId);
+    return;
+  }
   const db = getDb();
   
   await db.collection(VIEW_HISTORY_COLLECTION).doc(historyId).delete();
@@ -125,6 +152,9 @@ export async function deleteViewHistoryItem(historyId: string): Promise<void> {
  * Check if user has viewed a creation
  */
 export async function hasViewed(userId: string, creationId: string): Promise<boolean> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockHasViewed(userId, creationId);
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -141,6 +171,9 @@ export async function hasViewed(userId: string, creationId: string): Promise<boo
  * Get view count for a creation
  */
 export async function getViewCount(creationId: string): Promise<number> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetAllViewHistoryEntries().filter((entry) => entry.creationId === creationId).length;
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -155,6 +188,11 @@ export async function getViewCount(creationId: string): Promise<number> {
  * Get total view time for a creation
  */
 export async function getTotalViewTime(creationId: string): Promise<number> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetAllViewHistoryEntries()
+      .filter((entry) => entry.creationId === creationId)
+      .reduce((total, entry) => total + (entry.duration ?? 0), 0);
+  }
   const db = getDb();
   
   const snapshot = await db
@@ -178,6 +216,9 @@ export async function getRecentlyViewed(
   userId: string,
   limit: number = 20
 ): Promise<string[]> {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetRecentlyViewed(userId, limit);
+  }
   const db = getDb();
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   
@@ -193,4 +234,3 @@ export async function getRecentlyViewed(
   
   return creationIds;
 }
-

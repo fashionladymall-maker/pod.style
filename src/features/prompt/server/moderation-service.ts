@@ -1,13 +1,9 @@
 import type { PromptModerationInput, PromptModerationResponse } from '../types';
 import { logger } from '@/utils/logger';
+import { isFirebaseAdminConfigured } from '@/server/firebase/admin';
 
 const DEFAULT_REGION = process.env.FIREBASE_FUNCTIONS_REGION ?? 'us-central1';
 const DEFAULT_TIMEOUT_MS = Number(process.env.MODERATION_TIMEOUT_MS ?? '8000');
-
-const delay = (ms: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
 
 const resolveFunctionsBaseUrl = () => {
   const explicit = process.env.MODERATION_FUNCTIONS_BASE_URL || process.env.FUNCTIONS_BASE_URL;
@@ -36,6 +32,36 @@ export const runPromptModeration = async (
   input: PromptModerationInput,
   options: { signal?: AbortSignal } = {},
 ): Promise<PromptModerationResponse> => {
+  if (!isFirebaseAdminConfigured()) {
+    const hasText = Boolean(input.text);
+    const hasImage = Boolean(input.imageUrl || input.imageBase64);
+    const nowId = `mock-moderation-${Date.now()}`;
+    return {
+      status: 'pass',
+      recordId: nowId,
+      appealStatus: 'none',
+      metadata: { mocked: true },
+      text: hasText
+        ? {
+            status: 'pass',
+            matches: [],
+            metrics: {
+              totalRulesEvaluated: 0,
+              totalMatches: 0,
+              flaggedRules: 0,
+              truncated: false,
+            },
+          }
+        : undefined,
+      image: hasImage
+        ? {
+            status: 'pass',
+            flags: [],
+            providerState: 'skipped',
+          }
+        : undefined,
+    };
+  }
   const url = buildModerationUrl();
 
   const controller = new AbortController();

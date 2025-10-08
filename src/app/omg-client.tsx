@@ -1,7 +1,5 @@
 "use client";
 
-// @ts-nocheck
-
 import React, { useState, useEffect, useContext } from 'react';
 import { OMGApp } from '@/components/omg/omg-app';
 import { AuthContext } from '@/context/auth-context';
@@ -29,7 +27,26 @@ export default function OMGClient({
   const user = authContext?.user ?? null;
   const authLoading = authContext?.authLoading ?? false;
   const [creations, setCreations] = useState<Creation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [guestId, setGuestId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const storageKey = 'podstyle_guest_user';
+    const existing = window.localStorage.getItem(storageKey);
+    if (existing) {
+      setGuestId(existing);
+      return;
+    }
+    const generated = window.crypto?.randomUUID
+      ? `guest-${window.crypto.randomUUID()}`
+      : `guest-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(storageKey, generated);
+    setGuestId(generated);
+  }, []);
+
+  const resolvedUserId = user?.uid ?? guestId;
 
   // 合并公共创作和热门创作，去重
   useEffect(() => {
@@ -38,8 +55,6 @@ export default function OMGClient({
       new Map(allCreations.map(c => [c.id, c])).values()
     );
     setCreations(uniqueCreations);
-    // 即使没有数据也要停止加载状态
-    setIsLoading(false);
   }, [initialPublicCreations, initialTrendingCreations]);
 
   // 登录
@@ -53,8 +68,9 @@ export default function OMGClient({
         title: '登录成功',
         description: '欢迎回来！',
       });
-    } catch (error: any) {
-      throw new Error(error.message || '登录失败');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '登录失败';
+      throw new Error(message);
     }
   };
 
@@ -69,8 +85,9 @@ export default function OMGClient({
         title: '注册成功',
         description: '欢迎加入！',
       });
-    } catch (error: any) {
-      throw new Error(error.message || '注册失败');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '注册失败';
+      throw new Error(message);
     }
   };
 
@@ -81,22 +98,23 @@ export default function OMGClient({
     }
     try {
       await signOut(auth);
-    } catch (error: any) {
-      throw new Error(error.message || '退出失败');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '退出失败';
+      throw new Error(message);
     }
   };
 
   // 只在认证加载时显示加载屏幕
   // 数据加载完成后即使为空也显示应用
-  if (authLoading) {
+  if (authLoading || !resolvedUserId) {
     return <LoadingScreen />;
   }
 
   return (
     <OMGApp
       initialCreations={creations}
-      userId={user?.uid || null}
-      isAuthenticated={!!user && !user.isAnonymous}
+      userId={resolvedUserId}
+      isAuthenticated={Boolean(user) || Boolean(guestId)}
       onLogin={handleLogin}
       onRegister={handleRegister}
       onLogout={handleLogout}

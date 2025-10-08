@@ -15,7 +15,7 @@ import type {
   CreationData,
   Model,
 } from '@/lib/types';
-import { admin, getAdminStorage } from '@/server/firebase/admin';
+import { admin, getAdminStorage, isFirebaseAdminConfigured } from '@/server/firebase/admin';
 import { logger } from '@/utils/logger';
 import {
   ensureUserFineTunedModel,
@@ -32,6 +32,24 @@ import {
   updateCreation,
 } from './creation-repository';
 import { nowTimestamp } from './creation-model';
+import {
+  mockGeneratePattern,
+  mockGenerateModel,
+  mockGetUserCreations,
+  mockGetPublicCreations,
+  mockGetTrendingCreations,
+  mockToggleLike,
+  mockToggleFavorite,
+  mockIncrementMetric,
+  mockAddComment,
+  mockGetComments,
+  mockDeleteCreation,
+  mockToggleCreationPublicStatus,
+  mockLogInteraction,
+  mockDeleteModel,
+  mockToggleModelVisibility,
+  mockForkCreation,
+} from '@/server/mock/mock-store';
 
 const HOURS_TO_MS = 60 * 60 * 1000;
 
@@ -203,6 +221,9 @@ const uploadDataUriToStorage = async (dataUri: string, userId: string): Promise<
 };
 
 export const generatePattern = async (input: GeneratePatternInput): Promise<Creation> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGeneratePattern(input);
+  }
   const { userId, prompt, style, referenceImage } = input;
 
   let moderation;
@@ -316,6 +337,14 @@ export const generatePattern = async (input: GeneratePatternInput): Promise<Crea
 export const generateModel = async (
   input: GenerateModelMockupInput & { creationId: string; userId: string }
 ): Promise<Creation> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGenerateModel({
+      creationId: input.creationId,
+      userId: input.userId,
+      category: input.category,
+      colorName: input.colorName,
+    });
+  }
   const response = await fetch(input.patternDataUri);
   if (!response.ok) {
     throw new Error('Failed to fetch pattern image from storage');
@@ -366,10 +395,16 @@ export const getUserCreations = async (userId: string): Promise<Creation[]> => {
   if (!userId) {
     return [];
   }
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetUserCreations(userId);
+  }
   return listUserCreations(userId);
 };
 
 export const forkCreation = async ({ sourceCreationId, userId }: ForkCreationInput): Promise<Creation> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockForkCreation(sourceCreationId, userId);
+  }
   const creation = await findCreationById(sourceCreationId);
   if (!creation) {
     throw new Error('Source creation not found');
@@ -401,6 +436,9 @@ export const forkCreation = async ({ sourceCreationId, userId }: ForkCreationInp
 };
 
 export const deleteModel = async ({ creationId, modelUri }: DeleteModelInput): Promise<Creation> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockDeleteModel(creationId, modelUri);
+  }
   const creation = await findCreationById(creationId);
   if (!creation) {
     throw new Error('Creation not found');
@@ -434,6 +472,9 @@ export const deleteModel = async ({ creationId, modelUri }: DeleteModelInput): P
 };
 
 export const toggleModelVisibility = async ({ creationId, modelUri, isPublic }: ToggleModelVisibilityInput): Promise<Creation> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockToggleModelVisibility(creationId, modelUri, isPublic);
+  }
   const creation = await findCreationById(creationId);
   if (!creation) {
     throw new Error('Creation not found');
@@ -459,6 +500,10 @@ export const logInteraction = async ({
   modelUri,
   metadata,
 }: LogInteractionInput): Promise<void> => {
+  if (!isFirebaseAdminConfigured()) {
+    mockLogInteraction({ action, creationId, userId, weight, modelUri, metadata });
+    return;
+  }
   const creationRef = getCollectionRef().doc(creationId);
 
   const updates: Record<string, unknown> = {
@@ -529,10 +574,21 @@ const cachedPersonalizedFeeds = unstable_cache(
 );
 
 export const getPersonalizedFeeds = async (userId: string | null, limit: number = 20) => {
+  if (!isFirebaseAdminConfigured()) {
+    const creations = mockGetPublicCreations(Math.max(limit, 20));
+    return {
+      popular: creations.slice(0, limit),
+      trending: mockGetTrendingCreations(limit),
+    };
+  }
   return cachedPersonalizedFeeds(userId, limit);
 };
 
 export const removeCreation = async (creationId: string): Promise<void> => {
+  if (!isFirebaseAdminConfigured()) {
+    mockDeleteCreation(creationId);
+    return;
+  }
   const creation = await findCreationById(creationId);
   if (!creation) {
     return;
@@ -565,21 +621,34 @@ export const removeCreation = async (creationId: string): Promise<void> => {
 };
 
 export const toggleCreationPublicStatus = async (creationId: string, isPublic: boolean) => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockToggleCreationPublicStatus(creationId, isPublic);
+  }
   const updatedCreation = await updateCreation(creationId, { isPublic } as Partial<CreationData>);
   await invalidateCreationCaches();
   return updatedCreation;
 };
 
 export const getPublicCreations = async (limit: number = 20): Promise<Creation[]> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetPublicCreations(limit);
+  }
   return cachedPublicCreationList(limit);
 };
 
 export const getTrendingCreations = async (limit: number = 20): Promise<Creation[]> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetTrendingCreations(limit);
+  }
   const creations = await cachedPublicCreationList(Math.max(limit * 2, 40));
   return rankCreations(creations, null, 'trending').slice(0, limit);
 };
 
 export const toggleLike = async ({ creationId, userId, isLiked }: ToggleLikeInput) => {
+  if (!isFirebaseAdminConfigured()) {
+    mockToggleLike(creationId, userId, isLiked);
+    return { success: true };
+  }
   const creation = await findCreationById(creationId);
   if (!creation) {
     throw new Error('Creation not found');
@@ -596,6 +665,10 @@ export const toggleLike = async ({ creationId, userId, isLiked }: ToggleLikeInpu
 };
 
 export const toggleFavorite = async ({ creationId, userId, isFavorited }: ToggleFavoriteInput) => {
+  if (!isFirebaseAdminConfigured()) {
+    mockToggleFavorite(creationId, userId, isFavorited);
+    return { success: true };
+  }
   const creation = await findCreationById(creationId);
   if (!creation) {
     throw new Error('Creation not found');
@@ -612,6 +685,10 @@ export const toggleFavorite = async ({ creationId, userId, isFavorited }: Toggle
 };
 
 export const incrementMetric = async (creationId: string, field: 'shareCount' | 'remakeCount') => {
+  if (!isFirebaseAdminConfigured()) {
+    mockIncrementMetric(creationId, field);
+    return { success: true };
+  }
   await getCollectionRef()
     .doc(creationId)
     .set({ [field]: admin.firestore.FieldValue.increment(1) }, { merge: true });
@@ -620,6 +697,15 @@ export const incrementMetric = async (creationId: string, field: 'shareCount' | 
 };
 
 export const addComment = async ({ creationId, commentData }: CommentInput): Promise<LegacyComment> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockAddComment({
+      creationId,
+      userId: commentData.userId,
+      userName: commentData.userName,
+      userPhotoURL: commentData.userPhotoURL,
+      content: commentData.content,
+    });
+  }
   const commentsCollection = getCollectionRef().doc(creationId).collection('comments');
   const newComment: LegacyCommentData = {
     ...commentData,
@@ -635,6 +721,9 @@ export const addComment = async ({ creationId, commentData }: CommentInput): Pro
 };
 
 export const getComments = async (creationId: string): Promise<LegacyComment[]> => {
+  if (!isFirebaseAdminConfigured()) {
+    return mockGetComments(creationId);
+  }
   const snapshot = await getCollectionRef()
     .doc(creationId)
     .collection('comments')

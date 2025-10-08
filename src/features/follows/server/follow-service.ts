@@ -172,21 +172,25 @@ export async function getFollowing(
 ): Promise<{ follows: Follow[]; hasMore: boolean }> {
   const db = getDb();
 
+  const queryLimit = limit * Math.max(page, 1) + 1;
+
   const query = db
     .collection(FOLLOWS_COLLECTION)
     .where('followerId', '==', userId)
     .orderBy('createdAt', 'desc')
-    .limit(limit + 1);
+    .limit(queryLimit);
 
   const snapshot = await query.get();
-  const follows = snapshot.docs.slice(0, limit).map(doc => ({
+  const startIndex = (Math.max(page, 1) - 1) * limit;
+  const paginatedDocs = snapshot.docs.slice(startIndex, startIndex + limit);
+  const follows = paginatedDocs.map(doc => ({
     id: doc.id,
     ...doc.data(),
   })) as Follow[];
 
   return {
     follows,
-    hasMore: snapshot.docs.length > limit,
+    hasMore: snapshot.docs.length > startIndex + limit,
   };
 }
 
@@ -200,21 +204,25 @@ export async function getFollowers(
 ): Promise<{ follows: Follow[]; hasMore: boolean }> {
   const db = getDb();
 
+  const queryLimit = limit * Math.max(page, 1) + 1;
+
   const query = db
     .collection(FOLLOWS_COLLECTION)
     .where('followingId', '==', userId)
     .orderBy('createdAt', 'desc')
-    .limit(limit + 1);
+    .limit(queryLimit);
 
   const snapshot = await query.get();
-  const follows = snapshot.docs.slice(0, limit).map(doc => ({
+  const startIndex = (Math.max(page, 1) - 1) * limit;
+  const paginatedDocs = snapshot.docs.slice(startIndex, startIndex + limit);
+  const follows = paginatedDocs.map(doc => ({
     id: doc.id,
     ...doc.data(),
   })) as Follow[];
 
   return {
     follows,
-    hasMore: snapshot.docs.length > limit,
+    hasMore: snapshot.docs.length > startIndex + limit,
   };
 }
 
@@ -263,4 +271,3 @@ export async function getMutualFollows(userId: string): Promise<Follow[]> {
 export async function removeFollower(userId: string, followerId: string): Promise<void> {
   await unfollowUser({ followerId, followingId: userId });
 }
-

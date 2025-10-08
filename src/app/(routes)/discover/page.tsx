@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 export default function DiscoverPage() {
@@ -81,10 +82,12 @@ export default function DiscoverPage() {
               className="group cursor-pointer"
             >
               <div className="relative aspect-[2/3] bg-zinc-800 rounded-lg overflow-hidden mb-2">
-                <img
+                <Image
                   src={design.image}
                   alt={design.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 
                 {/* 悬浮信息 */}
@@ -110,4 +113,3 @@ export default function DiscoverPage() {
     </div>
   );
 }
-

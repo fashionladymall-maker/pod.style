@@ -17,6 +17,9 @@ const userIdSchema = z.string().min(1);
 const creationIdSchema = z.string().min(1);
 const historyIdSchema = z.string().min(1);
 
+const shouldRequireFirestore = () =>
+  !isFirebaseAdminConfigured() && process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_SERVICES !== 'true';
+
 /**
  * Record a view
  */
@@ -26,7 +29,7 @@ export async function recordViewAction(
   duration?: number
 ) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -49,7 +52,7 @@ export async function recordViewAction(
  */
 export async function getViewHistoryAction(userId: string, limit: number = 50) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -71,7 +74,7 @@ export async function getViewHistoryAction(userId: string, limit: number = 50) {
  */
 export async function getViewedCreationIdsAction(userId: string, limit: number = 50) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -93,7 +96,7 @@ export async function getViewedCreationIdsAction(userId: string, limit: number =
  */
 export async function clearViewHistoryAction(userId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -115,7 +118,7 @@ export async function clearViewHistoryAction(userId: string) {
  */
 export async function deleteViewHistoryItemAction(historyId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -137,7 +140,7 @@ export async function deleteViewHistoryItemAction(historyId: string) {
  */
 export async function hasViewedAction(userId: string, creationId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -160,7 +163,7 @@ export async function hasViewedAction(userId: string, creationId: string) {
  */
 export async function getRecentlyViewedAction(userId: string, limit: number = 20) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -176,4 +179,3 @@ export async function getRecentlyViewedAction(userId: string, limit: number = 20
     };
   }
 }
-

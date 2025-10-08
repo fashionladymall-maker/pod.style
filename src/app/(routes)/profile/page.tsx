@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -22,10 +23,12 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-6">
             {/* 头像 */}
-            <img
+            <Image
               src={user.avatar}
               alt={user.name}
-              className="w-24 h-24 rounded-full border-4 border-zinc-700"
+              width={96}
+              height={96}
+              className="h-24 w-24 rounded-full border-4 border-zinc-700"
             />
 
             {/* 用户信息 */}
@@ -84,12 +87,14 @@ export default function ProfilePage() {
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-square bg-zinc-800 rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
+              className="relative aspect-square bg-zinc-800 rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <img
+              <Image
                 src={`https://picsum.photos/400/400?random=${i}`}
                 alt={`设计 ${i + 1}`}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 15vw"
               />
             </div>
           ))}
@@ -98,4 +103,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

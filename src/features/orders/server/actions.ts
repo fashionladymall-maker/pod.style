@@ -6,7 +6,7 @@ import { placeOrder, getOrdersForUser } from './order-service';
 import { paymentSummarySchema } from './order-model';
 
 const ensureFirestore = () => {
-  if (!isFirebaseAdminConfigured()) {
+  if (!isFirebaseAdminConfigured() && process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_SERVICES !== 'true') {
     throw new Error('Firebase Admin SDK is not configured.');
   }
 };

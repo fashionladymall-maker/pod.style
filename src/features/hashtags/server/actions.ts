@@ -17,6 +17,9 @@ const textSchema = z.string().min(1);
 const hashtagNameSchema = z.string().min(1).max(50);
 const creationIdSchema = z.string().min(1);
 
+const shouldRequireFirestore = () =>
+  !isFirebaseAdminConfigured() && process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_SERVICES !== 'true';
+
 /**
  * Extract hashtags from text
  */
@@ -43,14 +46,13 @@ export async function addHashtagsToCreationAction(
   text: string
 ) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
     creationIdSchema.parse(creationId);
     z.string().min(1).parse(userId);
     textSchema.parse(text);
-
     const hashtags = await addHashtagsToCreation(creationId, userId, text);
     return { success: true, hashtags };
   } catch (error) {
@@ -67,7 +69,7 @@ export async function addHashtagsToCreationAction(
  */
 export async function getHashtagsForCreationAction(creationId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -89,7 +91,7 @@ export async function getHashtagsForCreationAction(creationId: string) {
  */
 export async function getCreationsByHashtagAction(hashtagName: string, limit: number = 20) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -111,7 +113,7 @@ export async function getCreationsByHashtagAction(hashtagName: string, limit: nu
  */
 export async function getTrendingHashtagsAction(limit: number = 20) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -131,7 +133,7 @@ export async function getTrendingHashtagsAction(limit: number = 20) {
  */
 export async function searchHashtagsAction(query: string, limit: number = 20) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -153,7 +155,7 @@ export async function searchHashtagsAction(query: string, limit: number = 20) {
  */
 export async function getHashtagByNameAction(name: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
+    if (shouldRequireFirestore()) {
       throw new Error('Firebase Admin is not configured');
     }
 
@@ -169,4 +171,3 @@ export async function getHashtagByNameAction(name: string) {
     };
   }
 }
-

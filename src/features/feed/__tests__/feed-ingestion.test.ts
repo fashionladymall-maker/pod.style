@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import { describe, it, expect } from '@jest/globals';
+import * as feedIngestion from '../../../../functions/feed-ingestion';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { buildCacheEntry, buildFeedEntryDocument, calculateRanking } = require('../../../../functions/feed-ingestion');
+const { buildCacheEntry, buildFeedEntryDocument, calculateRanking } = feedIngestion;
 
 describe('feed-ingestion helpers', () => {
   const baseCreation = {
