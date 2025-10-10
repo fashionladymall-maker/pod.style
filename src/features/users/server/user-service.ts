@@ -1,27 +1,17 @@
 "use server";
 
 import { getDb } from '@/lib/firebase-admin';
+import {
+  DEFAULT_USER_SETTINGS,
+  type UserProfile,
+  type UpdateUserProfileInput,
+  type UserSettings,
+  type UserSettingsUpdate,
+} from '../types';
 
 const USERS_COLLECTION = 'users';
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  bio?: string;
-  avatar?: string;
-  email?: string;
-  createdAt: string;
-  updatedAt?: string;
-  followingCount?: number;
-  followersCount?: number;
-}
-
-export interface UpdateUserProfileInput {
-  userId: string;
-  name?: string;
-  bio?: string;
-  avatar?: string;
-}
+const USER_SETTINGS_COLLECTION = 'userSettings';
 
 /**
  * Get user profile
@@ -110,6 +100,67 @@ export async function createUserProfile(userId: string, email?: string, name?: s
   await db.collection(USERS_COLLECTION).doc(userId).set(profile);
   
   return profile;
+}
+
+const mergeSettings = (
+  base: UserSettings,
+  overrides: UserSettingsUpdate | undefined,
+): UserSettings => {
+  const next: UserSettings = {
+    ...base,
+    notifications: {
+      ...base.notifications,
+      ...(overrides?.notifications ?? {}),
+    },
+    privacy: {
+      ...base.privacy,
+      ...(overrides?.privacy ?? {}),
+    },
+    language: overrides?.language ?? base.language,
+    theme: overrides?.theme ?? base.theme,
+    updatedAt: overrides?.updatedAt ?? base.updatedAt,
+  };
+
+  return next;
+};
+
+export async function getUserSettings(userId: string): Promise<UserSettings> {
+  const db = getDb();
+
+  const snapshot = await db.collection(USER_SETTINGS_COLLECTION).doc(userId).get();
+  if (!snapshot.exists) {
+    return DEFAULT_USER_SETTINGS;
+  }
+
+  const data = snapshot.data() as UserSettingsUpdate | undefined;
+  return mergeSettings(DEFAULT_USER_SETTINGS, data);
+}
+
+export async function updateUserSettings(
+  userId: string,
+  updates: UserSettingsUpdate,
+): Promise<UserSettings> {
+  const db = getDb();
+
+  const current = await getUserSettings(userId);
+  const timestamp = new Date().toISOString();
+  const merged = mergeSettings(current, { ...updates, updatedAt: timestamp });
+
+  await db
+    .collection(USER_SETTINGS_COLLECTION)
+    .doc(userId)
+    .set(
+      {
+        notifications: merged.notifications,
+        privacy: merged.privacy,
+        language: merged.language,
+        theme: merged.theme,
+        updatedAt: merged.updatedAt,
+      },
+      { merge: true },
+    );
+
+  return merged;
 }
 
 /**

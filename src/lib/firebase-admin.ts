@@ -46,7 +46,9 @@ export const isFirebaseAdminConfigured = () => {
     return true;
   }
 
-  return Boolean(getProjectId());
+  // Having only a project id without credentials is not enough to talk to Firebase Admin SDK.
+  // Treat this as unconfigured so that the application can fall back to mock services.
+  return false;
 };
 
 function initializeAdminApp(): admin.app.App {

@@ -9,8 +9,16 @@ import {
   uploadAvatar,
   searchUsers,
   getUsersByIds,
-  type UpdateUserProfileInput,
+  getUserSettings,
+  updateUserSettings,
 } from './user-service';
+import type { UpdateUserProfileInput, UserSettings, UserSettingsUpdate } from '../types';
+import { mockGetUserSettings, mockUpdateUserSettings } from '@/server/mock/mock-store';
+import {
+  mockCreateUserProfile,
+  mockGetUserProfile,
+  mockUpdateUserProfile,
+} from '@/server/mock/mock-store';
 
 // Validation schemas
 const updateProfileSchema = z.object({
@@ -22,17 +30,46 @@ const updateProfileSchema = z.object({
 
 const userIdSchema = z.string().min(1);
 const searchQuerySchema = z.string().min(1).max(100);
+const notificationSettingsSchema = z.object({
+  email: z.boolean(),
+  push: z.boolean(),
+  likes: z.boolean(),
+  comments: z.boolean(),
+  followers: z.boolean(),
+});
+const privacySettingsSchema = z.object({
+  profilePublic: z.boolean(),
+  showEmail: z.boolean(),
+  showDesigns: z.boolean(),
+});
+const userSettingsSchema = z.object({
+  notifications: notificationSettingsSchema,
+  privacy: privacySettingsSchema,
+  language: z.string().min(2).max(10),
+  theme: z.enum(['dark', 'light']),
+});
+const userSettingsUpdateSchema = z.object({
+  notifications: notificationSettingsSchema.partial().optional(),
+  privacy: privacySettingsSchema.partial().optional(),
+  language: z.string().min(2).max(10).optional(),
+  theme: z.enum(['dark', 'light']).optional(),
+});
+
+const updateSettingsSchema = z.object({
+  userId: userIdSchema,
+  settings: userSettingsUpdateSchema,
+});
 
 /**
  * Get user profile
  */
 export async function getUserProfileAction(userId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     userIdSchema.parse(userId);
+    if (!isFirebaseAdminConfigured()) {
+      const profile = mockGetUserProfile(userId);
+      return { success: true, profile };
+    }
 
     const profile = await getUserProfile(userId);
     return { success: true, profile };
@@ -50,11 +87,11 @@ export async function getUserProfileAction(userId: string) {
  */
 export async function updateUserProfileAction(input: UpdateUserProfileInput) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     const validated = updateProfileSchema.parse(input);
+    if (!isFirebaseAdminConfigured()) {
+      const profile = mockUpdateUserProfile(validated);
+      return { success: true, profile };
+    }
 
     const profile = await updateUserProfile(validated);
     return { success: true, profile };
@@ -67,16 +104,61 @@ export async function updateUserProfileAction(input: UpdateUserProfileInput) {
   }
 }
 
+export async function getUserSettingsAction(userId: string) {
+  try {
+    userIdSchema.parse(userId);
+
+    if (!isFirebaseAdminConfigured()) {
+      const settings = mockGetUserSettings(userId);
+      return { success: true as const, settings };
+    }
+
+    const settings = await getUserSettings(userId);
+    return { success: true as const, settings };
+  } catch (error) {
+    console.error('Error getting user settings:', error);
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Failed to get user settings',
+    };
+  }
+}
+
+interface UpdateUserSettingsInput {
+  userId: string;
+  settings: UserSettingsUpdate;
+}
+
+export async function updateUserSettingsAction(input: UpdateUserSettingsInput) {
+  try {
+    const validated = updateSettingsSchema.parse(input);
+
+    if (!isFirebaseAdminConfigured()) {
+      const settings = mockUpdateUserSettings(validated.userId, validated.settings);
+      return { success: true as const, settings };
+    }
+
+    const settings = await updateUserSettings(validated.userId, validated.settings);
+    return { success: true as const, settings };
+  } catch (error) {
+    console.error('Error updating user settings:', error);
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Failed to update user settings',
+    };
+  }
+}
+
 /**
  * Create user profile
  */
 export async function createUserProfileAction(userId: string, email?: string, name?: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     userIdSchema.parse(userId);
+    if (!isFirebaseAdminConfigured()) {
+      const profile = mockCreateUserProfile(userId, email, name);
+      return { success: true, profile };
+    }
 
     const profile = await createUserProfile(userId, email, name);
     return { success: true, profile };
@@ -162,4 +244,3 @@ export async function getUsersByIdsAction(userIds: string[]) {
     };
   }
 }
-

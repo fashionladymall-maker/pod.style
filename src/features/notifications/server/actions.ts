@@ -12,6 +12,15 @@ import {
   getUnreadCount,
 } from './notification-service';
 import type { NotificationInput } from '@/lib/types';
+import {
+  mockCreateNotification,
+  mockDeleteAllNotifications,
+  mockDeleteNotification,
+  mockGetNotificationsForUser,
+  mockGetUnreadNotificationCount,
+  mockMarkAllNotificationsAsRead,
+  mockMarkNotificationAsRead,
+} from '@/server/mock/mock-store';
 
 // Validation schemas
 const notificationInputSchema = z.object({
@@ -32,11 +41,13 @@ const notificationIdSchema = z.string().min(1);
  */
 export async function createNotificationAction(input: NotificationInput) {
   try {
+    const validated = notificationInputSchema.parse(input);
+
     if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
+      const notification = mockCreateNotification(validated);
+      return { success: true, notification };
     }
 
-    const validated = notificationInputSchema.parse(input);
     const notification = await createNotification(validated);
     
     return { success: true, notification };
@@ -58,11 +69,12 @@ export async function getNotificationsAction(
   page: number = 1
 ) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     userIdSchema.parse(userId);
+
+    if (!isFirebaseAdminConfigured()) {
+      const result = mockGetNotificationsForUser(userId, type, page);
+      return { success: true, ...result };
+    }
 
     const result = await getNotifications(userId, type, page);
     return { success: true, ...result };
@@ -80,11 +92,12 @@ export async function getNotificationsAction(
  */
 export async function markAsReadAction(notificationId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     notificationIdSchema.parse(notificationId);
+
+    if (!isFirebaseAdminConfigured()) {
+      mockMarkNotificationAsRead(notificationId);
+      return { success: true };
+    }
 
     await markAsRead(notificationId);
     return { success: true };
@@ -102,11 +115,12 @@ export async function markAsReadAction(notificationId: string) {
  */
 export async function markAllAsReadAction(userId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     userIdSchema.parse(userId);
+
+    if (!isFirebaseAdminConfigured()) {
+      mockMarkAllNotificationsAsRead(userId);
+      return { success: true };
+    }
 
     await markAllAsRead(userId);
     return { success: true };
@@ -124,11 +138,12 @@ export async function markAllAsReadAction(userId: string) {
  */
 export async function deleteNotificationAction(notificationId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     notificationIdSchema.parse(notificationId);
+
+    if (!isFirebaseAdminConfigured()) {
+      mockDeleteNotification(notificationId);
+      return { success: true };
+    }
 
     await deleteNotification(notificationId);
     return { success: true };
@@ -146,11 +161,12 @@ export async function deleteNotificationAction(notificationId: string) {
  */
 export async function deleteAllNotificationsAction(userId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     userIdSchema.parse(userId);
+
+    if (!isFirebaseAdminConfigured()) {
+      mockDeleteAllNotifications(userId);
+      return { success: true };
+    }
 
     await deleteAllNotifications(userId);
     return { success: true };
@@ -168,11 +184,12 @@ export async function deleteAllNotificationsAction(userId: string) {
  */
 export async function getUnreadCountAction(userId: string) {
   try {
-    if (!isFirebaseAdminConfigured()) {
-      throw new Error('Firebase Admin is not configured');
-    }
-
     userIdSchema.parse(userId);
+
+    if (!isFirebaseAdminConfigured()) {
+      const count = mockGetUnreadNotificationCount(userId);
+      return { success: true, count };
+    }
 
     const count = await getUnreadCount(userId);
     return { success: true, count };
@@ -184,4 +201,3 @@ export async function getUnreadCountAction(userId: string) {
     };
   }
 }
-

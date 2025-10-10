@@ -38,9 +38,9 @@ test.describe('M1-FEED-001: OMG Feed MVP 性能验证', () => {
     
     // 开始性能监控
     await page.evaluate(() => {
-      // @ts-ignore
+      // @ts-expect-error - instrumentation state attached to window
       window.frameDrops = 0;
-      // @ts-ignore
+      // @ts-expect-error - instrumentation state attached to window
       window.totalFrames = 0;
       
       let lastTime = performance.now();
@@ -51,12 +51,12 @@ test.describe('M1-FEED-001: OMG Feed MVP 性能验证', () => {
         const currentTime = performance.now();
         const delta = currentTime - lastTime;
         
-        // @ts-ignore
+        // @ts-expect-error - instrumentation state attached to window
         window.totalFrames++;
         
         // 如果帧时间超过目标时间的 1.5 倍，认为是掉帧
         if (delta > targetFrameTime * 1.5) {
-          // @ts-ignore
+          // @ts-expect-error - instrumentation state attached to window
           window.frameDrops++;
         }
         
@@ -79,9 +79,9 @@ test.describe('M1-FEED-001: OMG Feed MVP 性能验证', () => {
     // 获取掉帧统计
     const stats = await page.evaluate(() => {
       return {
-        // @ts-ignore
+        // @ts-expect-error - instrumentation state attached to window
         frameDrops: window.frameDrops || 0,
-        // @ts-ignore
+        // @ts-expect-error - instrumentation state attached to window
         totalFrames: window.totalFrames || 0,
       };
     });

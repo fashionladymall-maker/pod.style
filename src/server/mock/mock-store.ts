@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
   Creation,
   LegacyComment,
+  Notification,
+  NotificationInput,
   Order,
   OrderDetails,
   PaymentSummary,
@@ -13,6 +15,8 @@ import type {
   UserFineTunedModel,
 } from '@/lib/types';
 import { mockCreations as seedCreations } from '@/lib/test-data/mock-creations';
+import type { UserSettings, UserSettingsUpdate, UserProfile, UpdateUserProfileInput } from '@/features/users/types';
+import { DEFAULT_USER_SETTINGS } from '@/features/users/types';
 
 type InternalCreation = Creation & {
   hashtags?: string[];
@@ -52,6 +56,8 @@ const creationStore: InternalCreation[] = seedCreations.map((creation, index) =>
 
 const commentsStore = new Map<string, LegacyComment[]>();
 const ordersStore: Order[] = [];
+const notificationsStore = new Map<string, Notification[]>();
+const userProfileStore = new Map<string, UserProfile>();
 
 const followerMap = new Map<string, Set<string>>();
 const followingMap = new Map<string, Set<string>>();
@@ -70,6 +76,7 @@ const hashtagStore = new Map<string, HashtagRecord>();
 const viewHistoryStore = new Map<string, ViewHistory[]>();
 
 const userModelStore = new Map<string, UserFineTunedModel>();
+const userSettingsStore = new Map<string, UserSettings>();
 
 const ensureArray = <T,>(value: T[] | undefined): T[] => (value ? [...value] : []);
 
@@ -464,6 +471,209 @@ export const mockGetOrders = (userId: string): Order[] =>
       ...order,
       statusHistory: order.statusHistory ? order.statusHistory.map((event) => ({ ...event })) : undefined,
     }));
+
+const ensureUserSettings = (userId: string): UserSettings => {
+  const existing = userSettingsStore.get(userId);
+  if (existing) {
+    return existing;
+  }
+
+  const seeded: UserSettings = {
+    ...DEFAULT_USER_SETTINGS,
+    updatedAt: new Date().toISOString(),
+  };
+  userSettingsStore.set(userId, seeded);
+  return seeded;
+};
+
+export const mockGetUserSettings = (userId: string): UserSettings => ensureUserSettings(userId);
+
+export const mockUpdateUserSettings = (
+  userId: string,
+  updates: UserSettingsUpdate,
+): UserSettings => {
+  const current = ensureUserSettings(userId);
+  const timestamp = new Date().toISOString();
+
+  const next: UserSettings = {
+    ...current,
+    notifications: {
+      ...current.notifications,
+      ...(updates.notifications ?? {}),
+    },
+    privacy: {
+      ...current.privacy,
+      ...(updates.privacy ?? {}),
+    },
+    language: updates.language ?? current.language,
+    theme: updates.theme ?? current.theme,
+    updatedAt: timestamp,
+  };
+
+  userSettingsStore.set(userId, next);
+  return next;
+};
+
+const seedNotifications = (userId: string): Notification[] => {
+  const now = Date.now();
+  return [
+    {
+      id: uuidv4(),
+      userId,
+      type: 'order',
+      title: '订单已发货',
+      message: '您的订单 #1002401 已进入配送流程，预计 3 天内送达。',
+      actorId: undefined,
+      actorName: '系统通知',
+      createdAt: new Date(now - 60 * 60 * 1000).toISOString(),
+      isRead: false,
+    },
+    {
+      id: uuidv4(),
+      userId,
+      type: 'comment',
+      title: '新评论',
+      message: 'Alice 刚刚给你的设计留言：“喜欢这套配色！”',
+      actorId: 'user-alice',
+      actorName: 'Alice',
+      createdAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
+      isRead: false,
+    },
+    {
+      id: uuidv4(),
+      userId,
+      type: 'follow',
+      title: '新增关注',
+      message: '设计师 Max 关注了你，快去看看他的新作品。',
+      actorId: 'user-max',
+      actorName: 'Max',
+      createdAt: new Date(now - 26 * 60 * 60 * 1000).toISOString(),
+      isRead: true,
+    },
+  ];
+};
+
+const ensureNotifications = (userId: string): Notification[] => {
+  const existing = notificationsStore.get(userId);
+  if (existing) {
+    return existing;
+  }
+  const seeded = seedNotifications(userId);
+  notificationsStore.set(userId, seeded);
+  return seeded;
+};
+
+export const mockGetNotificationsForUser = (
+  userId: string,
+  type?: string,
+  page: number = 1,
+  limit: number = 20,
+): { notifications: Notification[]; hasMore: boolean } => {
+  const list = ensureNotifications(userId);
+  const filtered = type && type !== 'all' ? list.filter((item) => item.type === type) : list;
+  const start = Math.max(page - 1, 0) * limit;
+  const pageItems = filtered.slice(start, start + limit);
+  return {
+    notifications: pageItems.map((item) => ({ ...item })),
+    hasMore: filtered.length > start + limit,
+  };
+};
+
+export const mockMarkNotificationAsRead = (notificationId: string): void => {
+  for (const [userId, list] of notificationsStore.entries()) {
+    const index = list.findIndex((notification) => notification.id === notificationId);
+    if (index >= 0) {
+      const updated = [...list];
+      updated[index] = { ...updated[index], isRead: true };
+      notificationsStore.set(userId, updated);
+      break;
+    }
+  }
+};
+
+export const mockMarkAllNotificationsAsRead = (userId: string): void => {
+  const list = ensureNotifications(userId);
+  notificationsStore.set(
+    userId,
+    list.map((notification) => ({ ...notification, isRead: true })),
+  );
+};
+
+export const mockDeleteNotification = (notificationId: string): void => {
+  for (const [userId, list] of notificationsStore.entries()) {
+    const filtered = list.filter((notification) => notification.id !== notificationId);
+    if (filtered.length !== list.length) {
+      notificationsStore.set(userId, filtered);
+      break;
+    }
+  }
+};
+
+export const mockDeleteAllNotifications = (userId: string): void => {
+  notificationsStore.set(userId, []);
+};
+
+export const mockGetUnreadNotificationCount = (userId: string): number => {
+  return ensureNotifications(userId).filter((notification) => !notification.isRead).length;
+};
+
+export const mockCreateNotification = (input: NotificationInput): Notification => {
+  const list = ensureNotifications(input.userId);
+  const notification: Notification = {
+    id: uuidv4(),
+    userId: input.userId,
+    type: input.type,
+    title: input.title,
+    message: input.message,
+    actorId: input.actorId,
+    actorName: input.actorId ? `用户-${input.actorId.slice(0, 6)}` : '系统',
+    relatedId: input.relatedId,
+    link: input.link,
+    createdAt: new Date().toISOString(),
+    isRead: false,
+    metadata: input.metadata,
+  };
+
+  notificationsStore.set(input.userId, [notification, ...list]);
+  return notification;
+};
+
+const ensureUserProfile = (userId: string, email?: string, name?: string): UserProfile => {
+  let profile = userProfileStore.get(userId);
+  if (!profile) {
+    profile = {
+      id: userId,
+      name: name ?? `用户-${userId.slice(0, 6)}`,
+      email,
+      bio: '欢迎来到 POD.STYLE！',
+      avatar: undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: undefined,
+      followingCount: Math.floor(Math.random() * 120),
+      followersCount: Math.floor(Math.random() * 320),
+    };
+    userProfileStore.set(userId, profile);
+  }
+  return profile;
+};
+
+export const mockGetUserProfile = (userId: string): UserProfile | null => ensureUserProfile(userId);
+
+export const mockUpdateUserProfile = (input: UpdateUserProfileInput): UserProfile => {
+  const current = ensureUserProfile(input.userId);
+  const updated: UserProfile = {
+    ...current,
+    name: input.name ?? current.name,
+    bio: input.bio ?? current.bio,
+    avatar: input.avatar ?? current.avatar,
+    updatedAt: new Date().toISOString(),
+  };
+  userProfileStore.set(input.userId, updated);
+  return updated;
+};
+
+export const mockCreateUserProfile = (userId: string, email?: string, name?: string): UserProfile =>
+  ensureUserProfile(userId, email, name);
 
 const ensureUserModel = (userId: string): UserFineTunedModel => {
   const existing = userModelStore.get(userId);
